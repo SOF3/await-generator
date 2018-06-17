@@ -26,8 +26,6 @@ use Exception;
 use Generator;
 use function count;
 use function is_int;
-use function json_encode;
-use function spl_object_id;
 
 final class Await{
 	public const CALLBACK = "callback";
@@ -44,7 +42,6 @@ final class Await{
 	protected $waitingArgs;
 
 	private function __construct(){
-		echo spl_object_id($this) . ": ", "Constructed " . __CLASS__ . "\n";
 	}
 
 	public static function closure(callable $closure, ?callable $onComplete = null) : Await{
@@ -61,7 +58,6 @@ final class Await{
 	}
 
 	public function continue() : void{
-		echo spl_object_id($this) . ": ", "continue()\n";
 
 		if(!$this->generator->valid()){
 			if($this->onComplete !== null){
@@ -81,23 +77,19 @@ final class Await{
 
 		switch($key){
 			case Await::CALLBACK:
-				echo spl_object_id($this) . ": ", "Yielded CALLBACK\n";
 				$this->generator->send([$this, "waitComplete"]);
 				$this->continue();
 				return;
 
 			case Await::ASYNC:
-				echo spl_object_id($this) . ": ", "Yielded ASYNC\n";
 				$this->wait();
 				return;
 
 			case Await::FROM:
-				echo spl_object_id($this) . ": ", "Yielded FROM\n";
 				if(!($current instanceof Generator)){
 					throw $this->generator->throw(new Exception("Can only yield from a generator"));
 				}
 				self::func($current, [$this, "waitComplete"]);
-				echo spl_object_id($this) . ": ", "wait() due to yielding FROM, waiting=" . json_encode($this->waiting) . "\n";
 				$this->wait();
 				return;
 
@@ -108,7 +100,6 @@ final class Await{
 
 	public function waitComplete(...$args) : void{
 		$this->waitingArgs = $args;
-		echo spl_object_id($this) . ": ", "wait() due to completion, waiting=" . json_encode($this->waiting) . "\n";
 		$this->wait();
 	}
 
