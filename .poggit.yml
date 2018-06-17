@@ -1,0 +1,5 @@
+projects:
+  await-generator:
+    path: await-generator
+    type: library
+    model: virion

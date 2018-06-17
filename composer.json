@@ -1,0 +1,25 @@
+{
+	"name": "sof3/await-generator",
+	"description": "Use async/await in PHP using generators",
+	"type": "library",
+	"readme": "README.md",
+	"license": "apache-2.0",
+	"version": "1.0.0",
+	"homepage": "https://github.com/SOF3/await-generator",
+	"authors": [
+		{
+			"name": "SOFe",
+			"email": "sofe2038@gmail.com"
+		}
+	],
+	"autoload": {
+		"psr-0": {
+			"SOFe\\AwaitGenerator\\": "await-generator/src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-0": {
+			"virion_tests\\SOFe\\AwaitGenerator\\": "tests/"
+		}
+	}
+}
