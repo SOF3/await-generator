@@ -93,11 +93,10 @@ final class Await{
 	}
 
 	public function continue() : void{
-
 		if(!$this->generator->valid()){
 			if($this->onComplete !== null){
 				$ret = $this->generator->getReturn();
-				($this->onComplete)(...(array) $ret);
+				($this->onComplete)($ret);
 			}
 			return;
 		}
