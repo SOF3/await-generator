@@ -62,7 +62,7 @@ use function is_int;
  * array. If there is only one element, it does not need to be wrapped with an array unless it is null or an array
  * itself.
  */
-final class Await{
+class Await{
 	public const CALLBACK = "callback";
 	public const FROM = "from";
 	public const ASYNC = "async";
