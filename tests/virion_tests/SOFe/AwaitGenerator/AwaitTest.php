@@ -38,7 +38,8 @@ class AwaitTest{
 			$a = yield Await::FROM => $this->async_a();
 			$b = yield Await::FROM => $this->async_b();
 			return [$a, $b];
-		}, function($a, $b){
+		}, function($ab){
+			[$a, $b] = $ab;
 			[$a1, $a2] = $a;
 			echo "$a1, $a2, $b\n";
 		});
