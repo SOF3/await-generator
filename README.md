@@ -1,4 +1,4 @@
-# await-generator
+# await-generator [![Build Status](https://travis-ci.org/SOF3/await-generator.svg?branch=master)](https://travis-ci.org/SOF3/await-generator)
 A library to use async/await in PHP using generators.
 
 A quick comparison between a class written in traditional callback-async pattern (leading to the infamous callback hell) and one written in the await-generator pattern: [CallbackHellControl.php](tests/virion_tests/SOFe/AwaitGenerator/CallbackHellControl.php) vs [AwaitTest.php](tests/virion_tests/SOFe/AwaitGenerator/AwaitTest.php).
