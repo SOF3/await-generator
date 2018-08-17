@@ -34,9 +34,21 @@ class VoidCallbackPromise extends AbstractPromise{
 
 	public function resolve($value) : void{
 		parent::resolve($value);
+		if($this->cancelled){
+			return;
+		}
+		if($this->await->isSleeping()){
+			$this->await->recheckPromiseQueue();
+		}
 	}
 
 	public function reject(Throwable $value) : void{
 		parent::reject($value);
+		if($this->cancelled){
+			return;
+		}
+		if($this->await->isSleeping()){
+			$this->await->recheckPromiseQueue();
+		}
 	}
 }

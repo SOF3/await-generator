@@ -36,6 +36,9 @@ abstract class AbstractPromise{
 	/** @var Throwable */
 	protected $rejected;
 
+	/** @var bool  */
+	protected $cancelled = false;
+
 	public function resolve($value) : void{
 		$this->state = self::STATE_RESOLVED;
 		$this->resolved = $value;

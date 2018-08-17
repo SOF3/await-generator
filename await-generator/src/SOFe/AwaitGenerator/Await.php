@@ -22,11 +22,11 @@ declare(strict_types=1);
 
 namespace SOFe\AwaitGenerator;
 
-use function assert;
 use Generator;
 use RuntimeException;
 use Throwable;
 use UnexpectedValueException;
+use function assert;
 use function count;
 use function is_callable;
 
@@ -189,6 +189,9 @@ class Await extends AbstractPromise{
 					return null;
 				}
 				if($promise->state === self::STATE_REJECTED){
+					foreach($this->promiseQueue as $p){
+						$p->cancelled = true;
+					}
 					$this->promiseQueue = [];
 					$ex = $promise->rejected;
 					return function() use($ex) : void{
@@ -208,7 +211,37 @@ class Await extends AbstractPromise{
 		if($current instanceof Generator){
 			// TODO implement
 		}
+
 		throw new UnexpectedValueException("Unknown yield value: $current");
+	}
+
+	public function recheckPromiseQueue() : void{
+		assert($this->sleeping);
+		$current = $this->generator->current();
+		$results = [];
+		foreach($this->promiseQueue as $promise){
+			if($promise->state === self::STATE_PENDING){
+				return;
+			}
+			if($promise->state === self::STATE_REJECTED){
+				foreach($this->promiseQueue as $p){
+					$p->cancelled = true;
+				}
+				$this->promiseQueue = [];
+				$ex = $promise->rejected;
+				$this->wakeupFlat(function() use($ex) : void{
+					$this->generator->throw($ex);
+				});
+				return;
+			}
+			assert($promise->state === self::STATE_RESOLVED);
+			$results[] = $promise->resolved;
+		}
+		// all resolved
+		$this->promiseQueue = [];
+		$this->wakeupFlat(function() use($current, $results){
+			$this->generator->send($current === self::ONCE ? $results[0] : $results);
+		});
 	}
 
 	public function resolve($value) : void{
@@ -233,5 +266,9 @@ class Await extends AbstractPromise{
 			}
 		}
 		throw new RuntimeException("Unhandled async exception", 0, $throwable);
+	}
+
+	public function isSleeping() : bool{
+		return $this->sleeping;
 	}
 }

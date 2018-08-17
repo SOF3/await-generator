@@ -26,6 +26,7 @@ use Closure;
 use Generator;
 use PHPUnit\Framework\TestCase;
 use Throwable;
+use function var_dump;
 
 /**
  * @small
@@ -115,14 +116,14 @@ class AwaitTest extends TestCase{
 	public function testOneVoidLaterResolve() : void{
 		$rand = 0xFEEDFACE;
 		self::assertLaterResolve(function() use ($rand) : Generator{
-			yield self::voidCallbackLater($rand, yield Await::RESOLVE) => Await::ONCE;
+			return yield self::voidCallbackLater($rand, yield Await::RESOLVE) => Await::ONCE;
 		}, $rand);
 	}
 
 	public function testOneVoidImmediateReject() : void{
 		$exception = new DummyException();
 		self::assertImmediateReject(function() use ($exception) : Generator{
-			yield; // unused
+			yield Await::RESOLVE; // unused
 			yield self::voidCallbackImmediate($exception, yield Await::REJECT) => Await::ONCE;
 		}, $exception);
 	}
@@ -130,60 +131,63 @@ class AwaitTest extends TestCase{
 	public function testOneVoidLaterReject() : void{
 		$exception = new DummyException();
 		self::assertLaterReject(function() use ($exception) : Generator{
+			yield Await::RESOLVE; // unused
 			yield self::voidCallbackLater($exception, yield Await::REJECT) => Await::ONCE;
 		}, $exception);
 	}
 
-	private static function callGenerator(Closure $closure, &$resolveCalled, &$resolveValue, &$rejectCalled, &$rejectValue) : void{
-		$resolveCalled = false;
-		$resolveValue = null;
-		$rejectCalled = false;
-		$rejectValue = null;
-		Await::f2c($closure, function($value) use (&$resolveCalled, &$resolveValue){
-			$resolveCalled = true;
-			$resolveValue = $value;
-		}, function($value) use (&$rejectCalled, &$rejectValue){
-			$rejectCalled = true;
-			$rejectValue = $value;
-		});
-	}
-
 	private static function assertImmediateResolve(Closure $closure, $expect) : void{
-		self::callGenerator($closure, $resolveCalled, $resolveValue, $rejectCalled, $rejectValue);
-		self::assertTrue($resolveCalled);
-		self::assertFalse($rejectCalled);
-		self::assertEquals($expect, $resolveValue);
+		$resolveCalled = false;
+		Await::f2c($closure, function($actual) use ($expect, &$resolveCalled) : void{
+			$resolveCalled = true;
+			self::assertEquals($expect, $actual);
+		}, function(Throwable $ex) : void{
+			self::assertTrue(false, "unexpected reject call: " . $ex->getMessage());
+		});
+		self::assertTrue($resolveCalled, "resolve was not called");
 	}
 
 	private static function assertLaterResolve(Closure $closure, $expect) : void{
-		self::callGenerator($closure, $resolveCalled, $resolveValue, $rejectCalled, $rejectValue);
-		self::assertFalse($resolveCalled);
-		self::assertFalse($rejectCalled);
+		$laterCalled = false;
+		$resolveCalled = false;
+		Await::f2c($closure, function($actual) use ($expect, &$laterCalled, &$resolveCalled) : void{
+			self::assertTrue($laterCalled, "resolve called before callLater()");
+			$resolveCalled = true;
+			self::assertEquals($expect, $actual);
+		}, function(Throwable $ex) : void{
+			self::assertTrue(false, "unexpected reject call: " . $ex->getMessage());
+		});
 
+		$laterCalled = true;
 		self::callLater();
-		self::assertTrue($resolveCalled);
-		self::assertFalse($rejectCalled);
-		self::assertEquals($expect, $resolveValue);
+		self::assertTrue($resolveCalled, "resolve was not called");
 	}
 
 	private static function assertImmediateReject(Closure $closure, Throwable $object) : void{
-		self::callGenerator($closure, $resolveCalled, $resolveValue, $rejectCalled, $rejectValue);
-		self::assertFalse($resolveCalled);
-		self::assertTrue($rejectCalled);
-		self::assertEquals($object, $rejectValue);
+		$rejectCalled = false;
+		Await::f2c($closure, function() : void{
+			self::assertTrue(false, "unexpected resolve call");
+		}, function(Throwable $ex) use ($object, &$rejectCalled) : void{
+			$rejectCalled = true;
+			self::assertEquals($object, $ex);
+		});
+		self::assertTrue($rejectCalled, "reject was not called");
 	}
 
 	private static function assertLaterReject(Closure $closure, Throwable $object) : void{
-		self::callGenerator($closure, $resolveCalled, $resolveValue, $rejectCalled, $rejectValue);
-		self::assertFalse($resolveCalled);
-		if($rejectCalled){
-			throw $object;
-		}
+		$laterCalled = false;
+		$rejectCalled = false;
+		Await::f2c($closure, function() : void{
+			self::assertTrue(false, "unexpected reject call");
+		}, function(Throwable $ex) use ($object, &$laterCalled, &$rejectCalled) : void{
+			self::assertTrue($laterCalled, "reject called before callLater(): " . $ex->getMessage());
+			$rejectCalled = true;
+			self::assertEquals($object, $ex);
+		});
 
+		$laterCalled = true;
 		self::callLater();
-		self::assertFalse($resolveCalled);
-		self::assertTrue($rejectCalled);
-		self::assertEquals($object, $rejectValue);
+		self::assertTrue($rejectCalled, "reject was not called");
 	}
 
 	private static function callLater() : void{
