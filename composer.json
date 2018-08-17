@@ -4,7 +4,7 @@
 	"type": "library",
 	"readme": "README.md",
 	"license": "apache-2.0",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"authors": [
 		{
 			"name": "SOFe",
@@ -20,5 +20,8 @@
 		"psr-0": {
 			"virion_tests\\SOFe\\AwaitGenerator\\": "tests/"
 		}
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^7"
 	}
 }

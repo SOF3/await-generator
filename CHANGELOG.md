@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## 2.0.0
+Complete rewrite
+
 ## 1.0.0
 - Entry level
 	- `Await::func`

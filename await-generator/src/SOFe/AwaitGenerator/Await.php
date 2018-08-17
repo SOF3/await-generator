@@ -22,10 +22,13 @@ declare(strict_types=1);
 
 namespace SOFe\AwaitGenerator;
 
-use Exception;
+use function assert;
 use Generator;
+use RuntimeException;
+use Throwable;
+use UnexpectedValueException;
 use function count;
-use function is_int;
+use function is_callable;
 
 /**
  * await-generator is a wrapper to convert a traditional callback-async function into async/await functions.
@@ -62,89 +65,173 @@ use function is_int;
  * array. If there is only one element, it does not need to be wrapped with an array unless it is null or an array
  * itself.
  */
-class Await{
-	public const CALLBACK = "callback";
-	public const FROM = "from";
-	public const ASYNC = "async";
+class Await extends AbstractPromise{
+	public const RESOLVE = "resolve";
+	public const REJECT = "reject";
+	public const ONCE = "once";
+	public const ALL = "all";
 
 	/** @var Generator */
 	protected $generator;
 	/** @var callable|null */
 	protected $onComplete;
+	/** @var callable[]|null[] */
+	protected $catches = [];
 	/** @var bool */
-	protected $waiting = false;
-	/** @var array */
-	protected $waitingArgs;
+	protected $sleeping;
+	/** @var AbstractPromise[] */
+	protected $promiseQueue = [];
+	/** @var VoidCallbackPromise|null */
+	protected $lastResolveUnrejected = null;
 
-	private function __construct(){
+	protected function __construct(){
 	}
 
-	public static function closure(callable $closure, ?callable $onComplete = null) : Await{
-		return self::func($closure(), $onComplete);
+	/**
+	 * Converts a Function<AwaitGenerator> to a VoidCallback
+	 *
+	 * @param callable       $closure
+	 * @param callable|null  $onComplete
+	 * @param array|callable $catches
+	 *
+	 * @return Await
+	 */
+	public static function f2c(callable $closure, ?callable $onComplete = null, $catches = []) : Await{
+		return self::g2c($closure(), $onComplete, $catches);
 	}
 
-	public static function func(Generator $generator, ?callable $onComplete = null) : Await{
+	/**
+	 * Converts an AwaitGenerator to a VoidCallback
+	 *
+	 * @param Generator      $generator
+	 * @param callable|null  $onComplete
+	 * @param array|callable $catches
+	 *
+	 * @return Await
+	 */
+	public static function g2c(Generator $generator, ?callable $onComplete = null, $catches = []) : Await{
 		$await = new Await;
 		$await->generator = $generator;
 		$await->onComplete = $onComplete;
-		$await->continue();
-
+		$await->catches = is_callable($catches) ? ["" => $catches] : $catches;
+		$await->wakeupFlat([$generator, "rewind"]);
 		return $await;
 	}
 
-	public function continue() : void{
+	/**
+	 * A wrapper around wakeup() to convert deep recursion to tail recursion
+	 *
+	 * @param callable|null $executor
+	 */
+	public function wakeupFlat(?callable $executor) : void{
+		while($executor !== null){
+			$executor = $this->wakeup($executor);
+		}
+	}
+
+	/**
+	 * Calls $executor and returns the next function to execute
+	 *
+	 * @param callable $executor a function that triggers the execution of the generator
+	 *
+	 * @return callable|null
+	 */
+	public function wakeup(callable $executor) : ?callable{
+		try{
+			$this->sleeping = false;
+			$executor();
+		}catch(Throwable $throwable){
+			$this->reject($throwable);
+			return null;
+		}
+
 		if(!$this->generator->valid()){
-			if($this->onComplete !== null){
-				$ret = $this->generator->getReturn();
-				($this->onComplete)($ret);
-			}
-			return;
+			$ret = $this->generator->getReturn();
+			$this->resolve($ret);
+			return null;
 		}
 
 		$key = $this->generator->key();
-		$current = $this->generator->current();
+		$current = $this->generator->current() ?? self::RESOLVE;
 
-		if(is_int($key)){
-			$key = $current ?? Await::CALLBACK;
-			$current = null;
+		if($current === self::RESOLVE){
+			return function() : void{
+				$promise = new VoidCallbackPromise($this);
+				$this->promiseQueue[] = $promise;
+				$this->lastResolveUnrejected = $promise;
+				$this->generator->send([$promise, "resolve"]);
+			};
 		}
 
-		switch($key){
-			case Await::CALLBACK:
-				$this->generator->send([$this, "waitComplete"]);
-				$this->continue();
-				return;
-
-			case Await::ASYNC:
-				$this->wait();
-				return;
-
-			case Await::FROM:
-				if(!($current instanceof Generator)){
-					throw $this->generator->throw(new Exception("Can only yield from a generator"));
+		if($current === self::REJECT){
+			return function() : void{
+				if($this->lastResolveUnrejected === null){
+					throw new RuntimeException("Cannot yield Await::REJECT without yielding Await::RESOLVE first; they must be yielded in pairs");
 				}
-				self::func($current, [$this, "waitComplete"]);
-				$this->wait();
-				return;
-
-			default:
-				throw $this->generator->throw(new Exception("Unknown yield mode $key"));
+				$promise = $this->lastResolveUnrejected;
+				$this->lastResolveUnrejected = null;
+				$this->generator->send([$promise, "reject"]);
+			};
 		}
+
+		$this->lastResolveUnrejected = null;
+
+		if($current === self::ONCE || $current === self::ALL){
+			if($current === self::ONCE && count($this->promiseQueue) !== 1){
+				throw new RuntimeException("Yielded Await::ONCE when the pending queue size is " . count($this->promiseQueue) . " != 1");
+			}
+
+			$results = [];
+
+			foreach($this->promiseQueue as $promise){
+				if($promise->state === self::STATE_PENDING){
+					$this->sleeping = true;
+					return null;
+				}
+				if($promise->state === self::STATE_REJECTED){
+					$this->promiseQueue = [];
+					$ex = $promise->rejected;
+					return function() use($ex) : void{
+						$this->generator->throw($ex);
+					};
+				}
+				assert($promise->state === self::STATE_RESOLVED);
+				$results[] = $promise->resolved;
+			}
+			// all resolved
+			$this->promiseQueue = [];
+			return function() use($current, $results) : void{
+				$this->generator->send($current === self::ONCE ? $results[0] : $results);
+			};
+		}
+
+		if($current instanceof Generator){
+			// TODO implement
+		}
+		throw new UnexpectedValueException("Unknown yield value: $current");
 	}
 
-	public function waitComplete(...$args) : void{
-		$this->waitingArgs = $args;
-		$this->wait();
-	}
-
-	private function wait() : void{
-		if(!$this->waiting){
-			$this->waiting = true;
+	public function resolve($value) : void{
+		if(!empty($this->promiseQueue)){
+			$this->reject(new UnresolvedCallbackException());
 			return;
 		}
+		$this->sleeping = true;
+		parent::resolve($value);
+		if($this->onComplete){
+			($this->onComplete)($this->resolved);
+		}
+	}
 
-		$this->waiting = false;
-		$this->generator->send(count($this->waitingArgs) === 1 ? $this->waitingArgs[0] : $this->waitingArgs);
-		$this->continue();
+	public function reject(Throwable $throwable) : void{
+		$this->sleeping = true;
+		parent::reject($throwable);
+		foreach($this->catches as $class => $onError){
+			if($class === "" || $throwable instanceof $class){
+				$onError($throwable);
+				return;
+			}
+		}
+		throw new RuntimeException("Unhandled async exception", 0, $throwable);
 	}
 }
