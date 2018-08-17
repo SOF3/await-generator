@@ -22,14 +22,19 @@ declare(strict_types=1);
 
 namespace SOFe\AwaitGenerator;
 
+use Closure;
 use Generator;
 use PHPUnit\Framework\TestCase;
+use Throwable;
 use function rand;
 
 /**
  * @small
  */
 class AwaitTest extends TestCase{
+	/** @var callable[] */
+	private static $later = [];
+
 	public function testEmptyGeneratorCreation() : void{
 		$rand = rand();
 		$generator = GeneratorUtil::empty($rand);
@@ -92,5 +97,110 @@ class AwaitTest extends TestCase{
 			}
 		]);
 		self::assertTrue($thrown, "UnresolvedCallbackException was not thrown");
+	}
+
+	public function testOneVoidImmediateResolveNull() : void{
+		$rand = rand();
+		self::assertImmediateResolve(function() use ($rand) : Generator{
+			yield self::voidCallbackImmediate($rand, yield) => Await::ONCE;
+		}, $rand);
+	}
+
+	public function testOneVoidImmediateResolve() : void{
+		$rand = rand();
+		self::assertImmediateResolve(function() use ($rand) : Generator{
+			yield self::voidCallbackImmediate($rand, yield Await::RESOLVE) => Await::ONCE;
+		}, $rand);
+	}
+
+	public function testOneVoidLaterResolve() : void{
+		$rand = rand();
+		self::assertLaterResolve(function() use ($rand) : Generator{
+			yield self::voidCallbackLater($rand, yield Await::RESOLVE) => Await::ONCE;
+		}, $rand);
+	}
+
+	public function testOneVoidImmediateReject() : void{
+		$exception = new DummyException();
+		self::assertImmediateReject(function() use ($exception) : Generator{
+			yield; // unused
+			yield self::voidCallbackImmediate($exception, yield Await::REJECT) => Await::ONCE;
+		}, $exception);
+	}
+
+	public function testOneVoidLaterReject() : void{
+		$exception = new DummyException();
+		self::assertLaterReject(function() use ($exception) : Generator{
+			yield self::voidCallbackLater($exception, yield Await::REJECT) => Await::ONCE;
+		}, $exception);
+	}
+
+	private static function callGenerator(Closure $closure, &$resolveCalled, &$resolveValue, &$rejectCalled, &$rejectValue) : void{
+		$resolveCalled = false;
+		$resolveValue = null;
+		$rejectCalled = false;
+		$rejectValue = null;
+		Await::f2c($closure, function($value) use (&$resolveCalled, &$resolveValue){
+			$resolveCalled = true;
+			$resolveValue = $value;
+		}, function($value) use (&$rejectCalled, &$rejectValue){
+			$rejectCalled = true;
+			$rejectValue = $value;
+		});
+	}
+
+	private static function assertImmediateResolve(Closure $closure, $expect) : void{
+		self::callGenerator($closure, $resolveCalled, $resolveValue, $rejectCalled, $rejectValue);
+		self::assertTrue($resolveCalled);
+		self::assertFalse($rejectCalled);
+		self::assertEquals($expect, $resolveValue);
+	}
+
+	private static function assertLaterResolve(Closure $closure, $expect) : void{
+		self::callGenerator($closure, $resolveCalled, $resolveValue, $rejectCalled, $rejectValue);
+		self::assertFalse($resolveCalled);
+		self::assertFalse($rejectCalled);
+
+		self::callLater();
+		self::assertTrue($resolveCalled);
+		self::assertFalse($rejectCalled);
+		self::assertEquals($expect, $resolveValue);
+	}
+
+	private static function assertImmediateReject(Closure $closure, Throwable $object) : void{
+		self::callGenerator($closure, $resolveCalled, $resolveValue, $rejectCalled, $rejectValue);
+		self::assertFalse($resolveCalled);
+		self::assertTrue($rejectCalled);
+		self::assertEquals($object, $rejectValue);
+	}
+
+	private static function assertLaterReject(Closure $closure, Throwable $object) : void{
+		self::callGenerator($closure, $resolveCalled, $resolveValue, $rejectCalled, $rejectValue);
+		self::assertFalse($resolveCalled);
+		if($rejectCalled){
+			throw $object;
+		}
+
+		self::callLater();
+		self::assertFalse($resolveCalled);
+		self::assertTrue($rejectCalled);
+		self::assertEquals($object, $rejectValue);
+	}
+
+	private static function callLater() : void{
+		foreach(self::$later as $c){
+			$c();
+		}
+		self::$later = [];
+	}
+
+	private static function voidCallbackImmediate($ret, callable $callback) : void{
+		$callback($ret);
+	}
+
+	private static function voidCallbackLater($ret, callable $callback) : void{
+		self::$later[] = function() use ($ret, $callback){
+			$callback($ret);
+		};
 	}
 }
