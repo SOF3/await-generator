@@ -23,9 +23,7 @@ declare(strict_types=1);
 namespace SOFe\AwaitGenerator;
 
 use Generator;
-use RuntimeException;
 use Throwable;
-use UnexpectedValueException;
 use function assert;
 use function count;
 use function is_callable;
@@ -165,10 +163,11 @@ class Await extends PromiseState{
 		}
 
 		if($current === self::REJECT){
+			if($this->lastResolveUnrejected === null){
+				$this->reject(new AwaitException("Cannot yield Await::REJECT without yielding Await::RESOLVE first; they must be yielded in pairs"));
+				return null;
+			}
 			return function() : void{
-				if($this->lastResolveUnrejected === null){
-					throw new RuntimeException("Cannot yield Await::REJECT without yielding Await::RESOLVE first; they must be yielded in pairs");
-				}
 				$promise = $this->lastResolveUnrejected;
 				$this->lastResolveUnrejected = null;
 				$this->generator->send([$promise, "reject"]);
@@ -179,7 +178,8 @@ class Await extends PromiseState{
 
 		if($current === self::ONCE || $current === self::ALL){
 			if($current === self::ONCE && count($this->promiseQueue) !== 1){
-				throw new RuntimeException("Yielded Await::ONCE when the pending queue size is " . count($this->promiseQueue) . " != 1");
+				$this->reject(new AwaitException("Yielded Await::ONCE when the pending queue size is " . count($this->promiseQueue) . " != 1"));
+				return null;
 			}
 
 			$results = [];
@@ -195,7 +195,7 @@ class Await extends PromiseState{
 					}
 					$this->promiseQueue = [];
 					$ex = $promise->rejected;
-					return function() use($ex) : void{
+					return function() use ($ex) : void{
 						$this->generator->throw($ex);
 					};
 				}
@@ -204,14 +204,15 @@ class Await extends PromiseState{
 			}
 			// all resolved
 			$this->promiseQueue = [];
-			return function() use($current, $results) : void{
+			return function() use ($current, $results) : void{
 				$this->generator->send($current === self::ONCE ? $results[0] : $results);
 			};
 		}
 
 		if($current instanceof Generator){
 			if(!empty($this->promiseQueue)){
-				throw new UnresolvedCallbackException("Yielding a generator");
+				$this->reject(new UnawaitedCallbackException("Yielding a generator"));
+				return null;
 			}
 			$child = new AwaitChild($this);
 			$await = Await::g2c($current, [$child, "resolve"], [$child, "reject"]);
@@ -229,7 +230,8 @@ class Await extends PromiseState{
 			return null;
 		}
 
-		throw new UnexpectedValueException("Unknown yield value: $current");
+		$this->reject(new AwaitException("Unknown yield value"));
+		return null;
 	}
 
 	public function recheckPromiseQueue() : void{
@@ -246,7 +248,7 @@ class Await extends PromiseState{
 				}
 				$this->promiseQueue = [];
 				$ex = $promise->rejected;
-				$this->wakeupFlat(function() use($ex) : void{
+				$this->wakeupFlat(function() use ($ex) : void{
 					$this->generator->throw($ex);
 				});
 				return;
@@ -256,14 +258,14 @@ class Await extends PromiseState{
 		}
 		// all resolved
 		$this->promiseQueue = [];
-		$this->wakeupFlat(function() use($current, $results){
+		$this->wakeupFlat(function() use ($current, $results){
 			$this->generator->send($current === self::ONCE ? $results[0] : $results);
 		});
 	}
 
 	public function resolve($value) : void{
 		if(!empty($this->promiseQueue)){
-			$this->reject(new UnresolvedCallbackException("Resolution of await generator"));
+			$this->reject(new UnawaitedCallbackException("Resolution of await generator"));
 			return;
 		}
 		$this->sleeping = true;
@@ -282,7 +284,7 @@ class Await extends PromiseState{
 				return;
 			}
 		}
-		throw new RuntimeException("Unhandled async exception", 0, $throwable);
+		throw new AwaitException("Unhandled async exception", 0, $throwable);
 	}
 
 	public function isSleeping() : bool{

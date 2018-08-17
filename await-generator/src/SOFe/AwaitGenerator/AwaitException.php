@@ -24,8 +24,6 @@ namespace SOFe\AwaitGenerator;
 
 use RuntimeException;
 
-class UnresolvedCallbackException extends RuntimeException{
-	public function __construct(string $action){
-		parent::__construct("$action is disallowed when Await::RESOLVE or Await::REJECT was yielded but is not awaited through Await::ONCE, Await::ALL or Await::RACE");
-	}
+class AwaitException extends RuntimeException{
+
 }

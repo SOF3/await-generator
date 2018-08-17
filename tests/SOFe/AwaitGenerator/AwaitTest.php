@@ -26,7 +26,7 @@ use Closure;
 use Generator;
 use PHPUnit\Framework\TestCase;
 use Throwable;
-use function var_dump;
+use function array_shift;
 
 /**
  * @small
@@ -87,16 +87,84 @@ class AwaitTest extends TestCase{
 		self::assertEquals($exception, $rejectValue);
 	}
 
+	public function testBadYield() : void{
+		Await::f2c(function() : Generator{
+			yield "(some invalid value)";
+		}, function(){
+			self::assertTrue(false, "unexpected resolve call");
+		}, function($ex) : void{
+			self::assertInstanceOf(AwaitException::class, $ex);
+			/** @var AwaitException $ex */
+			self::assertEquals("Unknown yield value", $ex->getMessage());
+		});
+	}
+
 	public function testOneUnresolved() : void{
-		$thrown = false;
 		Await::f2c(function() : Generator{
 			yield;
-		}, null, [
-			UnresolvedCallbackException::class => function() use (&$thrown){
-				$thrown = true;
-			}
-		]);
-		self::assertTrue($thrown, "UnresolvedCallbackException was not thrown");
+		}, function(){
+			self::assertTrue(false, "unexpected resolve call");
+		}, function($ex) : void{
+			self::assertInstanceOf(UnawaitedCallbackException::class, $ex);
+			/** @var AwaitException $ex */
+			self::assertEquals("Resolution of await generator is disallowed when Await::RESOLVE or Await::REJECT was yielded but is not awaited through Await::ONCE, Await::ALL or Await::RACE", $ex->getMessage());
+		});
+	}
+
+	public function testRejectOnly() : void{
+		Await::f2c(function() : Generator{
+			yield Await::REJECT;
+		}, function(){
+			self::assertTrue(false, "unexpected resolve call");
+		}, function($ex) : void{
+			self::assertInstanceOf(AwaitException::class, $ex);
+			/** @var AwaitException $ex */
+			self::assertEquals("Cannot yield Await::REJECT without yielding Await::RESOLVE first; they must be yielded in pairs", $ex->getMessage());
+		});
+	}
+
+	public function testDoubleReject() : void{
+		$firstRejectOk = false;
+		Await::f2c(function() use (&$firstRejectOk) : Generator{
+			yield;
+			yield Await::REJECT;
+			$firstRejectOk = true;
+			yield Await::REJECT;
+		}, function(){
+			self::assertTrue(false, "unexpected resolve call");
+		}, function($ex) : void{
+			self::assertInstanceOf(AwaitException::class, $ex);
+			/** @var AwaitException $ex */
+			self::assertEquals("Cannot yield Await::REJECT without yielding Await::RESOLVE first; they must be yielded in pairs", $ex->getMessage());
+		});
+
+		self::assertTrue($firstRejectOk, "first paired rejection failed");
+	}
+
+	public function testOnceAtZero() : void{
+		Await::f2c(function() : Generator{
+			yield Await::ONCE;
+		}, function(){
+			self::assertTrue(false, "unexpected resolve call");
+		}, function($ex) : void{
+			self::assertInstanceOf(AwaitException::class, $ex);
+			/** @var AwaitException $ex */
+			self::assertEquals("Yielded Await::ONCE when the pending queue size is 0 != 1", $ex->getMessage());
+		});
+	}
+
+	public function testOnceAtTwo() : void{
+		Await::f2c(function() : Generator{
+			yield;
+			yield;
+			yield Await::ONCE;
+		}, function(){
+			self::assertTrue(false, "unexpected resolve call");
+		}, function($ex) : void{
+			self::assertInstanceOf(AwaitException::class, $ex);
+			/** @var UnawaitedCallbackException $ex */
+			self::assertEquals("Yielded Await::ONCE when the pending queue size is 2 != 1", $ex->getMessage());
+		});
 	}
 
 	public function testOneVoidImmediateResolveNull() : void{
@@ -135,6 +203,43 @@ class AwaitTest extends TestCase{
 			yield self::voidCallbackLater($exception, yield Await::REJECT) => Await::ONCE;
 		}, $exception);
 	}
+
+	public function testVoidImmediateResolveImmediateResolve() : void{
+		$rand = [0x12345678, 0x4bcd3f96];
+		self::assertImmediateResolve(function() use ($rand) : Generator{
+			$first = yield self::voidCallbackImmediate($rand[0], yield Await::RESOLVE) => Await::ONCE;
+			$second = yield self::voidCallbackImmediate($rand[1], yield Await::RESOLVE) => Await::ONCE;
+			return [$first, $second];
+		}, $rand);
+	}
+
+	public function testVoidImmediateResolveLaterResolve() : void{
+		$rand = [0x12345678, 0x4bcd3f96];
+		self::assertLaterResolve(function() use ($rand) : Generator{
+			$first = yield self::voidCallbackImmediate($rand[0], yield Await::RESOLVE) => Await::ONCE;
+			$second = yield self::voidCallbackLater($rand[1], yield Await::RESOLVE) => Await::ONCE;
+			return [$first, $second];
+		}, $rand);
+	}
+
+	public function testVoidLaterResolveImmediateResolve() : void{
+		$rand = [0x12345678, 0x4bcd3f96];
+		self::assertLaterResolve(function() use ($rand) : Generator{
+			$first = yield self::voidCallbackLater($rand[0], yield Await::RESOLVE) => Await::ONCE;
+			$second = yield self::voidCallbackImmediate($rand[1], yield Await::RESOLVE) => Await::ONCE;
+			return [$first, $second];
+		}, $rand);
+	}
+
+	public function testVoidLaterResolveLaterResolve() : void{
+		$rand = [0x12345678, 0x4bcd3f96];
+		self::assertLaterResolve(function() use ($rand) : Generator{
+			$first = yield self::voidCallbackLater($rand[0], yield Await::RESOLVE) => Await::ONCE;
+			$second = yield self::voidCallbackLater($rand[1], yield Await::RESOLVE) => Await::ONCE;
+			return [$first, $second];
+		}, $rand);
+	}
+
 
 	private static function assertImmediateResolve(Closure $closure, $expect) : void{
 		$resolveCalled = false;
@@ -191,10 +296,9 @@ class AwaitTest extends TestCase{
 	}
 
 	private static function callLater() : void{
-		foreach(self::$later as $c){
+		while(($c = array_shift(self::$later)) !== null){
 			$c();
 		}
-		self::$later = [];
 	}
 
 	private static function voidCallbackImmediate($ret, callable $callback) : void{
