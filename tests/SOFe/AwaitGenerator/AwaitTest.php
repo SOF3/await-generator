@@ -26,7 +26,6 @@ use Closure;
 use Generator;
 use PHPUnit\Framework\TestCase;
 use Throwable;
-use function rand;
 
 /**
  * @small
@@ -36,7 +35,7 @@ class AwaitTest extends TestCase{
 	private static $later = [];
 
 	public function testEmptyGeneratorCreation() : void{
-		$rand = rand();
+		$rand = 0xABADBABE;
 		$generator = GeneratorUtil::empty($rand);
 		$generator->rewind();
 		self::assertFalse($generator->valid());
@@ -54,7 +53,7 @@ class AwaitTest extends TestCase{
 	 * @depends testEmptyGeneratorCreation
 	 */
 	public function testEmpty() : void{
-		$rand = rand();
+		$rand = 0xB16B00B5;
 		$generator = GeneratorUtil::empty($rand);
 		$resolveCalled = false;
 		$rejectCalled = false;
@@ -100,21 +99,21 @@ class AwaitTest extends TestCase{
 	}
 
 	public function testOneVoidImmediateResolveNull() : void{
-		$rand = rand();
+		$rand = 0xCAFEFEED;
 		self::assertImmediateResolve(function() use ($rand) : Generator{
-			yield self::voidCallbackImmediate($rand, yield) => Await::ONCE;
+			return yield self::voidCallbackImmediate($rand, yield) => Await::ONCE;
 		}, $rand);
 	}
 
 	public function testOneVoidImmediateResolve() : void{
-		$rand = rand();
+		$rand = 0xDEADBEEF;
 		self::assertImmediateResolve(function() use ($rand) : Generator{
-			yield self::voidCallbackImmediate($rand, yield Await::RESOLVE) => Await::ONCE;
+			return yield self::voidCallbackImmediate($rand, yield Await::RESOLVE) => Await::ONCE;
 		}, $rand);
 	}
 
 	public function testOneVoidLaterResolve() : void{
-		$rand = rand();
+		$rand = 0xFEEDFACE;
 		self::assertLaterResolve(function() use ($rand) : Generator{
 			yield self::voidCallbackLater($rand, yield Await::RESOLVE) => Await::ONCE;
 		}, $rand);
