@@ -24,7 +24,7 @@ namespace SOFe\AwaitGenerator;
 
 use Throwable;
 
-abstract class AbstractPromise{
+abstract class PromiseState{
 	public const STATE_PENDING = 0;
 	public const STATE_RESOLVED = 1;
 	public const STATE_REJECTED = 2;

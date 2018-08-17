@@ -65,7 +65,7 @@ use function is_callable;
  * array. If there is only one element, it does not need to be wrapped with an array unless it is null or an array
  * itself.
  */
-class Await extends AbstractPromise{
+class Await extends PromiseState{
 	public const RESOLVE = "resolve";
 	public const REJECT = "reject";
 	public const ONCE = "once";
@@ -79,10 +79,11 @@ class Await extends AbstractPromise{
 	protected $catches = [];
 	/** @var bool */
 	protected $sleeping;
-	/** @var AbstractPromise[] */
+	/** @var AwaitChild[] */
 	protected $promiseQueue = [];
-	/** @var VoidCallbackPromise|null */
+	/** @var AwaitChild|null */
 	protected $lastResolveUnrejected = null;
+	protected $current;
 
 	protected function __construct(){
 	}
@@ -152,11 +153,11 @@ class Await extends AbstractPromise{
 		}
 
 		$key = $this->generator->key();
-		$current = $this->generator->current() ?? self::RESOLVE;
+		$this->current = $current = $this->generator->current() ?? self::RESOLVE;
 
 		if($current === self::RESOLVE){
 			return function() : void{
-				$promise = new VoidCallbackPromise($this);
+				$promise = new AwaitChild($this);
 				$this->promiseQueue[] = $promise;
 				$this->lastResolveUnrejected = $promise;
 				$this->generator->send([$promise, "resolve"]);
@@ -209,7 +210,23 @@ class Await extends AbstractPromise{
 		}
 
 		if($current instanceof Generator){
-			// TODO implement
+			if(!empty($this->promiseQueue)){
+				throw new UnresolvedCallbackException("Yielding a generator");
+			}
+			$child = new AwaitChild($this);
+			$await = Await::g2c($current, [$child, "resolve"], [$child, "reject"]);
+
+			if(!$current->valid()){
+				$return = $current->getReturn();
+				return function() use ($return){
+					$this->generator->send($return);
+				};
+			}
+
+			$this->sleeping = true;
+			$this->current = self::ONCE;
+			$this->promiseQueue = [$await];
+			return null;
 		}
 
 		throw new UnexpectedValueException("Unknown yield value: $current");
@@ -217,7 +234,7 @@ class Await extends AbstractPromise{
 
 	public function recheckPromiseQueue() : void{
 		assert($this->sleeping);
-		$current = $this->generator->current();
+		$current = $this->current;
 		$results = [];
 		foreach($this->promiseQueue as $promise){
 			if($promise->state === self::STATE_PENDING){
@@ -246,7 +263,7 @@ class Await extends AbstractPromise{
 
 	public function resolve($value) : void{
 		if(!empty($this->promiseQueue)){
-			$this->reject(new UnresolvedCallbackException());
+			$this->reject(new UnresolvedCallbackException("Resolution of await generator"));
 			return;
 		}
 		$this->sleeping = true;

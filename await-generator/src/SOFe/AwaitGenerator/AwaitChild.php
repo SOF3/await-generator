@@ -24,7 +24,7 @@ namespace SOFe\AwaitGenerator;
 
 use Throwable;
 
-class VoidCallbackPromise extends AbstractPromise{
+class AwaitChild extends PromiseState{
 	/** @var Await */
 	protected $await;
 
