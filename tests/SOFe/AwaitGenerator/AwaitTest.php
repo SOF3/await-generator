@@ -27,6 +27,7 @@ use Generator;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 use function array_shift;
+use function get_class;
 
 /**
  * @small
@@ -133,6 +134,19 @@ class AwaitTest extends TestCase{
 		});
 
 		self::assertTrue($firstRejectOk, "first paired rejection failed");
+	}
+
+	public function testUnhandledImmediateReject() : void{
+		$ex = new DummyException();
+		$generator = GeneratorUtil::throw($ex);
+		try{
+			Await::g2c($generator, function() : void{
+				self::assertTrue(false, "unexpected resolve call");
+			});
+		}catch(AwaitException $e){
+			self::assertEquals("Unhandled async exception", $e->getMessage());
+			self::assertEquals($ex, $e->getPrevious());
+		}
 	}
 
 	public function testOnceAtZero() : void{
@@ -284,6 +298,52 @@ class AwaitTest extends TestCase{
 		}, $rand);
 	}
 
+	public function testVoidAllImmediateRejectLaterResolve() : void{
+		$ex = new DummyException();
+		$rand = 0x1234567B;
+		self::assertImmediateReject(function() use ($ex, $rand) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			self::voidCallbackLater($rand, yield Await::RESOLVE);
+			return yield Await::ALL;
+		}, $ex);
+	}
+
+	public function testVoidAllLaterRejectLaterResolve() : void{
+		$ex = new DummyException();
+		$rand = 0x1234567B;
+		self::assertLaterReject(function() use ($ex, $rand) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			self::voidCallbackLater($rand, yield Await::RESOLVE);
+			return yield Await::ALL;
+		}, $ex);
+	}
+
+	public function testVoidAllImmediateRejectLaterReject() : void{
+		$ex = new DummyException();
+		$rand = 0x1234567B;
+		self::assertImmediateReject(function() use ($ex, $rand) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			return yield Await::ALL;
+		}, $ex);
+	}
+
+	public function testVoidAllLaterRejectLaterReject() : void{
+		$ex = new DummyException();
+		$rand = 0x1234567B;
+		self::assertLaterReject(function() use ($ex, $rand) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			return yield Await::ALL;
+		}, $ex);
+	}
+
 	public function testGeneratorWithoutCollect() : void{
 		Await::f2c(function(){
 			yield;
@@ -335,6 +395,15 @@ class AwaitTest extends TestCase{
 		self::assertLaterResolve(function() : Generator{
 			yield self::generatorVoidLater();
 		}, null);
+	}
+
+
+	protected function tearDown() : void{
+		try{
+			self::$later = [];
+		}catch(Throwable $throwable){
+			echo "Suppressed " . get_class($throwable) . ": " . $throwable->getMessage();
+		}
 	}
 
 

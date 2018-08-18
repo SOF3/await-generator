@@ -34,9 +34,7 @@ class GeneratorUtil{
 	 * @return Generator
 	 */
 	public static function empty($ret = null) : Generator{
-		if(false){
-			yield;
-		}
+		yield from [];
 		return $ret;
 	}
 
@@ -49,9 +47,7 @@ class GeneratorUtil{
 	 * @throws Throwable
 	 */
 	public static function throw(Throwable $throwable) : Generator{
-		if(false){
-			yield;
-		}
+		yield from [];
 		throw $throwable;
 	}
 }
