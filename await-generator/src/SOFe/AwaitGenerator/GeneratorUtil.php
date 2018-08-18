@@ -26,6 +26,13 @@ use Generator;
 use Throwable;
 
 class GeneratorUtil{
+	/**
+	 * Returns a generator that yields nothing and returns $ret
+	 *
+	 * @param mixed $ret
+	 *
+	 * @return Generator
+	 */
 	public static function empty($ret = null) : Generator{
 		if(false){
 			yield;
@@ -33,6 +40,14 @@ class GeneratorUtil{
 		return $ret;
 	}
 
+	/**
+	 * Returns a generator that yields nothing and throws $throwable
+	 *
+	 * @param Throwable $throwable
+	 *
+	 * @return Generator
+	 * @throws Throwable
+	 */
 	public static function throw(Throwable $throwable) : Generator{
 		if(false){
 			yield;

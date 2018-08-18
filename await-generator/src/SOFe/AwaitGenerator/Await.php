@@ -217,10 +217,16 @@ class Await extends PromiseState{
 			$child = new AwaitChild($this);
 			$await = Await::g2c($current, [$child, "resolve"], [$child, "reject"]);
 
-			if(!$current->valid()){
-				$return = $current->getReturn();
-				return function() use ($return){
+			if($await->state === self::STATE_RESOLVED){
+				$return = $await->resolved;
+				return function() use ($return) : void{
 					$this->generator->send($return);
+				};
+			}
+			if($await->state === self::STATE_REJECTED){
+				$ex = $await->rejected;
+				return function() use ($ex) : void{
+					$this->generator->throw($ex);
 				};
 			}
 
