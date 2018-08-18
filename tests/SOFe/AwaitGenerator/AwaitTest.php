@@ -284,6 +284,19 @@ class AwaitTest extends TestCase{
 		}, $rand);
 	}
 
+	public function testGeneratorWithoutCollect() : void{
+		Await::f2c(function(){
+			yield;
+			yield self::generatorVoidImmediate();
+		}, function() : void{
+			self::assertTrue(false, "unexpected resolve call");
+		}, function($ex) : void{
+			self::assertInstanceOf(UnawaitedCallbackException::class, $ex);
+			/** @var AwaitException $ex */
+			self::assertEquals("Yielding a generator is disallowed when Await::RESOLVE or Await::REJECT was yielded but is not awaited through Await::ONCE, Await::ALL or Await::RACE", $ex->getMessage());
+		});
+	}
+
 	public function testGeneratorImmediateResolve() : void{
 		$rand = 0xD3AD8EEF;
 		self::assertImmediateResolve(function() use ($rand) : Generator{
