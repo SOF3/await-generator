@@ -34,21 +34,15 @@ class AwaitChild extends PromiseState{
 
 	public function resolve($value) : void{
 		parent::resolve($value);
-		if($this->cancelled){
-			return;
-		}
-		if($this->await->isSleeping()){
-			$this->await->recheckPromiseQueue();
+		if(!$this->cancelled && $this->await->isSleeping()){
+			$this->await->recheckPromiseQueue($this);
 		}
 	}
 
 	public function reject(Throwable $value) : void{
 		parent::reject($value);
-		if($this->cancelled){
-			return;
-		}
-		if($this->await->isSleeping()){
-			$this->await->recheckPromiseQueue();
+		if(!$this->cancelled && $this->await->isSleeping()){
+			$this->await->recheckPromiseQueue($this);
 		}
 	}
 }

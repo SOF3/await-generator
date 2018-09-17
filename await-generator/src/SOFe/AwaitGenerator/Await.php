@@ -33,6 +33,7 @@ class Await extends PromiseState{
 	public const REJECT = "reject";
 	public const ONCE = "once";
 	public const ALL = "all";
+	public const RACE = "race";
 
 	/** @var Generator */
 	protected $generator;
@@ -100,7 +101,7 @@ class Await extends PromiseState{
 	 *
 	 * @return callable|null
 	 */
-	public function wakeup(callable $executor) : ?callable{
+	protected function wakeup(callable $executor) : ?callable{
 		try{
 			$this->sleeping = false;
 			$executor();
@@ -115,7 +116,7 @@ class Await extends PromiseState{
 			return null;
 		}
 
-		$key = $this->generator->key();
+//		$key = $this->generator->key();
 		$this->current = $current = $this->generator->current() ?? self::RESOLVE;
 
 		if($current === self::RESOLVE){
@@ -141,6 +142,47 @@ class Await extends PromiseState{
 
 		$this->lastResolveUnrejected = null;
 
+		if($current === self::RACE){
+			if(count($this->promiseQueue) === 0){
+				$this->reject(new AwaitException("Yielded Await::RACE when there is nothing racing"));
+				return null;
+			}
+
+			$hasResult = 0; // 0 = all pending, 1 = one resolved, 2 = one rejected
+			foreach($this->promiseQueue as $promise){
+				if($promise->state === self::STATE_RESOLVED){
+					$hasResult = 1;
+					$result = $promise->resolved;
+					break;
+				}
+				if($promise->state === self::STATE_REJECTED){
+					$hasResult = 2;
+					$result = $promise->rejected;
+					break;
+				}
+			}
+
+			if($hasResult !== 0){
+				foreach($this->promiseQueue as $p){
+					$p->cancelled = true;
+				}
+				$this->promiseQueue = [];
+				assert(isset($result));
+				if($hasResult === 1){
+					return function() use ($result){
+						$this->generator->send($result);
+					};
+				}
+				assert($hasResult === 2);
+				return function() use ($result){
+					$this->generator->throw($result);
+				};
+			}
+
+			$this->sleeping = true;
+			return null;
+		}
+
 		if($current === self::ONCE || $current === self::ALL){
 			if($current === self::ONCE && count($this->promiseQueue) !== 1){
 				$this->reject(new AwaitException("Yielded Await::ONCE when the pending queue size is " . count($this->promiseQueue) . " != 1"));
@@ -149,11 +191,8 @@ class Await extends PromiseState{
 
 			$results = [];
 
+			// first check if nothing is immediately rejected
 			foreach($this->promiseQueue as $promise){
-				if($promise->state === self::STATE_PENDING){
-					$this->sleeping = true;
-					return null;
-				}
 				if($promise->state === self::STATE_REJECTED){
 					foreach($this->promiseQueue as $p){
 						$p->cancelled = true;
@@ -164,9 +203,18 @@ class Await extends PromiseState{
 						$this->generator->throw($ex);
 					};
 				}
+			}
+
+			foreach($this->promiseQueue as $promise){
+				// if anything is pending, some others are pending and some others are resolved, but we will eventually get rejected/resolved from the pending promises
+				if($promise->state === self::STATE_PENDING){
+					$this->sleeping = true;
+					return null;
+				}
 				assert($promise->state === self::STATE_RESOLVED);
 				$results[] = $promise->resolved;
 			}
+
 			// all resolved
 			$this->promiseQueue = [];
 			return function() use ($current, $results) : void{
@@ -205,8 +253,28 @@ class Await extends PromiseState{
 		return null;
 	}
 
-	public function recheckPromiseQueue() : void{
+	public function recheckPromiseQueue(AwaitChild $changed) : void{
 		assert($this->sleeping);
+		if($this->current === self::RACE){
+			foreach($this->promiseQueue as $p){
+				$p->cancelled = true;
+			}
+			$this->promiseQueue = [];
+
+			if($changed->state === self::STATE_REJECTED){
+				$ex = $changed->rejected;
+				$this->wakeupFlat(function() use ($ex) : void{
+					$this->generator->throw($ex);
+				});
+			}else{
+				$value = $changed->resolved;
+				$this->wakeupFlat(function() use ($value) : void{
+					$this->generator->send($value);
+				});
+			}
+			return;
+		}
+
 		$current = $this->current;
 		$results = [];
 		foreach($this->promiseQueue as $promise){

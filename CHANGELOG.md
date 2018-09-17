@@ -1,6 +1,10 @@
 Changelog
 ===
 
+## 2.1.0
+- Added `Await::RACE`
+- Fixed later-resolve/immediate-reject with `Await::ALL`
+
 ## 2.0.0
 Complete rewrite
 

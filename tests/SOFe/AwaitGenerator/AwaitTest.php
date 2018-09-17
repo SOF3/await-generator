@@ -175,6 +175,19 @@ class AwaitTest extends TestCase{
 		});
 	}
 
+	public function testRaceAtZero() : void{
+		Await::f2c(function() : Generator{
+			yield Await::RACE;
+		}, function(){
+			self::assertTrue(false, "unexpected resolve call");
+		}, function($ex) : void{
+			self::assertInstanceOf(AwaitException::class, $ex);
+			/** @var UnawaitedCallbackException $ex */
+			self::assertEquals("Yielded Await::RACE when there is nothing racing", $ex->getMessage());
+		});
+	}
+
+
 	public function testVoidImmediateResolveVoid() : void{
 		$rand = 0xCAFEF33D;
 		self::assertImmediateResolve(function() use ($rand) : Generator{
@@ -226,6 +239,7 @@ class AwaitTest extends TestCase{
 		}, $exception);
 	}
 
+
 	public function testVoidOnceImmediateResolveImmediateResolve() : void{
 		$rand = [0x12345678, 0x4bcd3f96];
 		self::assertImmediateResolve(function() use ($rand) : Generator{
@@ -262,6 +276,7 @@ class AwaitTest extends TestCase{
 		}, $rand);
 	}
 
+
 	public function testVoidAllImmediateResolveImmediateResolve() : void{
 		$rand = [0x12345678, 0x4bcd3f96];
 		self::assertImmediateResolve(function() use ($rand) : Generator{
@@ -269,6 +284,17 @@ class AwaitTest extends TestCase{
 			self::voidCallbackImmediate($rand[1], yield Await::RESOLVE);
 			return yield Await::ALL;
 		}, $rand);
+	}
+
+	public function testVoidAllImmediateResolveImmediateReject() : void{
+		$rand = 0x12345678;
+		$ex = new DummyException();
+		self::assertImmediateReject(function() use ($rand, $ex) : Generator{
+			self::voidCallbackImmediate($rand, yield Await::RESOLVE);
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			return yield Await::ALL;
+		}, $ex);
 	}
 
 	public function testVoidAllImmediateResolveLaterResolve() : void{
@@ -280,6 +306,63 @@ class AwaitTest extends TestCase{
 		}, $rand);
 	}
 
+	public function testVoidAllImmediateResolveLaterReject() : void{
+		$rand = 0x12345678;
+		$ex = new DummyException();
+		self::assertLaterReject(function() use ($rand, $ex) : Generator{
+			self::voidCallbackImmediate($rand, yield Await::RESOLVE);
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			return yield Await::ALL;
+		}, $ex);
+	}
+
+	public function testVoidAllImmediateRejectImmediateResolve() : void{
+		$ex = new DummyException();
+		$rand = 0x1234567B;
+		self::assertImmediateReject(function() use ($ex, $rand) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			self::voidCallbackImmediate($rand, yield Await::RESOLVE);
+			return yield Await::ALL;
+		}, $ex);
+	}
+
+	public function testVoidAllImmediateRejectImmediateReject() : void{
+		$ex = new DummyException();
+		$ex2 = new DummyException();
+		self::assertImmediateReject(function() use ($ex, $ex2) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex2, yield Await::REJECT);
+			return yield Await::ALL;
+		}, $ex);
+	}
+
+	public function testVoidAllImmediateRejectLaterResolve() : void{
+		$ex = new DummyException();
+		$rand = 0x1234567B;
+		self::assertImmediateReject(function() use ($ex, $rand) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			self::voidCallbackLater($rand, yield Await::RESOLVE);
+			return yield Await::ALL;
+		}, $ex);
+	}
+
+	public function testVoidAllImmediateRejectLaterReject() : void{
+		$ex = new DummyException();
+		$ex2 = new DummyException();
+		self::assertImmediateReject(function() use ($ex, $ex2) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex2, yield Await::REJECT);
+			return yield Await::ALL;
+		}, $ex);
+	}
+
 	public function testVoidAllLaterResolveImmediateResolve() : void{
 		$rand = [0x12345678, 0x4bcd3f96];
 		self::assertLaterResolve(function() use ($rand) : Generator{
@@ -287,6 +370,17 @@ class AwaitTest extends TestCase{
 			self::voidCallbackImmediate($rand[1], yield Await::RESOLVE);
 			return yield Await::ALL;
 		}, $rand);
+	}
+
+	public function testVoidAllLaterResolveImmediateReject() : void{
+		$rand = 0x12345678;
+		$ex = new DummyException();
+		self::assertImmediateReject(function() use ($rand, $ex) : Generator{
+			self::voidCallbackLater($rand, yield Await::RESOLVE);
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			return yield Await::ALL;
+		}, $ex);
 	}
 
 	public function testVoidAllLaterResolveLaterResolve() : void{
@@ -298,13 +392,36 @@ class AwaitTest extends TestCase{
 		}, $rand);
 	}
 
-	public function testVoidAllImmediateRejectLaterResolve() : void{
+	public function testVoidAllLaterResolveLaterReject() : void{
+		$rand = 0x12345678;
+		$ex = new DummyException();
+		self::assertLaterReject(function() use ($rand, $ex) : Generator{
+			self::voidCallbackLater($rand, yield Await::RESOLVE);
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			return yield Await::ALL;
+		}, $ex);
+	}
+
+	public function testVoidAllLaterRejectImmediateReject() : void{
+		$ex = new DummyException();
+		$ex2 = new DummyException();
+		self::assertImmediateReject(function() use ($ex, $ex2) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex2, yield Await::REJECT);
+			return yield Await::ALL;
+		}, $ex2);
+	}
+
+	public function testVoidAllLaterRejectImmediateResolve() : void{
 		$ex = new DummyException();
 		$rand = 0x1234567B;
-		self::assertImmediateReject(function() use ($ex, $rand) : Generator{
+		self::assertLaterReject(function() use ($ex, $rand) : Generator{
 			yield Await::RESOLVE;
-			self::voidCallbackImmediate($ex, yield Await::REJECT);
-			self::voidCallbackLater($rand, yield Await::RESOLVE);
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			self::voidCallbackImmediate($rand, yield Await::RESOLVE);
 			return yield Await::ALL;
 		}, $ex);
 	}
@@ -320,29 +437,188 @@ class AwaitTest extends TestCase{
 		}, $ex);
 	}
 
-	public function testVoidAllImmediateRejectLaterReject() : void{
+	public function testVoidAllLaterRejectLaterReject() : void{
+		$ex = new DummyException();
+		$ex2 = new DummyException();
+		self::assertLaterReject(function() use ($ex, $ex2) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex2, yield Await::REJECT);
+			return yield Await::ALL;
+		}, $ex);
+	}
+
+
+	public function testVoidRaceImmediateResolveImmediateResolve() : void{
+		$rand = [0x12345678, 0x4bcd3f96];
+		self::assertImmediateResolve(function() use ($rand) : Generator{
+			self::voidCallbackImmediate($rand[0], yield Await::RESOLVE);
+			self::voidCallbackImmediate($rand[1], yield Await::RESOLVE);
+			return yield Await::RACE;
+		}, $rand[0]);
+	}
+
+	public function testVoidRaceImmediateResolveImmediateReject() : void{
+		$rand = 0x12345678;
+		$ex = new DummyException();
+		self::assertImmediateReject(function() use ($rand, $ex) : Generator{
+			self::voidCallbackImmediate($rand, yield Await::RESOLVE);
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			return yield Await::RACE;
+		}, $ex);
+	}
+
+	public function testVoidRaceImmediateResolveLaterResolve() : void{
+		$rand = [0x12345678, 0x4bcd3f96];
+		self::assertImmediateResolve(function() use ($rand) : Generator{
+			self::voidCallbackImmediate($rand[0], yield Await::RESOLVE);
+			self::voidCallbackLater($rand[1], yield Await::RESOLVE);
+			return yield Await::RACE;
+		}, $rand[0]);
+	}
+
+	public function testVoidRaceImmediateResolveLaterReject() : void{
+		$rand = 0x12345678;
+		$ex = new DummyException();
+		self::assertImmediateResolve(function() use ($rand, $ex) : Generator{
+			self::voidCallbackImmediate($rand, yield Await::RESOLVE);
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			return yield Await::RACE;
+		}, $rand);
+	}
+
+	public function testVoidRaceImmediateRejectImmediateResolve() : void{
 		$ex = new DummyException();
 		$rand = 0x1234567B;
 		self::assertImmediateReject(function() use ($ex, $rand) : Generator{
 			yield Await::RESOLVE;
 			self::voidCallbackImmediate($ex, yield Await::REJECT);
-			yield Await::RESOLVE;
-			self::voidCallbackLater($ex, yield Await::REJECT);
-			return yield Await::ALL;
+			self::voidCallbackImmediate($rand, yield Await::RESOLVE);
+			return yield Await::RACE;
 		}, $ex);
 	}
 
-	public function testVoidAllLaterRejectLaterReject() : void{
+	public function testVoidRaceImmediateRejectImmediateReject() : void{
+		$ex = new DummyException();
+		$ex2 = new DummyException();
+		self::assertImmediateReject(function() use ($ex, $ex2) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex2, yield Await::REJECT);
+			return yield Await::RACE;
+		}, $ex);
+	}
+
+	public function testVoidRaceImmediateRejectLaterResolve() : void{
+		$ex = new DummyException();
+		$rand = 0x1234567B;
+		self::assertImmediateReject(function() use ($ex, $rand) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			self::voidCallbackLater($rand, yield Await::RESOLVE);
+			return yield Await::RACE;
+		}, $ex);
+	}
+
+	public function testVoidRaceImmediateRejectLaterReject() : void{
+		$ex = new DummyException();
+		$ex2 = new DummyException();
+		self::assertImmediateReject(function() use ($ex, $ex2) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex2, yield Await::REJECT);
+			return yield Await::RACE;
+		}, $ex);
+	}
+
+	public function testVoidRaceLaterResolveImmediateResolve() : void{
+		$rand = [0x12345678, 0x4bcd3f96];
+		self::assertImmediateResolve(function() use ($rand) : Generator{
+			self::voidCallbackLater($rand[0], yield Await::RESOLVE);
+			self::voidCallbackImmediate($rand[1], yield Await::RESOLVE);
+			return yield Await::RACE;
+		}, $rand[1]);
+	}
+
+	public function testVoidRaceLaterResolveImmediateReject() : void{
+		$rand = 0x12345678;
+		$ex = new DummyException();
+		self::assertImmediateReject(function() use ($rand, $ex) : Generator{
+			self::voidCallbackLater($rand, yield Await::RESOLVE);
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex, yield Await::REJECT);
+			return yield Await::RACE;
+		}, $ex);
+	}
+
+	public function testVoidRaceLaterResolveLaterResolve() : void{
+		$rand = [0x12345678, 0x4BCD3F96];
+		self::assertLaterResolve(function() use ($rand) : Generator{
+			self::voidCallbackLater($rand[0], yield Await::RESOLVE);
+			self::voidCallbackLater($rand[1], yield Await::RESOLVE);
+			return yield Await::RACE;
+		}, $rand[0]);
+	}
+
+	public function testVoidRaceLaterResolveLaterReject() : void{
+		$rand = 0x12345678;
+		$ex = new DummyException();
+		self::assertLaterResolve(function() use ($rand, $ex) : Generator{
+			self::voidCallbackLater($rand, yield Await::RESOLVE);
+			self::voidCallbackLater($ex, yield Await::RESOLVE);
+			return yield Await::RACE;
+		}, $rand);
+	}
+
+	public function testVoidRaceLaterRejectImmediateResolve() : void{
+		$ex = new DummyException();
+		$rand = 0x1234567B;
+		self::assertImmediateResolve(function() use ($ex, $rand) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			self::voidCallbackImmediate($rand, yield Await::RESOLVE);
+			return yield Await::RACE;
+		}, $rand);
+	}
+
+	public function testVoidRaceLaterRejectImmediateReject() : void{
+		$ex = new DummyException();
+		$ex2 = new DummyException();
+		self::assertImmediateReject(function() use ($ex, $ex2) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			yield Await::RESOLVE;
+			self::voidCallbackImmediate($ex2, yield Await::REJECT);
+			return yield Await::RACE;
+		}, $ex2);
+	}
+
+	public function testVoidRaceLaterRejectLaterResolve() : void{
 		$ex = new DummyException();
 		$rand = 0x1234567B;
 		self::assertLaterReject(function() use ($ex, $rand) : Generator{
 			yield Await::RESOLVE;
 			self::voidCallbackLater($ex, yield Await::REJECT);
-			yield Await::RESOLVE;
-			self::voidCallbackLater($ex, yield Await::REJECT);
-			return yield Await::ALL;
+			self::voidCallbackLater($rand, yield Await::RESOLVE);
+			return yield Await::RACE;
 		}, $ex);
 	}
+
+	public function testVoidRaceLaterRejectLaterReject() : void{
+		$ex = new DummyException();
+		$ex2 = new DummyException();
+		self::assertLaterReject(function() use ($ex, $ex2) : Generator{
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex, yield Await::REJECT);
+			yield Await::RESOLVE;
+			self::voidCallbackLater($ex2, yield Await::REJECT);
+			return yield Await::RACE;
+		}, $ex);
+	}
+
 
 	public function testGeneratorWithoutCollect() : void{
 		Await::f2c(function(){
