@@ -22,8 +22,13 @@ declare(strict_types=1);
 
 namespace SOFe\AwaitGenerator;
 
+use Error;
+use Exception;
 use Generator;
+use ReflectionClass;
+use ReflectionGenerator;
 use Throwable;
+use function array_merge;
 use function assert;
 use function count;
 use function is_callable;
@@ -34,6 +39,8 @@ class Await extends PromiseState{
 	public const ONCE = "once";
 	public const ALL = "all";
 	public const RACE = "race";
+
+	public static $debug = true;
 
 	/** @var Generator */
 	protected $generator;
@@ -48,6 +55,9 @@ class Await extends PromiseState{
 	/** @var AwaitChild|null */
 	protected $lastResolveUnrejected = null;
 	protected $current;
+
+	/** @var array */
+	protected $lastTrace = [];
 
 	protected function __construct(){
 	}
@@ -102,6 +112,16 @@ class Await extends PromiseState{
 	 * @return callable|null
 	 */
 	protected function wakeup(callable $executor) : ?callable{
+		if(self::$debug && $this->generator->valid()){
+			$ref = new ReflectionGenerator($this->generator);
+			$this->lastTrace = $ref->getTrace();
+			$this->lastTrace[] = [
+				"file" => $ref->getExecutingFile(),
+				"line" => $ref->getExecutingLine(),
+				"function" => $ref->getFunction()->getName(),
+				"args" => [],
+			];
+		}
 		try{
 			$this->sleeping = false;
 			$executor();
@@ -316,6 +336,11 @@ class Await extends PromiseState{
 
 	public function reject(Throwable $throwable) : void{
 		$this->sleeping = true;
+
+		if(self::$debug){
+			self::injectTrace($throwable, "Generator stack trace", $this->lastTrace);
+		}
+
 		parent::reject($throwable);
 		foreach($this->catches as $class => $onError){
 			if($class === "" || $throwable instanceof $class){
@@ -328,5 +353,32 @@ class Await extends PromiseState{
 
 	public function isSleeping() : bool{
 		return $this->sleeping;
+	}
+
+	private static function getGeneratorTrace(Generator $generator) : array{
+		$ref = new ReflectionGenerator($generator);
+		return $ref->getTrace();
+	}
+
+	private static function injectTrace(Throwable $ex, string $middle, array $trace) : void{
+		if($ex instanceof Error){
+			$class = new ReflectionClass(Error::class);
+		}elseif($ex instanceof Exception){
+			$class = new ReflectionClass(Exception::class);
+		}else{
+			return;
+		}
+		$prop = $class->getProperty("trace");
+		$prop->setAccessible(true);
+		$original = $prop->getValue($ex);
+		$new = array_merge($original, [
+			[
+				"file" => "\x1b[38;5;227mInternal",
+				"line" => 0,
+				"function" => $middle,
+				"args" => [],
+			],
+		], $trace);
+		$prop->setValue($ex, $new);
 	}
 }

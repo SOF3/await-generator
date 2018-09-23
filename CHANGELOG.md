@@ -1,6 +1,10 @@
 Changelog
 ===
 
+## 2.2.0
+- Added debug mode
+	- Generator traces are appended to throwable traces under debug mode
+
 ## 2.1.0
 - Added `Await::RACE`
 - Fixed later-resolve/immediate-reject with `Await::ALL`
