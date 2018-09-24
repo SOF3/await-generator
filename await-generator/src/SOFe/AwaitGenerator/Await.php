@@ -118,7 +118,7 @@ class Await extends PromiseState{
 	 * @return callable|null
 	 */
 	protected function wakeup(callable $executor) : ?callable{
-		if(self::$debug && $this->generator->valid()){
+		if(self::$debug){
 			$ref = new ReflectionGenerator($this->generator);
 			$this->lastTrace = $ref->getTrace();
 			$this->lastTrace[] = [
@@ -253,18 +253,9 @@ class Await extends PromiseState{
 				$this->reject(new UnawaitedCallbackException("Yielding a generator"));
 				return null;
 			}
-			$child = new AwaitChild($this);
 
-			{
-				$await = new Await(false);
-				$await->generator = $current;
-				$await->onComplete = [$child, "resolve"];
-				$await->catches = ["" => [$child, "reject"]];
-				$executor = [$current, "rewind"];
-				while($executor !== null){
-					$executor = $await->wakeup($executor);
-				}
-			} // inline code from g2c to reduce stack trace size
+			$child = new AwaitChild($this);
+			$await = Await::g2c($current, [$child, "resolve"], [$child, "reject"]);
 
 			if($await->state === self::STATE_RESOLVED){
 				$return = $await->resolved;
