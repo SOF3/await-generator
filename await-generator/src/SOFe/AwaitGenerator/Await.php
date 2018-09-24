@@ -42,6 +42,8 @@ class Await extends PromiseState{
 
 	public static $debug = true;
 
+	/** @var bool */
+	private $ultimate;
 	/** @var Generator */
 	protected $generator;
 	/** @var callable|null */
@@ -59,7 +61,8 @@ class Await extends PromiseState{
 	/** @var array */
 	protected $lastTrace = [];
 
-	protected function __construct(){
+	protected function __construct(bool $ultimate){
+		$this->ultimate = $ultimate;
 	}
 
 	/**
@@ -85,11 +88,14 @@ class Await extends PromiseState{
 	 * @return Await
 	 */
 	public static function g2c(Generator $generator, ?callable $onComplete = null, $catches = []) : Await{
-		$await = new Await;
+		$await = new Await(true);
 		$await->generator = $generator;
 		$await->onComplete = $onComplete;
 		$await->catches = is_callable($catches) ? ["" => $catches] : $catches;
-		$await->wakeupFlat([$generator, "rewind"]);
+		$executor = [$generator, "rewind"];
+		while($executor !== null){
+			$executor = $await->wakeup($executor);
+		}
 		return $await;
 	}
 
@@ -248,7 +254,17 @@ class Await extends PromiseState{
 				return null;
 			}
 			$child = new AwaitChild($this);
-			$await = Await::g2c($current, [$child, "resolve"], [$child, "reject"]);
+
+			{
+				$await = new Await(false);
+				$await->generator = $current;
+				$await->onComplete = [$child, "resolve"];
+				$await->catches = ["" => [$child, "reject"]];
+				$executor = [$current, "rewind"];
+				while($executor !== null){
+					$executor = $await->wakeup($executor);
+				}
+			} // inline code from g2c to reduce stack trace size
 
 			if($await->state === self::STATE_RESOLVED){
 				$return = $await->resolved;
@@ -338,7 +354,7 @@ class Await extends PromiseState{
 		$this->sleeping = true;
 
 		if(self::$debug){
-			self::injectTrace($throwable, "Generator stack trace", $this->lastTrace);
+			self::injectTrace($throwable, "Corrected generator stack trace", $this->lastTrace);
 		}
 
 		parent::reject($throwable);
@@ -355,12 +371,15 @@ class Await extends PromiseState{
 		return $this->sleeping;
 	}
 
-	private static function getGeneratorTrace(Generator $generator) : array{
-		$ref = new ReflectionGenerator($generator);
-		return $ref->getTrace();
+	public function isUltimate() : bool{
+		return $this->ultimate;
 	}
 
 	private static function injectTrace(Throwable $ex, string $middle, array $trace) : void{
+		$ultimate = !isset($ex->_AwaitGenerator_injected_trace);
+		/** @noinspection PhpUndefinedFieldInspection */
+		$ex->_AwaitGenerator_injected_trace = true;
+
 		if($ex instanceof Error){
 			$class = new ReflectionClass(Error::class);
 		}elseif($ex instanceof Exception){
@@ -371,14 +390,15 @@ class Await extends PromiseState{
 		$prop = $class->getProperty("trace");
 		$prop->setAccessible(true);
 		$original = $prop->getValue($ex);
-		$new = array_merge($original, [
+		$traceSeparator = $ultimate ? [
 			[
-				"file" => "\x1b[38;5;227mInternal",
+				"file" => "\x1b[38;5;227mInternal\x1b[m",
 				"line" => 0,
 				"function" => $middle,
 				"args" => [],
 			],
-		], $trace);
+		] : [];
+		$new = array_merge($original, $traceSeparator, $trace);
 		$prop->setValue($ex, $new);
 	}
 }
