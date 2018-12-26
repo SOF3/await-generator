@@ -4,6 +4,7 @@ Changelog
 ## 2.2.0
 - Added debug mode
 	- Generator traces are appended to throwable traces under debug mode
+- Resolve function (result of `yield Await::RESOLVE`) no longer requires a parameter
 
 ## 2.1.0
 - Added `Await::RACE`

@@ -32,7 +32,7 @@ class AwaitChild extends PromiseState{
 		$this->await = $await;
 	}
 
-	public function resolve($value) : void{
+	public function resolve($value = null) : void{
 		parent::resolve($value);
 		if(!$this->cancelled && $this->await->isSleeping()){
 			$this->await->recheckPromiseQueue($this);
