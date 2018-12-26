@@ -32,3 +32,104 @@ The following steps are recommended:
 
 ### `yield` vs `yield from`
 The straightforward approach to calling another generator function is to `yield from` that function, but await-generator cannot distinguish the `yield` statements from the current function and the called function. To have separate scopes for both generator functions such that state-sensitive statements like `Await::ALL` work correctly, the generator should be yielded directly.
+
+## Example with [libasynql](https://github.com/poggit/libasynql)
+### Sequential await
+> Task: Execute select query `query1`; for each result row, execute insert query `query2` with the `name` column as `name` from the previous result. Execute queries one by one; don't start the second insert query before the first insert query completes.
+
+Without await-generator:
+
+```php
+$done = function() {
+  $this->getLogger()->info("Done!");
+};
+$onError = function(SqlError $error) {
+  $this->getLogger()->logException($error);
+};
+$this->connector->executeSelect("query1", [], function(array $rows) use($done, $onError) {
+  $i = 0;
+  $next = function() use($next, $done, $onError, &$i) {
+    $this->connector->executeInsert("query2", ["name" => $rows[$i++]["name"]], isset($rows[$i]) ? $next : $done, $onError);
+  };
+  $next();
+}, $onError);
+```
+
+With await-generator:
+
+```php
+function asyncSelect(string $query, array $args) : Generator {
+  $this->connector->executeSelect($query, $args, yield, yield Await::REJECT);
+  return yield Await::ONCE;
+}
+function asyncInsert(string $query, array $args) : Generator {
+  $this->connector->executeInsert($query, $args, yield, yield Await::REJECT);
+  return yield Await::ONCE;
+}
+```
+
+```php
+$done = function() {
+  $this->getLogger()->info("Done!");
+};
+$onError = function(SqlError $error) {
+  $this->getLogger()->logException($error);
+};
+Await::f2c(function() {
+  $rows = yield $this->asyncSelect("query1", []);
+  foreach($rows as $row) {
+    yield $this->asyncInsert("query2", ["name" => $row["name"]]);
+  }
+}, $done, $onError);
+```
+
+Although the first example has shorter code, you can see that the looping logic (the `$next` function) is very complicated.
+
+### Simultaneous await
+> Task: same as above, except all insert queries are executed simultaneously
+
+Without await-generator:
+
+```php
+$done = function() {
+  $this->getLogger()->info("Done!");
+};
+$onError = function(SqlError $error) {
+  $this->getLogger()->logException($error);
+};
+$this->connector->executeSelect("query1", [], function(array $rows) use($done, $onError) {
+  $i = count($rows);
+  foreach($rows as $row) {
+    $this->connector->executeInsert("query2", ["name" => $row["name"]], function() use($done, &$i) {
+      $i--;
+      if($i === 0) $done();
+    }, $onError);
+  }
+}, $onError);
+```
+
+With await-generator:
+
+```php
+function asyncSelect(string $query, array $args) : Generator {
+  $this->connector->executeSelect($query, $args, yield, yield Await::REJECT);
+  return yield Await::ONCE;
+}
+
+```
+
+```php
+$done = function() {
+  $this->getLogger()->info("Done!");
+};
+$onError = function(SqlError $error) {
+  $this->getLogger()->logException($error);
+};
+Await::f2c(function() {
+  $rows = yield $this->asyncSelect("query1", []);
+  foreach($rows as $row) {
+    $this->connector->executeInsert("query2", ["name" => $row["name"]], yield, yield Await::REJECT);
+  }
+  yield Await::ALL;
+}, $done, $onError);
+```
