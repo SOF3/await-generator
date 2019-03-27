@@ -30,8 +30,33 @@ The following steps are recommended:
   - Yielding a Generator will return the return value from the Generator
   - For any original `$onComplete()` + `return` calls, return the argument originally for `$onComplete` directly in an array. Since only one value can be returned, only one value will be passed into the onComplete function, i.e. the value sent to the `yield` statement in the caller for internal calls. For external calls, i.e. where the generator is passed to `Await::f2c()` or `Await::g2c()` directly, argument expansion can be operated manually.
 
+## Best/Idiomatic practices
 ### `yield` vs `yield from`
 The straightforward approach to calling another generator function is to `yield from` that function, but await-generator cannot distinguish the `yield` statements from the current function and the called function. To have separate scopes for both generator functions such that state-sensitive statements like `Await::ALL` work correctly, the generator should be yielded directly.
+
+### Return type hints
+Always add the return type hint generator functions with `Generator`. PHP is a very "PoWeRfUl" language that automatically detects whether a function is a generator function by searching the presence of the `yield` token in the code, so if the developer someday removes all `yield` lines for whatever reason (e.g. behavioural changes), the function is no longer a generator function. To detect this kind of bugs as soon as possible (and also to allow IDEs to report errors), always declare the `Generator` type hint.
+
+### Empty generator function
+As mentioned above, a PHP function is only a generator function when it contains a `yield` token. But a function may still want to return a generator without having `yield` for many reasons, such as interface implementation or API consistency. [This StackOverflow question](https://stackoverflow.com/q/25428615/3990767) discusses a handful of approaches to produce an empty generator.
+
+In await-generator, for the sake of consistency, the idiomatic way to create an immediate-return generator is to add a `false && yield;` line at the beginning of the function. It is more concise than `if(false) yield;` (because some code styles mandate line breaks behind if statements), and it has superstitiously better performance than `yield from [];`. `false &&` is an obvious implication that the following line is dead code, and is rarely used in other occasions, so the expression `false && yield;` is idiomatic to imply "let's make sure this is a generator function". It is reasonable to include this line even in functions that already contain other `yield` statements.
+
+### `yield Await::ONCE`
+The syntax to produce a generator from a callback function consists of two lines:
+
+```php
+callback_function(yield, yield Await::REJECT);
+yield Await::ONCE;
+```
+
+To make code more concise, it is idiomatic to use the following instead:
+
+```php
+yield callback_function(yield, yield Await::REJDCT) => Await::ONCE;
+```
+
+Since await-generator ignores the yielded key for `Await::ONCE`, the following two snippets have identical effect. However, some IDEs might not like this since `callback_function()` most likely returns void and is invalid to use in the yielded key.
 
 ## Example with [libasynql](https://github.com/poggit/libasynql)
 ### Sequential await
