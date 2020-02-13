@@ -20,7 +20,7 @@ jobs:
           tools: composer
       - run: composer install
       - name: phpunit test
-        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+        run: composer test -- --coverage-clover=coverage.xml
       - uses: codecov/codecov-action@v1
         with:
           token: ${{secrets.CODECOV_SECRET}}
@@ -42,4 +42,4 @@ jobs:
           tools: composer
       - run: composer install
       - name: phpstan analyze
-        run: vendor/bin/phpstan analyze
+        run: composer analyze
