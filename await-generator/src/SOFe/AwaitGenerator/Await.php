@@ -53,7 +53,7 @@ class Await extends PromiseState{
 	protected $catches = [];
 	/** @var bool */
 	protected $sleeping;
-	/** @var AwaitChild[] */
+	/** @var PromiseState[] */
 	protected $promiseQueue = [];
 	/** @var AwaitChild|null */
 	protected $lastResolveUnrejected = null;
