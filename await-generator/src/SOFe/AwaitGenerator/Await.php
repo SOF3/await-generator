@@ -143,7 +143,7 @@ class Await extends PromiseState{
 			return null;
 		}
 
-//		$key = $this->generator->key();
+		// $key = $this->generator->key();
 		$this->current = $current = $this->generator->current() ?? self::RESOLVE;
 
 		if($current === self::RESOLVE){
