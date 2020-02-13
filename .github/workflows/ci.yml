@@ -1,0 +1,45 @@
+name: CI
+on:
+  - push
+  - pull_request
+jobs:
+  phpunit:
+    name: phpunit test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version:
+          - "7.2"
+          - "7.3"
+          - "7.4"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: shivammathur/setup-php@v1
+        with:
+          php-version: ${{matrix.php-version}}
+          tools: composer
+      - run: composer install
+      - name: phpunit test
+        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+      - uses: codecov/codecov-action@v1
+        with:
+          token: ${{secrets.CODECOV_SECRET}}
+          fail_ci_if_error: true
+  phpstan:
+    name: phpstan analyze
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version:
+          - "7.2"
+          - "7.3"
+          - "7.4"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: shivammathur/setup-php@v1
+        with:
+          php-version: ${{matrix.php-version}}
+          tools: composer
+      - run: composer install
+      - name: phpstan analyze
+        run: vendor/bin/phpstan analyze
