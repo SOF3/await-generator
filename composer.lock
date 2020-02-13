@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cdf276497140ce497e24b8a152412b77",
+    "content-hash": "9f2ccc3808d303998cb0852fcf05b323",
     "packages": [],
     "packages-dev": [
         {
@@ -425,6 +425,45 @@
                 "stub"
             ],
             "time": "2018-08-05T17:53:17+00:00"
+        },
+        {
+            "name": "phpstan/phpstan",
+            "version": "0.12.10",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phpstan/phpstan.git",
+                "reference": "39004edc7fc308752f625b89b70ad1710708f45e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/39004edc7fc308752f625b89b70ad1710708f45e",
+                "reference": "39004edc7fc308752f625b89b70ad1710708f45e",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1"
+            },
+            "bin": [
+                "phpstan",
+                "phpstan.phar"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.12-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "PHPStan - PHP Static Analysis Tool",
+            "time": "2020-02-12T22:03:42+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
