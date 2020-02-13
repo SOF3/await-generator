@@ -32,6 +32,7 @@ use const DEBUG_BACKTRACE_PROVIDE_OBJECT;
 use function array_merge;
 use function assert;
 use function count;
+use function is_a;
 use function is_callable;
 
 class Await extends PromiseState{
@@ -351,7 +352,7 @@ class Await extends PromiseState{
 
 		parent::reject($throwable);
 		foreach($this->catches as $class => $onError){
-			if($class === "" || $throwable instanceof $class){
+			if($class === "" || is_a($throwable, $class)){
 				$onError($throwable);
 				return;
 			}
