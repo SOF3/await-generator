@@ -28,6 +28,7 @@ use Generator;
 use ReflectionClass;
 use ReflectionGenerator;
 use Throwable;
+use const DEBUG_BACKTRACE_PROVIDE_OBJECT;
 use function array_merge;
 use function assert;
 use function count;
@@ -120,7 +121,7 @@ class Await extends PromiseState{
 	protected function wakeup(callable $executor) : ?callable{
 		if(self::$debug){
 			$ref = new ReflectionGenerator($this->generator);
-			$this->lastTrace = $ref->getTrace();
+			$this->lastTrace = $ref->getTrace(DEBUG_BACKTRACE_PROVIDE_OBJECT);
 			$this->lastTrace[] = [
 				"file" => $ref->getExecutingFile(),
 				"line" => $ref->getExecutingLine(),
