@@ -42,6 +42,7 @@ class Await extends PromiseState{
 	public const ALL = "all";
 	public const RACE = "race";
 
+	/** @var bool */
 	public static $debug = true;
 
 	/** @var bool */
@@ -50,7 +51,10 @@ class Await extends PromiseState{
 	protected $generator;
 	/** @var callable|null */
 	protected $onComplete;
-	/** @var callable[]|null[] */
+	/**
+	 * @var callable[]
+	 * @phpstan-var array<string, callable>
+	 */
 	protected $catches = [];
 	/** @var bool */
 	protected $sleeping;
@@ -58,7 +62,8 @@ class Await extends PromiseState{
 	protected $promiseQueue = [];
 	/** @var AwaitChild|null */
 	protected $lastResolveUnrejected = null;
-	protected $current;
+	/** @var string|null */
+	protected $current = null;
 
 	/** @var array */
 	protected $lastTrace = [];
