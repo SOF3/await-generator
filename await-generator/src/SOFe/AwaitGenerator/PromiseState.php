@@ -39,6 +39,9 @@ abstract class PromiseState{
 	/** @var bool  */
 	protected $cancelled = false;
 
+	/**
+	 * @param mixed $value
+	 */
 	public function resolve($value) : void{
 		$this->state = self::STATE_RESOLVED;
 		$this->resolved = $value;

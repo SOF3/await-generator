@@ -32,6 +32,9 @@ class AwaitChild extends PromiseState{
 		$this->await = $await;
 	}
 
+	/**
+	 * @param mixed $value
+	 */
 	public function resolve($value = null) : void{
 		parent::resolve($value);
 		if(!$this->cancelled && $this->await->isSleeping()){
