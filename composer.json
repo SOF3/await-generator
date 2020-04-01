@@ -26,10 +26,12 @@
 	},
 	"require-dev": {
 		"phpunit/phpunit": "^9",
-		"phpstan/phpstan": "^0.12.10"
+		"phpstan/phpstan": "^0.12.10",
+		"infection/infection": "^0.16.1"
 	},
 	"scripts": {
 		"test": "vendor/bin/phpunit",
-		"analyze": "vendor/bin/phpstan analyze"
+		"analyze": "vendor/bin/phpstan analyze",
+		"infection": "vendor/bin/infection -s"
 	}
 }

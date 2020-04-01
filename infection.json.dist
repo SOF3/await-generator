@@ -1,0 +1,15 @@
+{
+    "source": {
+        "directories": [
+            "await-generator\/src"
+        ]
+    },
+    "logs": {
+        "text": "infection.log",
+        "summary": "infection-summary.log",
+				"perMutator": "infection-per-mutator.md"
+    },
+    "mutators": {
+        "@default": true
+    }
+}

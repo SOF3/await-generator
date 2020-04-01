@@ -680,6 +680,9 @@ class AwaitTest extends TestCase{
 		}catch(Throwable $throwable){
 			echo "Suppressed " . get_class($throwable) . ": " . $throwable->getMessage();
 		}
+
+		$assertions = self::getCount();
+		self::assertGreaterThan(0, $assertions, "Test does not assert anything");
 	}
 
 

@@ -1,2 +1,4 @@
 .idea/*
 /vendor/
+*.log
+infection-per-mutator.md

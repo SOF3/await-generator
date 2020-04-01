@@ -4,7 +4,7 @@ on:
   - pull_request
 jobs:
   phpunit:
-    name: phpunit test
+    name: Unit test
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -41,3 +41,32 @@ jobs:
       - run: composer install
       - name: phpstan analyze
         run: composer analyze
+  infection:
+    name: Mutation test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version:
+          - "7.3"
+          - "7.4"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: shivammathur/setup-php@v1
+        with:
+          php-version: ${{matrix.php-version}}
+          tools: composer
+      - run: composer install
+      - name: infection
+        run: infection
+      - uses: actions/upload-artifact@v1
+        with:
+          name: infection.log
+          path: infection.log
+      - uses: actions/upload-artifact@v1
+        with:
+          name: infection-summary.log
+          path: infection-summary.log
+      - uses: actions/upload-artifact@v1
+        with:
+          name: infection-per-mutator.md
+          path: infection-per-mutator.md
