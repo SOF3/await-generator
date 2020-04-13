@@ -162,6 +162,17 @@ class Await extends PromiseState{
 			};
 		}
 
+		if($current === self::RESOLVE_MULTI){
+			return function() : void{
+				$promise = new AwaitChild($this);
+				$this->promiseQueue[] = $promise;
+				$this->lastResolveUnrejected = $promise;
+				$this->generator->send(static function(...$args) use($promise) : void{
+					$promise->resolve($args);
+				});
+			};
+		}
+
 		if($current === self::REJECT){
 			if($this->lastResolveUnrejected === null){
 				$this->reject(new AwaitException("Cannot yield Await::REJECT without yielding Await::RESOLVE first; they must be yielded in pairs"));
