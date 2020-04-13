@@ -1,6 +1,10 @@
 Changelog
 ===
 
+## 2.3.0
+- Debug backtrace includes objects.
+- Added `Await::RESOLVE_MULTI`
+
 ## 2.2.0
 - Added debug mode
 	- Generator traces are appended to throwable traces under debug mode
