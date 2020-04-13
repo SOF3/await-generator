@@ -223,6 +223,25 @@ class AwaitTest extends TestCase{
 		}, $rand);
 	}
 
+	public function testVoidImmediateResolveMulti() : void{
+		$rand = [0xDEADBEEF, 0xFEEDFACE];
+		$resolveCalled = false;
+
+		$async = function(callable $callback) use($rand) : void {
+			$callback($rand[0], $rand[1]);
+		};
+
+		Await::f2c(function() use($async) : Generator{
+			return yield $async(yield Await::RESOLVE_MULTI) => Await::ONCE;
+		}, function($actual) use ($rand, &$resolveCalled) : void{
+			$resolveCalled = true;
+			self::assertEquals($rand, $actual);
+		}, function(Throwable $ex) : void{
+			self::assertTrue(false, "unexpected reject call: " . $ex->getMessage());
+		});
+		self::assertTrue($resolveCalled, "resolve was not called");
+	}
+
 	public function testVoidImmediateReject() : void{
 		$exception = new DummyException();
 		self::assertImmediateReject(function() use ($exception) : Generator{

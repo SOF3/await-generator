@@ -37,6 +37,7 @@ use function is_callable;
 
 class Await extends PromiseState{
 	public const RESOLVE = "resolve";
+	public const RESOLVE_MULTI = [Await::RESOLVE];
 	public const REJECT = "reject";
 	public const ONCE = "once";
 	public const ALL = "all";
@@ -158,6 +159,17 @@ class Await extends PromiseState{
 				$this->promiseQueue[] = $promise;
 				$this->lastResolveUnrejected = $promise;
 				$this->generator->send([$promise, "resolve"]);
+			};
+		}
+
+		if($current === self::RESOLVE_MULTI){
+			return function() : void{
+				$promise = new AwaitChild($this);
+				$this->promiseQueue[] = $promise;
+				$this->lastResolveUnrejected = $promise;
+				$this->generator->send(static function(...$args) use($promise) : void{
+					$promise->resolve($args);
+				});
 			};
 		}
 
