@@ -37,6 +37,7 @@ use function is_callable;
 
 class Await extends PromiseState{
 	public const RESOLVE = "resolve";
+	public const RESOLVE_MULTI = [Await::RESOLVE];
 	public const REJECT = "reject";
 	public const ONCE = "once";
 	public const ALL = "all";
