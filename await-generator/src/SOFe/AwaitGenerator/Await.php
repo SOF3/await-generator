@@ -74,7 +74,7 @@ class Await extends PromiseState{
 	}
 
 	/**
-	 * Converts a Function<AwaitGenerator> to a VoidCallback
+	 * Converts a `Function<AwaitGenerator>` to a VoidCallback
 	 *
 	 * @param callable       $closure
 	 * @param callable|null  $onComplete
@@ -105,6 +105,65 @@ class Await extends PromiseState{
 			$executor = $await->wakeup($executor);
 		}
 		return $await;
+	}
+
+	/**
+	 * Given an array of generators,
+	 * executes them simultaneously,
+	 * and returns an array with each generator mapped to the value.
+	 * Throws exception as soon as any of the generators throws an exception.
+	 *
+	 * @param Generator[] $generator
+	 * @return mixed[]
+	 */
+	public static function all(array $generators) : Generator{
+		if(count($generators) === 0){
+			throw new AwaitException("Cannot await all on an empty array of generators");
+		}
+
+		foreach($generators as $k => $generator){
+			$resolve = yield;
+			$reject = yield self::REJECT;
+			self::g2c($generator, function($result) use($k, $resolve) {
+				$resolve([$k, $result]);
+			}, $reject);
+		}
+		$all = yield self::ALL;
+		$return = [];
+		foreach($all as [$k, $result]) {
+			$return[$k] = $result;
+		}
+		return $return;
+	}
+
+	/**
+	 * Given an array of generators,
+	 * executes them simultaneously,
+	 * and returns a single-element array `[$k => $v]` as soon as any of the generators returns,
+	 * with `$k` being the key of that generator in the array
+	 * and `$v` being the value returned by the generator.
+	 * Throws exception as soon as any of the generators throws an exception.
+	 *
+	 * Note that the not-yet-resolved generators will keep on running,
+	 * but their return values or exceptions thrown will be ignored.
+	 *
+	 * @param Generator[] $generator
+	 * @return mixed[]
+	 */
+	public static function race(array $generators) : Generator{
+		if(count($generators) === 0){
+			throw new AwaitException("Cannot race an empty array of generators");
+		}
+
+		foreach($generators as $k => $generator){
+			$resolve = yield;
+			$reject = yield self::REJECT;
+			self::g2c($generator, function($result) use($k, $resolve) {
+				$resolve([$k, $result]);
+			}, $reject);
+		}
+		[$k, $result] = yield self::RACE;
+		return [$k => $result];
 	}
 
 	/**
