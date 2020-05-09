@@ -113,8 +113,8 @@ class Await extends PromiseState{
 	 * and returns an array with each generator mapped to the value.
 	 * Throws exception as soon as any of the generators throws an exception.
 	 *
-	 * @param Generator[] $generator
-	 * @return mixed[]
+	 * @param Generator[] $generators
+	 * @return Generator
 	 */
 	public static function all(array $generators) : Generator{
 		if(count($generators) === 0){
@@ -147,8 +147,8 @@ class Await extends PromiseState{
 	 * Note that the not-yet-resolved generators will keep on running,
 	 * but their return values or exceptions thrown will be ignored.
 	 *
-	 * @param Generator[] $generator
-	 * @return mixed[]
+	 * @param Generator[] $generators
+	 * @return Generator
 	 */
 	public static function race(array $generators) : Generator{
 		if(count($generators) === 0){
