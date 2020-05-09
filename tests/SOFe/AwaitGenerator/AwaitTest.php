@@ -692,6 +692,56 @@ class AwaitTest extends TestCase{
 		}, null);
 	}
 
+	public function testGeneratorAllResolve() : void {
+		self::assertLaterResolve(function() : Generator{
+			return yield Await::all([
+				"a" => self::generatorReturnLater("b"),
+				"c" => GeneratorUtil::empty("d"),
+				"e" => self::generatorVoidLater(),
+			]);
+		}, [
+			"a" => "b",
+			"c" => "d",
+			"e" => null,
+		]);
+	}
+
+	public function testGeneratorAllEmpty() : void {
+		try{
+			Await::f2c(function() : Generator{
+				yield Await::all([]);
+			}, function() : void{
+				self::assertTrue(false, "unexpected resolve call");
+			});
+		}catch(AwaitException $e){
+			self::assertEquals("Unhandled async exception", $e->getMessage());
+			self::assertEquals("Cannot await all on an empty array of generators", $e->getPrevious()->getMessage());
+		}
+	}
+
+	public function testGeneratorRaceEmpty() : void {
+		try{
+			Await::f2c(function() : Generator{
+				yield Await::race([]);
+			}, function() : void{
+				self::assertTrue(false, "unexpected resolve call");
+			});
+		}catch(AwaitException $e){
+			self::assertEquals("Unhandled async exception", $e->getMessage());
+			self::assertEquals("Cannot race an empty array of generators", $e->getPrevious()->getMessage());
+		}
+	}
+
+	public function testGeneratorRaceResolve() : void {
+		self::assertImmediateResolve(function() : Generator{
+			return yield Await::race([
+				"a" => self::generatorReturnLater("b"),
+				"c" => GeneratorUtil::empty("d"),
+				"e" => self::generatorVoidLater(),
+			]);
+		}, ["c" => "d"]);
+	}
+
 
 	protected function tearDown() : void{
 		try{

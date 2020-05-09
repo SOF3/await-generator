@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## 2.4.0
+- Added `Await::all()` and `Await::race()` for a generator interface
+
 ## 2.3.0
 - Debug backtrace includes objects.
 - Added `Await::RESOLVE_MULTI`
