@@ -719,6 +719,16 @@ class AwaitTest extends TestCase{
 		}
 	}
 
+	public function testGeneratorRaceResolve() : void {
+		self::assertImmediateResolve(function() : Generator{
+			return yield Await::race([
+				"a" => self::generatorReturnLater("b"),
+				"c" => GeneratorUtil::empty("d"),
+				"e" => self::generatorVoidLater(),
+			]);
+		}, ["c", "d"]);
+	}
+
 	public function testGeneratorRaceEmpty() : void {
 		try{
 			Await::f2c(function() : Generator{
@@ -730,16 +740,6 @@ class AwaitTest extends TestCase{
 			self::assertEquals("Unhandled async exception", $e->getMessage());
 			self::assertEquals("Cannot race an empty array of generators", $e->getPrevious()->getMessage());
 		}
-	}
-
-	public function testGeneratorRaceResolve() : void {
-		self::assertImmediateResolve(function() : Generator{
-			return yield Await::race([
-				"a" => self::generatorReturnLater("b"),
-				"c" => GeneratorUtil::empty("d"),
-				"e" => self::generatorVoidLater(),
-			]);
-		}, ["c" => "d"]);
 	}
 
 

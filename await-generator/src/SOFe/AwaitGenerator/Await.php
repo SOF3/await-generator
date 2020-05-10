@@ -139,13 +139,17 @@ class Await extends PromiseState{
 	/**
 	 * Given an array of generators,
 	 * executes them simultaneously,
-	 * and returns a single-element array `[$k => $v]` as soon as any of the generators returns,
+	 * and returns a single-element array `[$k, $v]` as soon as any of the generators returns,
 	 * with `$k` being the key of that generator in the array
 	 * and `$v` being the value returned by the generator.
 	 * Throws exception as soon as any of the generators throws an exception.
 	 *
 	 * Note that the not-yet-resolved generators will keep on running,
 	 * but their return values or exceptions thrown will be ignored.
+	 *
+	 * The return value uses `[$k, $v]` instead of `[$k => $v]`.
+	 * The user may use the format `[$k, $v] = yield Await::race(...);`
+	 * to obtain `$k` and `$v` conveniently.
 	 *
 	 * @param Generator[] $generators
 	 * @return Generator
@@ -163,7 +167,7 @@ class Await extends PromiseState{
 			}, $reject);
 		}
 		[$k, $result] = yield self::RACE;
-		return [$k => $result];
+		return [$k, $result];
 	}
 
 	/**
