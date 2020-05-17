@@ -71,8 +71,7 @@ class Await extends PromiseState{
 	/** @var array */
 	protected $lastTrace = [];
 
-	protected function __construct(bool $ultimate){
-		$this->ultimate = $ultimate;
+	protected final function __construct(){
 	}
 
 	/**
@@ -98,7 +97,7 @@ class Await extends PromiseState{
 	 * @return Await
 	 */
 	public static function g2c(Generator $generator, ?callable $onComplete = null, $catches = []) : Await{
-		$await = new Await(true);
+		$await = new Await();
 		$await->generator = $generator;
 		$await->onComplete = $onComplete;
 		$await->catches = is_callable($catches) ? ["" => $catches] : $catches;
@@ -434,9 +433,5 @@ class Await extends PromiseState{
 
 	public function isSleeping() : bool{
 		return $this->sleeping;
-	}
-
-	public function isUltimate() : bool{
-		return $this->ultimate;
 	}
 }
