@@ -28,7 +28,6 @@ use Generator;
 use ReflectionClass;
 use ReflectionGenerator;
 use Throwable;
-use const DEBUG_BACKTRACE_PROVIDE_OBJECT;
 use function array_merge;
 use function assert;
 use function count;
@@ -43,7 +42,10 @@ class Await extends PromiseState{
 	public const ALL = "all";
 	public const RACE = "race";
 
-	/** @var bool */
+	/**
+	 * @deprecated This value is no longer used.
+	 * @var bool
+	 */
 	public static $debug = true;
 
 	/** @var bool */
@@ -189,16 +191,6 @@ class Await extends PromiseState{
 	 * @return callable|null
 	 */
 	protected function wakeup(callable $executor) : ?callable{
-		if(self::$debug){
-			$ref = new ReflectionGenerator($this->generator);
-			$this->lastTrace = $ref->getTrace(DEBUG_BACKTRACE_PROVIDE_OBJECT);
-			$this->lastTrace[] = [
-				"file" => $ref->getExecutingFile(),
-				"line" => $ref->getExecutingLine(),
-				"function" => $ref->getFunction()->getName(),
-				"args" => [],
-			];
-		}
 		try{
 			$this->sleeping = false;
 			$executor();
@@ -426,10 +418,6 @@ class Await extends PromiseState{
 	public function reject(Throwable $throwable) : void{
 		$this->sleeping = true;
 
-		if(self::$debug){
-			self::injectTrace($throwable, "Corrected generator stack trace", $this->lastTrace);
-		}
-
 		parent::reject($throwable);
 		foreach($this->catches as $class => $onError){
 			if($class === "" || is_a($throwable, $class)){
@@ -446,32 +434,5 @@ class Await extends PromiseState{
 
 	public function isUltimate() : bool{
 		return $this->ultimate;
-	}
-
-	private static function injectTrace(Throwable $ex, string $middle, array $trace) : void{
-		$ultimate = !isset($ex->_AwaitGenerator_injected_trace);
-		/** @noinspection PhpUndefinedFieldInspection */
-		$ex->_AwaitGenerator_injected_trace = true;
-
-		if($ex instanceof Error){
-			$class = new ReflectionClass(Error::class);
-		}elseif($ex instanceof Exception){
-			$class = new ReflectionClass(Exception::class);
-		}else{
-			return;
-		}
-		$prop = $class->getProperty("trace");
-		$prop->setAccessible(true);
-		$original = $prop->getValue($ex);
-		$traceSeparator = $ultimate ? [
-			[
-				"file" => "\x1b[38;5;227mInternal\x1b[m",
-				"line" => 0,
-				"function" => $middle,
-				"args" => [],
-			],
-		] : [];
-		$new = array_merge($original, $traceSeparator, $trace);
-		$prop->setValue($ex, $new);
 	}
 }
