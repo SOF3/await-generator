@@ -638,6 +638,19 @@ class AwaitTest extends TestCase{
 		}, $ex);
 	}
 
+	public function testVoidRaceImmediateResolveLaterResolveOnceLaterResolve() : void{
+		$rand = [0x12345678, 0x4bcd3f96, 0xdeadbeef];
+		self::assertLaterResolve(function() use ($rand) : Generator{
+			self::voidCallbackImmediate($rand[0], yield Await::RESOLVE);
+			self::voidCallbackLater($rand[1], yield Await::RESOLVE);
+			$race = yield Await::RACE;
+			self::voidCallbackLater($rand[2], yield Await::RESOLVE);
+			self::$later = array_reverse(self::$later);
+			$once = yield Await::ONCE;
+			return [$race, $once];
+		}, [$rand[0], $rand[2]]);
+	}
+
 
 	public function testGeneratorWithoutCollect() : void{
 		Await::f2c(function(){

@@ -356,6 +356,10 @@ class Await extends PromiseState{
 
 	public function recheckPromiseQueue(AwaitChild $changed) : void{
 		assert($this->sleeping);
+		if($this->current === self::ONCE){
+			assert(count($this->promiseQueue) === 1);
+		}
+
 		if($this->current === self::RACE){
 			foreach($this->promiseQueue as $p){
 				$p->cancelled = true;
