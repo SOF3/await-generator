@@ -30,24 +30,32 @@ class GeneratorUtil{
 	 * Returns a generator that yields nothing and returns $ret
 	 *
 	 * @param mixed $ret
-	 *
 	 * @return Generator
+	 *
+	 * @template T
+	 * @phpstan-param T $ret
+	 * @phpstan-return Generator<never, never, never, T>
 	 */
 	public static function empty($ret = null) : Generator{
-		yield from [];
+		false && yield;
 		return $ret;
 	}
 
 	/**
 	 * Returns a generator that yields nothing and throws $throwable
 	 *
+	 * @template T of Throwable
 	 * @param Throwable $throwable
 	 *
 	 * @return Generator
 	 * @throws Throwable
+	 *
+	 * @phpstan-param T $throwable
+	 * @phpstan-return Generator<never, never, never, never>
+	 * @throws T
 	 */
 	public static function throw(Throwable $throwable) : Generator{
-		yield from [];
+		false && yield;
 		throw $throwable;
 	}
 }

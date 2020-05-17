@@ -1,5 +1,8 @@
+includes:
+	- phpstan-ignore.neon
 parameters:
 	level: 8
+	ignoreErrors:
+		- "#^(Left|Right) side of && is always false\\.$#"
 	paths:
 		- await-generator/src
-	checkMissingIterableValueType: false

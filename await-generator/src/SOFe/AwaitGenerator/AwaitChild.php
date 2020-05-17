@@ -24,10 +24,17 @@ namespace SOFe\AwaitGenerator;
 
 use Throwable;
 
+/**
+ * @template ParentT
+ */
 class AwaitChild extends PromiseState{
-	/** @var Await */
+	/** @var Await<ParentT> */
 	protected $await;
 
+
+	/**
+	 * @phpstan-param Await<ParentT> $await
+	 */
 	public function __construct(Await $await){
 		$this->await = $await;
 	}

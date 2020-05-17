@@ -35,6 +35,9 @@ use function count;
 use function is_a;
 use function is_callable;
 
+/**
+ * @template T
+ */
 class Await extends PromiseState{
 	public const RESOLVE = "resolve";
 	public const RESOLVE_MULTI = [Await::RESOLVE];
@@ -43,28 +46,32 @@ class Await extends PromiseState{
 	public const ALL = "all";
 	public const RACE = "race";
 
-	/** @var bool */
-	private $ultimate;
-	/** @var Generator */
-	protected $generator;
-	/** @var callable|null */
-	protected $onComplete;
+	/**
+	 * @var Generator
+	 * @phpstan-var Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator>, mixed, T>
+	 * */
+	private $generator;
+	/**
+	 * @var callable|null
+	 * @phpstan-var (callable(T): void)|null
+	 */
+	private $onComplete;
 	/**
 	 * @var callable[]
-	 * @phpstan-var array<string, callable>
+	 * @phpstan-var array<string, callable(Throwable): void>
 	 */
-	protected $catches = [];
+	private $catches = [];
 	/** @var bool */
-	protected $sleeping;
+	private $sleeping;
 	/** @var PromiseState[] */
-	protected $promiseQueue = [];
-	/** @var AwaitChild|null */
-	protected $lastResolveUnrejected = null;
-	/** @var string|null */
-	protected $current = null;
-
-	/** @var array */
-	protected $lastTrace = [];
+	private $promiseQueue = [];
+	/** @var AwaitChild<T>|null */
+	private $lastResolveUnrejected = null;
+	/**
+	 * @var string|string[]|null
+	 * @phpstan-var Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator<mixed, mixed, mixed, mixed>|null
+	 */
+	private $current = null;
 
 	protected final function __construct(){
 	}
@@ -72,11 +79,14 @@ class Await extends PromiseState{
 	/**
 	 * Converts a `Function<AwaitGenerator>` to a VoidCallback
 	 *
-	 * @param callable       $closure
-	 * @param callable|null  $onComplete
-	 * @param array|callable $catches
+	 * @param callable            $closure
+	 * @phpstan-param callable(): Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $closure
+	 * @param callable|null       $onComplete
+	 * @phpstan-param (callable(T): void)|null  $onComplete
+	 * @param callable[]|callable $catches
+	 * @phpstan-param array<string, callable(Throwable): void>|callable(Throwable): void $catches
 	 *
-	 * @return Await
+	 * @return Await<T>
 	 */
 	public static function f2c(callable $closure, ?callable $onComplete = null, $catches = []) : Await{
 		return self::g2c($closure(), $onComplete, $catches);
@@ -85,17 +95,25 @@ class Await extends PromiseState{
 	/**
 	 * Converts an AwaitGenerator to a VoidCallback
 	 *
-	 * @param Generator      $generator
-	 * @param callable|null  $onComplete
-	 * @param array|callable $catches
+	 * @param Generator           $generator
+	 * @phpstan-param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $generator
+	 * @param callable|null       $onComplete
+	 * @phpstan-param (callable(T): void)|null  $onComplete
+	 * @param callable[]|callable $catches
+	 * @phpstan-param array<string, callable(Throwable): void>|callable(Throwable): void $catches
 	 *
-	 * @return Await
+	 * @return Await<T>
 	 */
 	public static function g2c(Generator $generator, ?callable $onComplete = null, $catches = []) : Await{
+		/** @var Await<T> $await */
 		$await = new Await();
 		$await->generator = $generator;
 		$await->onComplete = $onComplete;
-		$await->catches = is_callable($catches) ? ["" => $catches] : $catches;
+		if(is_callable($catches)){
+			$await->catches = ["" => $catches];
+		}else{
+			$await->catches = $catches;
+		}
 		$executor = [$generator, "rewind"];
 		while($executor !== null){
 			$executor = $await->wakeup($executor);
@@ -109,8 +127,9 @@ class Await extends PromiseState{
 	 * and returns an array with each generator mapped to the value.
 	 * Throws exception as soon as any of the generators throws an exception.
 	 *
-	 * @param Generator[] $generators
-	 * @return Generator
+	 * @template U
+	 * @param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>[] $generators
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U[]>
 	 */
 	public static function all(array $generators) : Generator{
 		if(count($generators) === 0){
@@ -120,7 +139,7 @@ class Await extends PromiseState{
 		foreach($generators as $k => $generator){
 			$resolve = yield;
 			$reject = yield self::REJECT;
-			self::g2c($generator, function($result) use($k, $resolve) {
+			self::g2c($generator, static function($result) use($k, $resolve) : void{
 				$resolve([$k, $result]);
 			}, $reject);
 		}
@@ -147,8 +166,10 @@ class Await extends PromiseState{
 	 * The user may use the format `[$k, $v] = yield Await::race(...);`
 	 * to obtain `$k` and `$v` conveniently.
 	 *
-	 * @param Generator[] $generators
-	 * @return Generator
+	 * @template K
+	 * @template U
+	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $generators
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, array{K, U}>
 	 */
 	public static function race(array $generators) : Generator{
 		if(count($generators) === 0){
@@ -158,7 +179,7 @@ class Await extends PromiseState{
 		foreach($generators as $k => $generator){
 			$resolve = yield;
 			$reject = yield self::REJECT;
-			self::g2c($generator, function($result) use($k, $resolve) {
+			self::g2c($generator, static function($result) use($k, $resolve) : void{
 				$resolve([$k, $result]);
 			}, $reject);
 		}
@@ -170,6 +191,7 @@ class Await extends PromiseState{
 	 * A wrapper around wakeup() to convert deep recursion to tail recursion
 	 *
 	 * @param callable|null $executor
+	 * @phpstan-param (callable(): void)|null $executor
 	 *
 	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
 	 */
@@ -183,10 +205,11 @@ class Await extends PromiseState{
 	 * Calls $executor and returns the next function to execute
 	 *
 	 * @param callable $executor a function that triggers the execution of the generator
+	 * @phpstan-param callable(): void $executor
 	 *
-	 * @return callable|null
+	 * @return (callable(): void)|null
 	 */
-	protected function wakeup(callable $executor) : ?callable{
+	private function wakeup(callable $executor) : ?callable{
 		try{
 			$this->sleeping = false;
 			$executor();
@@ -231,6 +254,7 @@ class Await extends PromiseState{
 			}
 			return function() : void{
 				$promise = $this->lastResolveUnrejected;
+				assert($promise !== null);
 				$this->lastResolveUnrejected = null;
 				$this->generator->send(Closure::fromCallable([$promise, "reject"]));
 			};
@@ -265,12 +289,12 @@ class Await extends PromiseState{
 				$this->promiseQueue = [];
 				assert(isset($result));
 				if($hasResult === 1){
-					return function() use ($result){
+					return function() use ($result) : void{
 						$this->generator->send($result);
 					};
 				}
 				assert($hasResult === 2);
-				return function() use ($result){
+				return function() use ($result) : void{
 					$this->generator->throw($result);
 				};
 			}
@@ -351,6 +375,8 @@ class Await extends PromiseState{
 	}
 
 	/**
+	 * @phpstan-param AwaitChild<T> $changed
+	 *
 	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
 	 */
 	public function recheckPromiseQueue(AwaitChild $changed) : void{
@@ -401,12 +427,14 @@ class Await extends PromiseState{
 		}
 		// all resolved
 		$this->promiseQueue = [];
-		$this->wakeupFlat(function() use ($current, $results){
+		$this->wakeupFlat(function() use ($current, $results) : void{
 			$this->generator->send($current === self::ONCE ? $results[0] : $results);
 		});
 	}
 
 	/**
+	 * @param mixed $value
+	 *
 	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
 	 */
 	public function resolve($value) : void{
