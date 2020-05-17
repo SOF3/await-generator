@@ -1,4 +1,4 @@
-# await-generator [![Build Status](https://travis-ci.org/SOF3/await-generator.svg?branch=master)](https://travis-ci.org/SOF3/await-generator) [![Codecov](https://img.shields.io/codecov/c/github/codecov/example-python.svg)](https://codecov.io/gh/SOF3/await-generator)
+# await-generator [![Build Status](https://github.com/SOF3/await-generator/workflows/CI/badge.svg)](https://github.com/SOF3/await-generator/actions?query=workflow%3ACI) [![Codecov](https://img.shields.io/codecov/c/github/codecov/example-python.svg)](https://codecov.io/gh/SOF3/await-generator)
 
 A library to use async/await in PHP using generators.
 
