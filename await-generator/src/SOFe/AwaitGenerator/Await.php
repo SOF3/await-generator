@@ -189,7 +189,7 @@ class Await extends PromiseState{
 	 * @return callable|null
 	 */
 	protected function wakeup(callable $executor) : ?callable{
-		if(self::$debug && $this->generator->valid()){
+		if(self::$debug){
 			$ref = new ReflectionGenerator($this->generator);
 			$this->lastTrace = $ref->getTrace(DEBUG_BACKTRACE_PROVIDE_OBJECT);
 			$this->lastTrace[] = [
