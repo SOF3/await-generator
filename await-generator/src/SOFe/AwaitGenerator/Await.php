@@ -42,12 +42,6 @@ class Await extends PromiseState{
 	public const ALL = "all";
 	public const RACE = "race";
 
-	/**
-	 * @deprecated This value is no longer used.
-	 * @var bool
-	 */
-	public static $debug = true;
-
 	/** @var bool */
 	private $ultimate;
 	/** @var Generator */
@@ -175,6 +169,8 @@ class Await extends PromiseState{
 	 * A wrapper around wakeup() to convert deep recursion to tail recursion
 	 *
 	 * @param callable|null $executor
+	 *
+	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
 	 */
 	public function wakeupFlat(?callable $executor) : void{
 		while($executor !== null){
@@ -353,6 +349,9 @@ class Await extends PromiseState{
 		return null;
 	}
 
+	/**
+	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
+	 */
 	public function recheckPromiseQueue(AwaitChild $changed) : void{
 		assert($this->sleeping);
 		if($this->current === self::ONCE){
@@ -406,6 +405,9 @@ class Await extends PromiseState{
 		});
 	}
 
+	/**
+	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
+	 */
 	public function resolve($value) : void{
 		if(!empty($this->promiseQueue)){
 			$this->reject(new UnawaitedCallbackException("Resolution of await generator"));
@@ -418,6 +420,9 @@ class Await extends PromiseState{
 		}
 	}
 
+	/**
+	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
+	 */
 	public function reject(Throwable $throwable) : void{
 		$this->sleeping = true;
 
@@ -431,6 +436,9 @@ class Await extends PromiseState{
 		throw new AwaitException("Unhandled async exception", 0, $throwable);
 	}
 
+	/**
+	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
+	 */
 	public function isSleeping() : bool{
 		return $this->sleeping;
 	}
