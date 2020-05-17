@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace SOFe\AwaitGenerator;
 
+use Closure;
 use Error;
 use Exception;
 use Generator;
@@ -208,7 +209,7 @@ class Await extends PromiseState{
 				$promise = new AwaitChild($this);
 				$this->promiseQueue[] = $promise;
 				$this->lastResolveUnrejected = $promise;
-				$this->generator->send([$promise, "resolve"]);
+				$this->generator->send(Closure::fromCallable([$promise, "resolve"]));
 			};
 		}
 
@@ -231,7 +232,7 @@ class Await extends PromiseState{
 			return function() : void{
 				$promise = $this->lastResolveUnrejected;
 				$this->lastResolveUnrejected = null;
-				$this->generator->send([$promise, "reject"]);
+				$this->generator->send(Closure::fromCallable([$promise, "reject"]));
 			};
 		}
 
