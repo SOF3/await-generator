@@ -2,9 +2,4 @@ parameters:
 	level: 8
 	paths:
 		- await-generator/src
-	ignoreErrors:
-		-
-			message: "#^Access to an undefined property Throwable::\\$_AwaitGenerator_#"
-			count: 1
-			path: await-generator/src/SOFe/AwaitGenerator/Await.php
 	checkMissingIterableValueType: false
