@@ -1,5 +1,5 @@
 name: await-generator
-version: 2.4.0
+version: 3.0.0
 php: 7.2
 author: SOFe
 antigen: SOFe\AwaitGenerator

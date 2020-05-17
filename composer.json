@@ -4,7 +4,7 @@
 	"type": "library",
 	"readme": "README.md",
 	"license": "apache-2.0",
-	"version": "2.3.0",
+	"version": "3.0.0",
 	"authors": [
 		{
 			"name": "SOFe",
