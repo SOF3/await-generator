@@ -811,7 +811,7 @@ class AwaitTest extends TestCase{
 	public function testSameLaterRejectImmediateResolve() : void{
 		$rand = 0x12345678;
 		$ex = new DummyException();
-		self::assertImmediateResolve(function() use ($rand) : Generator{
+		self::assertImmediateResolve(function() use ($rand, $ex) : Generator{
 			$resolve = yield Await::RESOLVE;
 			$reject = yield Await::REJECT;
 			// they are the same pair!
