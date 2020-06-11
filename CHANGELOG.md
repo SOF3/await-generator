@@ -1,9 +1,10 @@
 Changelog
 ===
 
-## 2.4.0
+## 3.0.0
 - Added `Await::all()` and `Await::race()` for a generator interface
 - Fixed crash during double promise resolution, ignores second call instead
+- Marked some internal functions @internal or private
 
 ## 2.3.0
 - Debug backtrace includes objects.
