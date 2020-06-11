@@ -29,6 +29,25 @@ use Throwable;
 use function array_shift;
 use function get_class;
 
+// # How to write unit tests?
+// Call `assert(Immediate|Later)(Resolve|Reject)`
+// with an await-generator closure and an expected return value
+// to assert that the closure should resolve/reject immediately/later
+// with the expected value.
+//
+// Call `voidCallbackImmediate` or `voidCallbackLater`
+// to imitate callback async functions that would call the callback
+// immediately or resolved.
+//
+// "Immediate" means that the callback is called asap.
+// In the `voidCallback` case, the function simply calls the callback directly.
+// In the `assert` case, this means the callback is expected to resolve
+// just during the `Await::f2c` call.
+//
+// "Later" means that the callback is queued in the static variable `AwaitTest::$later`.
+// This queue of callbacks will be called by `assertLater` after `Await::f2c` has been called.
+// Callbacks are asserted to not resolve before this queue is dispatched.
+
 /**
  * @small
  */
@@ -481,11 +500,12 @@ class AwaitTest extends TestCase{
 	public function testVoidRaceImmediateResolveImmediateReject() : void{
 		$rand = 0x12345678;
 		$ex = new DummyException();
-		self::assertImmediateReject(function() use ($rand, $ex) : Generator{
+		self::assertImmediateResolve(function() use ($rand, $ex) : Generator{
 			self::voidCallbackImmediate($rand, yield Await::RESOLVE);
+			yield Await::RESOLVE; // start a new promise
 			self::voidCallbackImmediate($ex, yield Await::REJECT);
 			return yield Await::RACE;
-		}, $ex);
+		}, $rand);
 	}
 
 	public function testVoidRaceImmediateResolveLaterResolve() : void{
@@ -705,7 +725,7 @@ class AwaitTest extends TestCase{
 		}, null);
 	}
 
-	public function testGeneratorAllResolve() : void {
+	public function testGeneratorAllResolve() : void{
 		self::assertLaterResolve(function() : Generator{
 			return yield Await::all([
 				"a" => self::generatorReturnLater("b"),
@@ -719,7 +739,7 @@ class AwaitTest extends TestCase{
 		]);
 	}
 
-	public function testGeneratorAllEmpty() : void {
+	public function testGeneratorAllEmpty() : void{
 		try{
 			Await::f2c(function() : Generator{
 				yield Await::all([]);
@@ -732,7 +752,7 @@ class AwaitTest extends TestCase{
 		}
 	}
 
-	public function testGeneratorRaceResolve() : void {
+	public function testGeneratorRaceResolve() : void{
 		self::assertImmediateResolve(function() : Generator{
 			return yield Await::race([
 				"a" => self::generatorReturnLater("b"),
@@ -742,7 +762,7 @@ class AwaitTest extends TestCase{
 		}, ["c", "d"]);
 	}
 
-	public function testGeneratorRaceEmpty() : void {
+	public function testGeneratorRaceEmpty() : void{
 		try{
 			Await::f2c(function() : Generator{
 				yield Await::race([]);
@@ -753,6 +773,53 @@ class AwaitTest extends TestCase{
 			self::assertEquals("Unhandled async exception", $e->getMessage());
 			self::assertEquals("Cannot race an empty array of generators", $e->getPrevious()->getMessage());
 		}
+	}
+
+	public function testSameImmediateResolveImmediateResolve() : void{
+		$rand = [0x12345678, 0x4bcd3f96];
+		self::assertImmediateResolve(function() use ($rand) : Generator{
+			$cb = yield Await::RESOLVE;
+			self::voidCallbackImmediate($rand[0], $cb);
+			self::voidCallbackImmediate($rand[1], $cb);
+			$once = yield Await::ONCE;
+			return $once;
+		}, $rand[0]);
+	}
+
+	public function testSameLaterResolveImmediateResolve() : void{
+		$rand = [0x12345678, 0x4bcd3f96];
+		self::assertImmediateResolve(function() use ($rand) : Generator{
+			$cb = yield Await::RESOLVE;
+			self::voidCallbackLater($rand[0], $cb);
+			self::voidCallbackImmediate($rand[1], $cb);
+			$once = yield Await::ONCE;
+			return $once;
+		}, $rand[1]);
+	}
+
+	public function testSameLaterResolveLaterResolve() : void{
+		$rand = [0x12345678, 0x4bcd3f96];
+		self::assertLaterResolve(function() use ($rand) : Generator{
+			$cb = yield Await::RESOLVE;
+			self::voidCallbackLater($rand[0], $cb);
+			self::voidCallbackLater($rand[1], $cb);
+			$once = yield Await::ONCE;
+			return $once;
+		}, $rand[0]);
+	}
+
+	public function testSameLaterRejectImmediateResolve() : void{
+		$rand = 0x12345678;
+		$ex = new DummyException();
+		self::assertImmediateResolve(function() use ($rand) : Generator{
+			$resolve = yield Await::RESOLVE;
+			$reject = yield Await::REJECT;
+			// they are the same pair!
+			self::voidCallbackLater($ex, $reject);
+			self::voidCallbackImmediate($rand, $resolve);
+			$once = yield Await::ONCE;
+			return $once;
+		}, $rand);
 	}
 
 

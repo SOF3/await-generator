@@ -43,6 +43,10 @@ class AwaitChild extends PromiseState{
 	 * @param mixed $value
 	 */
 	public function resolve($value = null) : void{
+		if($this->state !== self::STATE_PENDING){
+			return; // nothing should happen if resolved/rejected multiple times
+		}
+
 		parent::resolve($value);
 		if(!$this->cancelled && $this->await->isSleeping()){
 			$this->await->recheckPromiseQueue($this);
@@ -50,6 +54,10 @@ class AwaitChild extends PromiseState{
 	}
 
 	public function reject(Throwable $value) : void{
+		if($this->state !== self::STATE_PENDING){
+			return; // nothing should happen if resolved/rejected multiple times
+		}
+
 		parent::reject($value);
 		if(!$this->cancelled && $this->await->isSleeping()){
 			$this->await->recheckPromiseQueue($this);

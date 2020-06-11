@@ -23,6 +23,7 @@ declare(strict_types=1);
 namespace SOFe\AwaitGenerator;
 
 use Throwable;
+use function assert;
 
 abstract class PromiseState{
 	public const STATE_PENDING = 0;
@@ -43,11 +44,15 @@ abstract class PromiseState{
 	 * @param mixed $value
 	 */
 	public function resolve($value) : void{
+		assert($this->state === self::STATE_PENDING);
+
 		$this->state = self::STATE_RESOLVED;
 		$this->resolved = $value;
 	}
 
 	public function reject(Throwable $value) : void{
+		assert($this->state === self::STATE_PENDING);
+
 		$this->state = self::STATE_REJECTED;
 		$this->rejected = $value;
 	}
