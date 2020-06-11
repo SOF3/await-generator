@@ -462,7 +462,7 @@ class Await extends PromiseState{
 				return;
 			}
 		}
-		throw new AwaitException("Unhandled async exception", 0, $throwable);
+		throw new AwaitException("Unhandled async exception: {$throwable->getMessage()}", 0, $throwable);
 	}
 
 	/**

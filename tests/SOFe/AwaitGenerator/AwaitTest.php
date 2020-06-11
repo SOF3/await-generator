@@ -163,7 +163,7 @@ class AwaitTest extends TestCase{
 				self::assertTrue(false, "unexpected resolve call");
 			});
 		}catch(AwaitException $e){
-			self::assertEquals("Unhandled async exception", $e->getMessage());
+			self::assertEquals("Unhandled async exception: {$ex->getMessage()}", $e->getMessage());
 			self::assertEquals($ex, $e->getPrevious());
 		}
 	}
@@ -747,7 +747,7 @@ class AwaitTest extends TestCase{
 				self::assertTrue(false, "unexpected resolve call");
 			});
 		}catch(AwaitException $e){
-			self::assertEquals("Unhandled async exception", $e->getMessage());
+			self::assertEquals("Unhandled async exception: Cannot await all on an empty array of generators", $e->getMessage());
 			self::assertEquals("Cannot await all on an empty array of generators", $e->getPrevious()->getMessage());
 		}
 	}
@@ -770,7 +770,7 @@ class AwaitTest extends TestCase{
 				self::assertTrue(false, "unexpected resolve call");
 			});
 		}catch(AwaitException $e){
-			self::assertEquals("Unhandled async exception", $e->getMessage());
+			self::assertEquals("Unhandled async exception: Cannot race an empty array of generators", $e->getMessage());
 			self::assertEquals("Cannot race an empty array of generators", $e->getPrevious()->getMessage());
 		}
 	}
