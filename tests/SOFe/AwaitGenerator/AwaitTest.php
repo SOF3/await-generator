@@ -820,6 +820,7 @@ class AwaitTest extends TestCase{
 			$once = yield Await::ONCE;
 			return $once;
 		}, $rand);
+		self::callLater();
 	}
 
 
