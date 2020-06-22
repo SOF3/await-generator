@@ -53,7 +53,7 @@ yield Await::ONCE;
 To make code more concise, it is idiomatic to use the following instead:
 
 ```php
-yield callback_function(yield, yield Await::REJDCT) => Await::ONCE;
+yield callback_function(yield, yield Await::REJECT) => Await::ONCE;
 ```
 
 Since await-generator ignores the yielded key for `Await::ONCE`, the following two snippets have identical effect. However, some IDEs might not like this since `callback_function()` most likely returns void and is invalid to use in the yielded key.
