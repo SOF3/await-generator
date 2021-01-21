@@ -22,10 +22,11 @@ jobs:
           tools: composer
       - run: composer update --optimize-autoloader
       - name: phpunit test
-        run: composer test -- --coverage-xml=coverage.xml
+        run: composer test -- --coverage-clover=coverage.xml
       - uses: codecov/codecov-action@v1
         with:
           token: ${{secrets.CODECOV_SECRET}}
+          files: coverage.xml
           fail_ci_if_error: true
   phpstan:
     name: phpstan analyze
