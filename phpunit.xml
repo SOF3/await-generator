@@ -13,7 +13,4 @@
   <testsuite name="Await">
     <directory>tests/SOFe/AwaitGenerator</directory>
   </testsuite>
-  <logging>
-    <log type="coverage-clover" target="coverage.xml"/>
-  </logging>
 </phpunit>
