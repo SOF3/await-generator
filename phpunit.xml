@@ -1,15 +1,16 @@
+<?xml version="1.0"?>
 <phpunit
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/7.3/phpunit.xsd"
-		bootstrap="tests/autoload.php"
-		processIsolation="false"
-		enforceTimeLimit="true">
-	<filter>
-		<whitelist processUncoveredFilesFromWhitelist="true">
-			<directory suffix=".php">await-generator</directory>
-		</whitelist>
-	</filter>
-	<testsuite name="Await">
-		<directory>tests/SOFe/AwaitGenerator</directory>
-	</testsuite>
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+	bootstrap="tests/autoload.php"
+	processIsolation="false"
+	enforceTimeLimit="true">
+  <coverage processUncoveredFiles="true">
+    <include>
+      <directory suffix=".php">await-generator</directory>
+    </include>
+  </coverage>
+  <testsuite name="Await">
+    <directory>tests/SOFe/AwaitGenerator</directory>
+  </testsuite>
 </phpunit>
