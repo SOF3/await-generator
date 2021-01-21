@@ -22,7 +22,7 @@ jobs:
           tools: composer
       - run: composer update --optimize-autoloader
       - name: phpunit test
-        run: composer test -- --coverage-clover=coverage.xml
+        run: composer test -- --coverage-xml=coverage.xml
       - uses: codecov/codecov-action@v1
         with:
           token: ${{secrets.CODECOV_SECRET}}
@@ -63,7 +63,7 @@ jobs:
       - run: composer update --optimize-autoloader
       - name: infection
         env:
-          XDEBUG_MODE: Coverage
+          XDEBUG_MODE: coverage
         run: composer infection
       - uses: actions/upload-artifact@v1
         with:
