@@ -25,6 +25,7 @@ jobs:
         with:
           token: ${{secrets.CODECOV_SECRET}}
           fail_ci_if_error: true
+          fetch-depth: 0
   phpstan:
     name: phpstan analyze
     runs-on: ubuntu-latest

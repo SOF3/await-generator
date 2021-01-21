@@ -10,3 +10,6 @@ parameters:
 			count: 1
 			path: await-generator/src/SOFe/AwaitGenerator/GeneratorUtil.php
 
+		-
+			message: "#Unreachable statement - code above always terminates.#"
+			path: await-generator/src/SOFe/AwaitGenerator/Await.php
