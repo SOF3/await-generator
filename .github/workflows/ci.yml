@@ -11,14 +11,19 @@ jobs:
         php-version:
           - "7.3"
           - "7.4"
+          - "8.0"
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: shivammathur/setup-php@v1
         with:
           php-version: ${{matrix.php-version}}
           tools: composer
-      - run: composer install
+      - run: composer update --optimize-autoloader
       - name: phpunit test
+        env:
+          XDEBUG_MODE: coverage
         run: composer test -- --coverage-clover=coverage.xml
       - uses: codecov/codecov-action@v1
         with:
@@ -32,13 +37,14 @@ jobs:
         php-version:
           - "7.3"
           - "7.4"
+          - "8.0"
     steps:
       - uses: actions/checkout@v2
       - uses: shivammathur/setup-php@v1
         with:
           php-version: ${{matrix.php-version}}
           tools: composer
-      - run: composer install
+      - run: composer update --optimize-autoloader
       - name: phpstan analyze
         run: composer analyze
   infection:
@@ -49,14 +55,17 @@ jobs:
         php-version:
           - "7.3"
           - "7.4"
+          - "8.0"
     steps:
       - uses: actions/checkout@v2
       - uses: shivammathur/setup-php@v1
         with:
           php-version: ${{matrix.php-version}}
           tools: composer
-      - run: composer install
+      - run: composer update --optimize-autoloader
       - name: infection
+        env:
+          XDEBUG_MODE: coverage
         run: composer infection
       - uses: actions/upload-artifact@v1
         with:
