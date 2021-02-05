@@ -8,6 +8,9 @@ await-generator is a wrapper to convert a traditional callback-async function in
 ### Why await-generator?
 The callback-async function requires passing and creating many onComplete callables throughout the code, making the code very unreadable, known as the "callback hell". The async/await approach allows code to be written linearly and in normal language control structures (e.g. `if`, `for`, `return`), as if the code was not written async.
 
+An example of callback hell vs await-generator:
+![](https://media.discordapp.net/attachments/373199722573201410/807112614747963412/unknown.png?width=1386&height=573)
+
 ### Can I maintain backward compatibility?
 As a wrapper, the whole `Await` can be used as a callback-async function, and the ultimate async functions can also be callback-async functions, but the logic between can be purely written in async/await style. Therefore, the entry API can still be callback-async style, and no changes are required in your library methods that accept callback-async calling.
 
