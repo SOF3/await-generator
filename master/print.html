@@ -1,0 +1,662 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>await-generator tutorial</title>
+        
+        <meta name="robots" content="noindex" />
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="generators.html"><strong aria-hidden="true">2.</strong> Generators</a></li><li class="chapter-item expanded "><a href="async.html"><strong aria-hidden="true">3.</strong> Asynchronous programming</a></li><li class="chapter-item expanded "><a href="main.html"><strong aria-hidden="true">4.</strong> Using await-generator</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="await-gen.html"><strong aria-hidden="true">4.1.</strong> Awaiting generators</a></li><li class="chapter-item expanded "><a href="await-once.html"><strong aria-hidden="true">4.2.</strong> Using callback-style from generators</a></li><li class="chapter-item expanded "><a href="f2c-g2c.html"><strong aria-hidden="true">4.3.</strong> Exposing a generator to normal API</a></li><li class="chapter-item expanded "><a href="all-race.html"><strong aria-hidden="true">4.4.</strong> Running generators concurrently</a></li></ol></li><li class="chapter-item expanded "><a href="semver.html"><strong aria-hidden="true">5.</strong> Versioning concerns</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">await-generator tutorial</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#introduction" id="introduction">Introduction</a></h1>
+<p>This is a step-by-step tutorial of await-generator
+for newcomers with only basic PHP knowledge.</p>
+<p>await-generator plays tricks on a PHP feature called &quot;generator&quot;.
+It allows you to write code more easily in a style called &quot;asynchronous&quot;.</p>
+<p>This tutorial involves concepts from PocketMine-MP,
+a server software for Minecraft written in PHP.
+The target audience is plugin developers for PocketMine-MP.</p>
+<h1><a class="header" href="#generators" id="generators">Generators</a></h1>
+<p>A PHP function that contains a <code>yield</code> keyword is called a &quot;generator function&quot;.</p>
+<pre><code class="language-php">function foo() {
+	echo &quot;hi!\n&quot;;
+	yield;
+	echo &quot;working hard.\n&quot;;
+	yield;
+	echo &quot;bye!\n&quot;;
+}
+</code></pre>
+<p>When you call this function, it does not do anything
+(it doesn't even echo &quot;hi&quot;).
+Instead, you get a <a href="https://php.net/class.generator"><code>Generator</code></a> object,
+which lets you control the execution of the function.</p>
+<p>Let's tell PHP to start running this function:</p>
+<pre><code class="language-php">$generator = foo();
+echo &quot;Let's start foo\n&quot;;
+$generator-&gt;rewind();
+echo &quot;foo stopped\n&quot;;
+</code></pre>
+<p>You will get this output:</p>
+<pre><code>Let's start foo
+hi!
+foo stopped
+</code></pre>
+<p>The function stops when there is a <code>yield</code> statement.
+We can tell the function to continue running using the <code>Generator</code> object:</p>
+<pre><code class="language-php">$generator-&gt;send(null);
+</code></pre>
+<p>And this additional output:</p>
+<pre><code>working hard.
+</code></pre>
+<p>Now it stops again at the next <code>yield</code>.</p>
+<h2><a class="header" href="#sending-data-intoout-of-the-generator" id="sending-data-intoout-of-the-generator">Sending data into/out of the <code>Generator</code></a></h2>
+<p>We can put a value behind the <code>yield</code> keyword to send data to the controller:</p>
+<pre><code class="language-php">function bar() {
+	yield 1;
+}
+$generator = bar();
+$generator-&gt;rewind();
+var_dump($generator-&gt;current());
+</code></pre>
+<pre><code>int(1)
+</code></pre>
+<p>Similarly, we can send data back to the function.
+If you use <code>yield [value]</code> as an expression,
+it is resolved into the value passed in <code>$generator-&gt;send()</code>.</p>
+<pre><code class="language-php">function bar() {
+	$receive = yield;
+	var_dump($receive);
+}
+$generator = bar();
+$generator-&gt;rewind();
+$generator-&gt;send(2);
+</code></pre>
+<pre><code>int(2)
+</code></pre>
+<p>Furthermore, the function can eventually &quot;return&quot; a value.
+This return value is not handled the same way as a <code>yield</code>;
+it is obtained using <code>$generator-&gt;getReturn()</code>.
+However, the return type hint must always be <code>Generator</code>
+no matter what you return, or if you don't return:</p>
+<pre><code class="language-php">function qux() -&gt; Generator {
+	yield 1;
+	return 2;
+}
+</code></pre>
+<h2><a class="header" href="#hacking-generators" id="hacking-generators">Hacking generators</a></h2>
+<p>Sometimes we want to make a generator function that does not yield at all.
+In that case, you can write <code>0 &amp;&amp; yield;</code> at the start of the function;
+this will make your function a generator function, but it will not yield anything.
+As of PHP 7.4.0, <code>0 &amp;&amp; yield;</code> is a no-op,
+which means it will not affect your program performance
+even if you run this line many times.</p>
+<pre><code class="language-php">function emptyGenerator(): Generator {
+	0 &amp;&amp; yield;
+	return 1;
+}
+
+$generator = emptyGenerator();
+var_dump($generator-&gt;next());
+var_dump($generator-&gt;getReturn());
+</code></pre>
+<pre><code>NULL
+int(1)
+</code></pre>
+<h1><a class="header" href="#asynchronous-programming" id="asynchronous-programming">Asynchronous programming</a></h1>
+<p>Traditionally, when you call a function,
+it performs the required actions and returns after they're done.
+In asynchronous programming,
+the program logic may be executed <em>after</em> a function returns.</p>
+<p>This leads to two problems.
+First, the function can't return you with any useful results,
+because the results are only available after the logic completes.
+Second, you may do something else assuming the logic is completed,
+which leads to a bug.
+For example:</p>
+<pre><code class="language-php">private $data;
+
+function loadData($player) {
+	// we will set $this-&gt;data[$player] some time later.
+}
+
+function main() {
+	$this-&gt;loadData(&quot;SOFe&quot;);
+	echo $this-&gt;data[&quot;SOFe&quot;]; // Undefined offset &quot;SOFe&quot;
+}
+</code></pre>
+<p>Here, <code>loadData</code> is the function that loads data asynchronously.
+<code>main</code> is implemented incorrectly, assuming that <code>loadData</code> is synchronous,
+i.e. it assumes that <code>$this-&gt;data[&quot;SOFe&quot;]</code> is initialized.</p>
+<h2><a class="header" href="#using-callbacks" id="using-callbacks">Using callbacks</a></h2>
+<p>One of the simplest ways to solve this problem is to use callbacks.
+The caller can pass a closure to the async function,
+then the async function will run this closure when it has finished.
+An example function signature would be like this:</p>
+<pre><code class="language-php">function loadData($player, Closure $callback) {
+	// $callback will be called when player data have been loaded.
+}
+
+function main() {
+	$this-&gt;loadData(&quot;SOFe&quot;, function() {
+		echo $this-&gt;data[&quot;SOFe&quot;]; // this is guaranteed to work now
+	});
+}
+</code></pre>
+<p>The <code>$callback</code> will be called when some other logic happens.
+This depends on the implementation of the <code>loadData</code> logic.
+This may be when a player sends a certain packet,
+or when a scheduled task gets run,
+or other scenarios.</p>
+<h3><a class="header" href="#more-complex-callbacks" id="more-complex-callbacks">More complex callbacks</a></h3>
+<p>(This section is deliberately complicated and hard to understand,
+because the purpose is to tell you that using callbacks is bad.)</p>
+<p>What if we want to call multiple async functions one by one?
+In synchronous code, it would be simple:</p>
+<pre><code class="language-php">$a = a();
+$b = b($a);
+$c = c($b);
+$d = d($c);
+var_dump($d);
+</code></pre>
+<p>In async code, we might need to do this (let's say <code>a</code>, <code>b</code>, <code>c</code>, <code>d</code> are async):</p>
+<pre><code class="language-php">a(function($a) {
+	b($a, function($b) {
+		c($b, function($c) {
+			d($c, function($d) {
+				var_dump($d);
+			});
+		});
+	});
+});
+</code></pre>
+<p>Looks ugly, but readable enough.
+It might look more confusing if we need to pass <code>$a</code> to <code>$d</code> though.</p>
+<p>But what if we want to do if/else?
+In synchronous code, it looks like this:</p>
+<pre><code class="language-php">$a = a();
+if($a !== null) {
+	$output = b($a);
+} else {
+	$output = c() + 1;
+}
+
+$d = very_complex_code($output);
+$e = that_deals_with($output);
+var_dump($d + $e + $a);
+</code></pre>
+<p>In async code, it is much more confusing:</p>
+<pre><code class="language-php">a(function($a) {
+	if($a !== null) {
+		b($a, function($output) use($a) {
+				$d = very_complex_code($output);
+				$e = that_deals_with($output);
+				var_dump($d + $e + $a);
+		});
+	} else {
+		c(function($output) use($a) {
+				$output = $output + 1;
+				$d = very_complex_code($output);
+				$e = that_deals_with($output);
+				var_dump($d + $e + $a);
+		});
+	}
+});
+</code></pre>
+<p>But we don't want to copy-paste the three lines of duplicated code.
+Maybe we can assign the whole closure to a variable:</p>
+<pre><code class="language-php">a(function($a) {
+	$closure = function($output) use($a) {
+		$d = very_complex_code($output);
+		$e = that_deals_with($output);
+		var_dump($d + $e + $a);
+	};
+
+	if($a !== null) {
+		b($a, $closure);
+	} else {
+		c(function($output) use($closure) {
+			$closure($output + 1);
+		});
+	}
+});
+</code></pre>
+<p>Oh no, this is getting out of control.
+Think about how complicated this would become when
+we want to use asynchronous functions in loops!</p>
+<p>The await-generator library allows users to write async code in synchronous style.
+As you might have guessed, the <code>yield</code> keyword is a replacement for callbacks.</p>
+<h1><a class="header" href="#using-await-generator" id="using-await-generator">Using await-generator</a></h1>
+<p>await-generator provides an alternative approach to asynchronous programming.
+Functions that use async logic are written in generator functions.
+The main trick is that your function pauses (using <code>yield</code>)
+when you want to wait for a value,
+then await-generator resumes your function and
+sends you the return value from the async function via <code>$generator-&gt;send()</code>.</p>
+<h1><a class="header" href="#awaiting-generators" id="awaiting-generators">Awaiting generators</a></h1>
+<p>Since every async function is implemented as a generator function,
+simply calling it will not have any effects.
+Instead, you have to <code>yield</code> the generator.
+await-generator will still resume your function
+when the yielded generator finished running,
+and send you the value returned by the yielded generator.</p>
+<pre><code class="language-php">function a(): Generator {
+	// some other async logic here
+	return 1;
+}
+
+function main(): Generator {
+	$a = yield $this-&gt;a();
+	var_dump($a);
+}
+</code></pre>
+<p>It is easy to forget to <code>yield</code> the generator.</p>
+<!-- TODO provide suggestions -->
+<!-- TODO does phpstan detect this? -->
+<h2><a class="header" href="#handling-errors" id="handling-errors">Handling errors</a></h2>
+<p>await-generator will make your <code>yield</code> throw an exception
+if the generator function you called threw an exception.
+You can use try-catch to handle these exceptions.</p>
+<pre><code class="language-php">function err(): Generator {
+	// some other async logic here
+	throw new Exception(&quot;Test&quot;);
+}
+
+function main(): Generator {
+	try {
+		err();
+	} catch(Exception $e) {
+		var_dump($e-&gt;getMessage()); // string(4) &quot;Test&quot;
+	}
+}
+</code></pre>
+<h1><a class="header" href="#using-callback-style-from-generators" id="using-callback-style-from-generators">Using callback-style from generators</a></h1>
+<p>Although it is easier to work with generator functions,
+ultimately, you will need to work with functions that do not use await-generator.
+In that case, callbacks are easier to use.</p>
+<p>Using callback-style functions involves two steps.
+First, you create a callback passed to the function.
+Second, you tell await-generator to pause until the callback is called.</p>
+<p>The first step can be done simply by writing <code>yield</code>.
+Upon yielding no values (or <code>null</code>),
+await-generator will immediately resume your function
+and send you a callback that will notify await-generator about function completion.</p>
+<p>To achieve the second step, you have to yield a constant <code>Await::ONCE</code>.
+This tells await-generator to resume your function
+when the previous callback from <code>yield</code> is called.</p>
+<pre><code class="language-php">function a(Closure $callback): void {
+	// The other function that uses callbacks.
+	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
+}
+
+function main(): Generator {
+	$callback = yield;
+	yield Await::ONCE;
+}
+</code></pre>
+<p>Some callback-style async functions may also accept an <code>$onError</code> callback parameter.
+This callback can be created by calling <code>Await::REJECT</code>.
+Then <code>Await::ONCE</code> will call your function </p>
+<pre><code>function a(Closure $callback, Closure $onError): void {
+	// The other function that uses callbacks.
+	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
+}
+
+function main(): Generator {
+	$callback = yield;
+	yield Await::ONCE;
+}
+</code></pre>
+<h2><a class="header" href="#example" id="example">Example</a></h2>
+<p>Let's say we want to make a function that sleeps for 20 server ticks,
+or throws an exception if the task is cancelled:</p>
+<pre><code class="language-php">use pocketmine\scheduler\Task;
+
+public function sleep(): Generator {
+	$resolve = yield;
+	$reject = yield Await::REJECT;
+	$task = new class($resolve, $reject) extends Task {
+		private $resolve;
+		private $reject;
+		public function __construct($resolve, $reject) {
+			$this-&gt;resolve = $resolve;
+			$this-&gt;reject = $reject;
+		}
+		public function onRun(int $tick) {
+			($this-&gt;resolve)();
+		}
+		public function onCancel() {
+			($this-&gt;reject)(new \Exception(&quot;Task cancelled&quot;));
+		}
+	};
+	$this-&gt;getServer()-&gt;getScheduler()-&gt;scheduleDelayedTask($task, 20);
+
+	yield Await::ONCE;
+}
+</code></pre>
+<p>This is a bit complex indeed, but it gets handy once we have this function defined!
+Let's see what we can do with a countdown:</p>
+<pre><code class="language-php">function countdown($player) {
+	for($i = 10; $i &gt; 0; $i--) {
+		$player-&gt;sendMessage(&quot;$i seconds left&quot;);
+		yield $this-&gt;sleep();
+	}
+
+	$player-&gt;sendMessage(&quot;Time's up!&quot;);
+}
+</code></pre>
+<p>This is much simpler than using <code>ClosureTask</code> in a loop!</p>
+<h1><a class="header" href="#exposing-a-generator-to-normal-api" id="exposing-a-generator-to-normal-api">Exposing a generator to normal API</a></h1>
+<p>Recall that generator functions do not do anything when they get called.
+Eventually, we have to call the generator function from a non-await-generator context.
+We can use the <code>Await::g2c</code> function for this:</p>
+<pre><code class="language-php">private function generateFunction(): Generator {
+	// some async logic
+}
+
+Await::g2c($this-&gt;generatorFunction());
+</code></pre>
+<p>Sometimes we want to write the generator function as a closure
+and pass it directly:</p>
+<pre><code class="language-php">Await::f2c(function(): \Generator {
+	// some async logic
+});
+</code></pre>
+<p>The return/throw value of the generator can be handled in callback style too:</p>
+<pre><code class="language-php">Await::f2c(function(): \Generator {
+	0 &amp;&amp; yield;
+	if(rand() % 2 == 1) {
+		return 1;
+	} else {
+		throw new \Exception(&quot;random&quot;);
+	}
+}, function($value) {
+	var_dump($value); // int(1)
+}, function($ex) {
+	var_dump($ex-&gt;getMessage()); // string(6) &quot;random&quot;
+});
+</code></pre>
+<h1><a class="header" href="#running-generators-concurrently" id="running-generators-concurrently">Running generators concurrently</a></h1>
+<p>In addition to calling multiple generators sequentially,
+you can also use <code>Await::all()</code> or <code>Await::race()</code> to run multiple generators.</p>
+<p>If you have a JavaScript background, you can think of <code>Generator</code> objects as promises
+and <code>Await::all()</code> and <code>Await::race()</code> are just <code>Promise.all()</code> aand <code>Promise.race()</code>.</p>
+<h2><a class="header" href="#awaitall" id="awaitall"><code>Await::all()</code></a></h2>
+<p><code>Await::all()</code> allows you to run an array of generators at the same time.
+If you yield <code>Await::all($array)</code>, your function resumes when
+all generators in <code>$array</code> have finished executing.</p>
+<pre><code class="language-php">function loadData(string $name): Generator {
+	// some async logic
+	return strlen($name);
+}
+
+$array = [
+	&quot;SOFe&quot; =&gt; $this-&gt;loadData(&quot;SOFe&quot;), // don't yield it yet!
+	&quot;PEMapModder&quot; =&gt; $this-&gt;loadData(&quot;PEMapModder&quot;),
+];
+$results = yield Await::all($array);
+var_dump($result);
+</code></pre>
+<p>Output:</p>
+<pre><code>array(2) {
+  [&quot;SOFe&quot;]=&gt;
+  int(4)
+  [&quot;PEMapModder&quot;]=&gt;
+  int(11)
+}
+</code></pre>
+<p>Yielding <code>Await::all()</code> will throw an exception
+as long as <em>any</em> of the generators throw.
+The error condition will not wait until all generators return.</p>
+<h2><a class="header" href="#awaitrace" id="awaitrace"><code>Await::race()</code></a></h2>
+<p><code>Await::race()</code> is like <code>Await::all()</code>,
+but it resumes as long as <em>any</em> of the generators return or throw.
+The sent value is a 2-element array containing the key and the value.</p>
+<pre><code class="language-php">function sleep(int $time): Generator {
+	// Let's say this is an await version of `scheduleDelayedTask`
+	return $time;
+}
+
+function main(): Generator {
+	[$k, $v] = yield Await::race([
+		&quot;two&quot; =&gt; $this-&gt;sleep(2),
+		&quot;one&quot; =&gt; $this-&gt;sleep(1),
+	]);
+	var_dump($k); // string(3) &quot;one&quot;
+	var_dump($v); // int(1)
+}
+</code></pre>
+<h1><a class="header" href="#versioning-concerns" id="versioning-concerns">Versioning concerns</a></h1>
+<p>await-generator is guaranteed to be
+shade-compatible, backward-compatible and partly forward-compatible.</p>
+<p>Await-generator uses generator objects for communication.
+The values passed through generators (such as <code>Await::ONCE</code>)
+are constant strings that are guaranteed to remain unchanged within a major version.
+Therefore, multiple shaded versions of await-generator can be used together.</p>
+<p>New constants may be added over minor versions.
+Older versions will crash when they receive constants from newer versions.</p>
+<p>Only <code>Await::f2c</code>/<code>Await::g2c</code> loads await-generator code.
+Functions that merely <code>yield</code> values from the <code>Await</code> class
+will not affect the execution logic.
+Therefore, the version of await-generator
+on which <code>Await::f2c</code>/<code>Await::g2c</code> is called
+determines the highest version to use.</p>
+<p>(For those who do not use virion framework and are confused:
+await-generator is versioned just like the normal semver for you.)</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+        
+        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+        
+        
+
+    </body>
+</html>
