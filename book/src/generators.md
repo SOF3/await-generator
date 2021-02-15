@@ -1,0 +1,119 @@
+# Generators
+A PHP function that contains a `yield` keyword is called a "generator function".
+
+```php
+function foo() {
+	echo "hi!\n";
+	yield;
+	echo "working hard.\n";
+	yield;
+	echo "bye!\n";
+}
+```
+
+When you call this function, it does not do anything
+(it doesn't even echo "hi").
+Instead, you get a [`Generator`](https://php.net/class.generator) object,
+which lets you control the execution of the function.
+
+Let's tell PHP to start running this function:
+
+```php
+$generator = foo();
+echo "Let's start foo\n";
+$generator->rewind();
+echo "foo stopped\n";
+```
+
+You will get this output:
+
+```
+Let's start foo
+hi!
+foo stopped
+```
+
+The function stops when there is a `yield` statement.
+We can tell the function to continue running using the `Generator` object:
+
+```php
+$generator->send(null);
+```
+
+And this additional output:
+```
+working hard.
+```
+
+Now it stops again at the next `yield`.
+
+## Sending data into/out of the `Generator`
+We can put a value behind the `yield` keyword to send data to the controller:
+
+```php
+function bar() {
+	yield 1;
+}
+$generator = bar();
+$generator->rewind();
+var_dump($generator->current());
+```
+
+```
+int(1)
+```
+
+Similarly, we can send data back to the function.
+If you use `yield [value]` as an expression,
+it is resolved into the value passed in `$generator->send()`.
+
+```php
+function bar() {
+	$receive = yield;
+	var_dump($receive);
+}
+$generator = bar();
+$generator->rewind();
+$generator->send(2);
+```
+
+```
+int(2)
+```
+
+Furthermore, the function can eventually "return" a value.
+This return value is not handled the same way as a `yield`;
+it is obtained using `$generator->getReturn()`.
+However, the return type hint must always be `Generator`
+no matter what you return, or if you don't return:
+
+```php
+function qux() -> Generator {
+	yield 1;
+	return 2;
+}
+```
+
+## Hacking generators
+Sometimes we want to make a generator function that does not yield at all.
+In that case, you can write `0 && yield;` at the start of the function;
+this will make your function a generator function, but it will not yield anything.
+As of PHP 7.4.0, `0 && yield;` is a no-op,
+which means it will not affect your program performance
+even if you run this line many times.
+
+```php
+function emptyGenerator(): Generator {
+	0 && yield;
+	return 1;
+}
+
+$generator = emptyGenerator();
+var_dump($generator->next());
+var_dump($generator->getReturn());
+```
+
+```
+NULL
+int(1)
+```

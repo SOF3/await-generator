@@ -1,0 +1,24 @@
+name: Book
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin
+          key: mdbook
+      - run: test -f ~/.cargo/bin/mdbook || cargo install mdbook
+      - run: mdbook build
+        working-directory: book
+      - run: cp -r book/book ../book
+      - run: git checkout -- . && git clean -fd
+      - run: git fetch && git checkout gh-pages
+      - run: test ! -d $(echo ${{github.ref}} | cut -d/ -f3) || rm -r $(echo ${{github.ref}} | cut -d/ -f3)
+      - run: cp -r ../book $(echo ${{github.ref}} | cut -d/ -f3)
+      - run: git config --local user.name "github-actions[bot]" && git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - run: git add $(echo ${{github.ref}} | cut -d/ -f3) && git commit --allow-empty -m "Docs build for SOF3/await-generator@${{github.sha}}"
+      - run: git push

@@ -1,0 +1,6 @@
+[book]
+authors = ["SOFe"]
+language = "en"
+multilingual = false
+src = "src"
+title = "await-generator tutorial"
