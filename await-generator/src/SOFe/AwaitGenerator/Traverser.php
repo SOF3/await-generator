@@ -33,13 +33,13 @@ use function func_num_args;
  * the user can run `yield $value => Await::VALUE;`
  * to stop and output the value.
  */
-final class Traverser {
+final class Traverser{
 	public const VALUE = "traverse.value";
 
 	/** @var Generator */
 	private $inner;
 
-	public function __construct(Generator $inner) {
+	public function __construct(Generator $inner){
 		$this->inner = $inner;
 	}
 
@@ -49,7 +49,7 @@ final class Traverser {
 	 *
 	 * Returns false if there are no more values.
 	 */
-	public function next(&$valueRef) : Generator {
+	public function next(&$valueRef) : Generator{
 		while($this->inner->valid()) {
 			$k = $this->inner->key();
 			$v = $this->inner->current();
@@ -71,7 +71,7 @@ final class Traverser {
 	 * Asynchronously waits for all remaining values in the underlying iterator
 	 * and collects them into a linear array.
 	 */
-	public function collect() : Generator {
+	public function collect() : Generator{
 		$array = [];
 		while(yield $this->next($value)) {
 			$array[] = $value;

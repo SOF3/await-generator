@@ -32,16 +32,17 @@ use function get_class;
  * @small
  */
 class TraverseTest extends TestCase{
-	private function oneThree() : Generator {
+	private function oneThree() : Generator{
 		yield 1 => Traverser::VALUE;
+		yield GeneratorUtils::empty();
 		yield 3 => Traverser::VALUE;
 	}
 
-	public function testArrayCollect() {
-		Await::f2c(function() : Generator {
+	public function testArrayCollect(){
+		Await::f2c(function() : Generator{
 			$trav = new Traverser($this->oneThree());
 			return yield $trav->collect();
-		}, function(array $array) {
+		}, function(array $array){
 			self::assertSame([1, 3], $array);
 		});
 	}
