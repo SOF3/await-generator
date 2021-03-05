@@ -371,6 +371,7 @@ class Await extends PromiseState{
 		}
 
 		$this->reject(new AwaitException("Unknown yield value"));
+		return null;
 	}
 
 	/**
