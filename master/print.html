@@ -165,7 +165,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#introduction" id="introduction">Introduction</a></h1>
+                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
 <p>This is a step-by-step tutorial of await-generator
 for newcomers with only basic PHP knowledge.</p>
 <p>await-generator plays tricks on a PHP feature called &quot;generator&quot;.
@@ -173,7 +173,7 @@ It allows you to write code more easily in a style called &quot;asynchronous&quo
 <p>This tutorial involves concepts from PocketMine-MP,
 a server software for Minecraft written in PHP.
 The target audience is plugin developers for PocketMine-MP.</p>
-<h1><a class="header" href="#generators" id="generators">Generators</a></h1>
+<h1 id="generators"><a class="header" href="#generators">Generators</a></h1>
 <p>A PHP function that contains a <code>yield</code> keyword is called a &quot;generator function&quot;.</p>
 <pre><code class="language-php">function foo() {
 	echo &quot;hi!\n&quot;;
@@ -206,7 +206,7 @@ We can tell the function to continue running using the <code>Generator</code> ob
 <pre><code>working hard.
 </code></pre>
 <p>Now it stops again at the next <code>yield</code>.</p>
-<h2><a class="header" href="#sending-data-intoout-of-the-generator" id="sending-data-intoout-of-the-generator">Sending data into/out of the <code>Generator</code></a></h2>
+<h2 id="sending-data-intoout-of-the-generator"><a class="header" href="#sending-data-intoout-of-the-generator">Sending data into/out of the <code>Generator</code></a></h2>
 <p>We can put a value behind the <code>yield</code> keyword to send data to the controller:</p>
 <pre><code class="language-php">function bar() {
 	yield 1;
@@ -240,7 +240,7 @@ no matter what you return, or if you don't return:</p>
 	return 2;
 }
 </code></pre>
-<h2><a class="header" href="#hacking-generators" id="hacking-generators">Hacking generators</a></h2>
+<h2 id="hacking-generators"><a class="header" href="#hacking-generators">Hacking generators</a></h2>
 <p>Sometimes we want to make a generator function that does not yield at all.
 In that case, you can write <code>0 &amp;&amp; yield;</code> at the start of the function;
 this will make your function a generator function, but it will not yield anything.
@@ -259,7 +259,7 @@ var_dump($generator-&gt;getReturn());
 <pre><code>NULL
 int(1)
 </code></pre>
-<h1><a class="header" href="#asynchronous-programming" id="asynchronous-programming">Asynchronous programming</a></h1>
+<h1 id="asynchronous-programming"><a class="header" href="#asynchronous-programming">Asynchronous programming</a></h1>
 <p>Traditionally, when you call a function,
 it performs the required actions and returns after they're done.
 In asynchronous programming,
@@ -284,7 +284,7 @@ function main() {
 <p>Here, <code>loadData</code> is the function that loads data asynchronously.
 <code>main</code> is implemented incorrectly, assuming that <code>loadData</code> is synchronous,
 i.e. it assumes that <code>$this-&gt;data[&quot;SOFe&quot;]</code> is initialized.</p>
-<h2><a class="header" href="#using-callbacks" id="using-callbacks">Using callbacks</a></h2>
+<h2 id="using-callbacks"><a class="header" href="#using-callbacks">Using callbacks</a></h2>
 <p>One of the simplest ways to solve this problem is to use callbacks.
 The caller can pass a closure to the async function,
 then the async function will run this closure when it has finished.
@@ -304,7 +304,7 @@ This depends on the implementation of the <code>loadData</code> logic.
 This may be when a player sends a certain packet,
 or when a scheduled task gets run,
 or other scenarios.</p>
-<h3><a class="header" href="#more-complex-callbacks" id="more-complex-callbacks">More complex callbacks</a></h3>
+<h3 id="more-complex-callbacks"><a class="header" href="#more-complex-callbacks">More complex callbacks</a></h3>
 <p>(This section is deliberately complicated and hard to understand,
 because the purpose is to tell you that using callbacks is bad.)</p>
 <p>What if we want to call multiple async functions one by one?
@@ -382,14 +382,14 @@ Think about how complicated this would become when
 we want to use asynchronous functions in loops!</p>
 <p>The await-generator library allows users to write async code in synchronous style.
 As you might have guessed, the <code>yield</code> keyword is a replacement for callbacks.</p>
-<h1><a class="header" href="#using-await-generator" id="using-await-generator">Using await-generator</a></h1>
+<h1 id="using-await-generator"><a class="header" href="#using-await-generator">Using await-generator</a></h1>
 <p>await-generator provides an alternative approach to asynchronous programming.
 Functions that use async logic are written in generator functions.
 The main trick is that your function pauses (using <code>yield</code>)
 when you want to wait for a value,
 then await-generator resumes your function and
 sends you the return value from the async function via <code>$generator-&gt;send()</code>.</p>
-<h1><a class="header" href="#awaiting-generators" id="awaiting-generators">Awaiting generators</a></h1>
+<h1 id="awaiting-generators"><a class="header" href="#awaiting-generators">Awaiting generators</a></h1>
 <p>Since every async function is implemented as a generator function,
 simply calling it will not have any effects.
 Instead, you have to <code>yield</code> the generator.
@@ -409,7 +409,7 @@ function main(): Generator {
 <p>It is easy to forget to <code>yield</code> the generator.</p>
 <!-- TODO provide suggestions -->
 <!-- TODO does phpstan detect this? -->
-<h2><a class="header" href="#handling-errors" id="handling-errors">Handling errors</a></h2>
+<h2 id="handling-errors"><a class="header" href="#handling-errors">Handling errors</a></h2>
 <p>await-generator will make your <code>yield</code> throw an exception
 if the generator function you called threw an exception.
 You can use try-catch to handle these exceptions.</p>
@@ -426,7 +426,7 @@ function main(): Generator {
 	}
 }
 </code></pre>
-<h1><a class="header" href="#using-callback-style-from-generators" id="using-callback-style-from-generators">Using callback-style from generators</a></h1>
+<h1 id="using-callback-style-from-generators"><a class="header" href="#using-callback-style-from-generators">Using callback-style from generators</a></h1>
 <p>Although it is easier to work with generator functions,
 ultimately, you will need to work with functions that do not use await-generator.
 In that case, callbacks are easier to use.</p>
@@ -463,7 +463,7 @@ function main(): Generator {
 	yield Await::ONCE;
 }
 </code></pre>
-<h2><a class="header" href="#example" id="example">Example</a></h2>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
 <p>Let's say we want to make a function that sleeps for 20 server ticks,
 or throws an exception if the task is cancelled:</p>
 <pre><code class="language-php">use pocketmine\scheduler\Task;
@@ -502,7 +502,7 @@ Let's see what we can do with a countdown:</p>
 }
 </code></pre>
 <p>This is much simpler than using <code>ClosureTask</code> in a loop!</p>
-<h1><a class="header" href="#exposing-a-generator-to-normal-api" id="exposing-a-generator-to-normal-api">Exposing a generator to normal API</a></h1>
+<h1 id="exposing-a-generator-to-normal-api"><a class="header" href="#exposing-a-generator-to-normal-api">Exposing a generator to normal API</a></h1>
 <p>Recall that generator functions do not do anything when they get called.
 Eventually, we have to call the generator function from a non-await-generator context.
 We can use the <code>Await::g2c</code> function for this:</p>
@@ -532,12 +532,12 @@ and pass it directly:</p>
 	var_dump($ex-&gt;getMessage()); // string(6) &quot;random&quot;
 });
 </code></pre>
-<h1><a class="header" href="#running-generators-concurrently" id="running-generators-concurrently">Running generators concurrently</a></h1>
+<h1 id="running-generators-concurrently"><a class="header" href="#running-generators-concurrently">Running generators concurrently</a></h1>
 <p>In addition to calling multiple generators sequentially,
 you can also use <code>Await::all()</code> or <code>Await::race()</code> to run multiple generators.</p>
 <p>If you have a JavaScript background, you can think of <code>Generator</code> objects as promises
 and <code>Await::all()</code> and <code>Await::race()</code> are just <code>Promise.all()</code> aand <code>Promise.race()</code>.</p>
-<h2><a class="header" href="#awaitall" id="awaitall"><code>Await::all()</code></a></h2>
+<h2 id="awaitall"><a class="header" href="#awaitall"><code>Await::all()</code></a></h2>
 <p><code>Await::all()</code> allows you to run an array of generators at the same time.
 If you yield <code>Await::all($array)</code>, your function resumes when
 all generators in <code>$array</code> have finished executing.</p>
@@ -564,7 +564,7 @@ var_dump($result);
 <p>Yielding <code>Await::all()</code> will throw an exception
 as long as <em>any</em> of the generators throw.
 The error condition will not wait until all generators return.</p>
-<h2><a class="header" href="#awaitrace" id="awaitrace"><code>Await::race()</code></a></h2>
+<h2 id="awaitrace"><a class="header" href="#awaitrace"><code>Await::race()</code></a></h2>
 <p><code>Await::race()</code> is like <code>Await::all()</code>,
 but it resumes as long as <em>any</em> of the generators return or throw.
 The sent value is a 2-element array containing the key and the value.</p>
@@ -582,7 +582,7 @@ function main(): Generator {
 	var_dump($v); // int(1)
 }
 </code></pre>
-<h1><a class="header" href="#versioning-concerns" id="versioning-concerns">Versioning concerns</a></h1>
+<h1 id="versioning-concerns"><a class="header" href="#versioning-concerns">Versioning concerns</a></h1>
 <p>await-generator is guaranteed to be
 shade-compatible, backward-compatible and partly forward-compatible.</p>
 <p>Await-generator uses generator objects for communication.

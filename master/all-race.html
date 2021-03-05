@@ -163,12 +163,12 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#running-generators-concurrently" id="running-generators-concurrently">Running generators concurrently</a></h1>
+                        <h1 id="running-generators-concurrently"><a class="header" href="#running-generators-concurrently">Running generators concurrently</a></h1>
 <p>In addition to calling multiple generators sequentially,
 you can also use <code>Await::all()</code> or <code>Await::race()</code> to run multiple generators.</p>
 <p>If you have a JavaScript background, you can think of <code>Generator</code> objects as promises
 and <code>Await::all()</code> and <code>Await::race()</code> are just <code>Promise.all()</code> aand <code>Promise.race()</code>.</p>
-<h2><a class="header" href="#awaitall" id="awaitall"><code>Await::all()</code></a></h2>
+<h2 id="awaitall"><a class="header" href="#awaitall"><code>Await::all()</code></a></h2>
 <p><code>Await::all()</code> allows you to run an array of generators at the same time.
 If you yield <code>Await::all($array)</code>, your function resumes when
 all generators in <code>$array</code> have finished executing.</p>
@@ -195,7 +195,7 @@ var_dump($result);
 <p>Yielding <code>Await::all()</code> will throw an exception
 as long as <em>any</em> of the generators throw.
 The error condition will not wait until all generators return.</p>
-<h2><a class="header" href="#awaitrace" id="awaitrace"><code>Await::race()</code></a></h2>
+<h2 id="awaitrace"><a class="header" href="#awaitrace"><code>Await::race()</code></a></h2>
 <p><code>Await::race()</code> is like <code>Await::all()</code>,
 but it resumes as long as <em>any</em> of the generators return or throw.
 The sent value is a 2-element array containing the key and the value.</p>

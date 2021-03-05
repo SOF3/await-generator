@@ -163,7 +163,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#awaiting-generators" id="awaiting-generators">Awaiting generators</a></h1>
+                        <h1 id="awaiting-generators"><a class="header" href="#awaiting-generators">Awaiting generators</a></h1>
 <p>Since every async function is implemented as a generator function,
 simply calling it will not have any effects.
 Instead, you have to <code>yield</code> the generator.
@@ -183,7 +183,7 @@ function main(): Generator {
 <p>It is easy to forget to <code>yield</code> the generator.</p>
 <!-- TODO provide suggestions -->
 <!-- TODO does phpstan detect this? -->
-<h2><a class="header" href="#handling-errors" id="handling-errors">Handling errors</a></h2>
+<h2 id="handling-errors"><a class="header" href="#handling-errors">Handling errors</a></h2>
 <p>await-generator will make your <code>yield</code> throw an exception
 if the generator function you called threw an exception.
 You can use try-catch to handle these exceptions.</p>

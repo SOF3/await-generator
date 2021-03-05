@@ -163,7 +163,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#asynchronous-programming" id="asynchronous-programming">Asynchronous programming</a></h1>
+                        <h1 id="asynchronous-programming"><a class="header" href="#asynchronous-programming">Asynchronous programming</a></h1>
 <p>Traditionally, when you call a function,
 it performs the required actions and returns after they're done.
 In asynchronous programming,
@@ -188,7 +188,7 @@ function main() {
 <p>Here, <code>loadData</code> is the function that loads data asynchronously.
 <code>main</code> is implemented incorrectly, assuming that <code>loadData</code> is synchronous,
 i.e. it assumes that <code>$this-&gt;data[&quot;SOFe&quot;]</code> is initialized.</p>
-<h2><a class="header" href="#using-callbacks" id="using-callbacks">Using callbacks</a></h2>
+<h2 id="using-callbacks"><a class="header" href="#using-callbacks">Using callbacks</a></h2>
 <p>One of the simplest ways to solve this problem is to use callbacks.
 The caller can pass a closure to the async function,
 then the async function will run this closure when it has finished.
@@ -208,7 +208,7 @@ This depends on the implementation of the <code>loadData</code> logic.
 This may be when a player sends a certain packet,
 or when a scheduled task gets run,
 or other scenarios.</p>
-<h3><a class="header" href="#more-complex-callbacks" id="more-complex-callbacks">More complex callbacks</a></h3>
+<h3 id="more-complex-callbacks"><a class="header" href="#more-complex-callbacks">More complex callbacks</a></h3>
 <p>(This section is deliberately complicated and hard to understand,
 because the purpose is to tell you that using callbacks is bad.)</p>
 <p>What if we want to call multiple async functions one by one?

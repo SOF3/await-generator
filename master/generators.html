@@ -163,7 +163,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#generators" id="generators">Generators</a></h1>
+                        <h1 id="generators"><a class="header" href="#generators">Generators</a></h1>
 <p>A PHP function that contains a <code>yield</code> keyword is called a &quot;generator function&quot;.</p>
 <pre><code class="language-php">function foo() {
 	echo &quot;hi!\n&quot;;
@@ -196,7 +196,7 @@ We can tell the function to continue running using the <code>Generator</code> ob
 <pre><code>working hard.
 </code></pre>
 <p>Now it stops again at the next <code>yield</code>.</p>
-<h2><a class="header" href="#sending-data-intoout-of-the-generator" id="sending-data-intoout-of-the-generator">Sending data into/out of the <code>Generator</code></a></h2>
+<h2 id="sending-data-intoout-of-the-generator"><a class="header" href="#sending-data-intoout-of-the-generator">Sending data into/out of the <code>Generator</code></a></h2>
 <p>We can put a value behind the <code>yield</code> keyword to send data to the controller:</p>
 <pre><code class="language-php">function bar() {
 	yield 1;
@@ -230,7 +230,7 @@ no matter what you return, or if you don't return:</p>
 	return 2;
 }
 </code></pre>
-<h2><a class="header" href="#hacking-generators" id="hacking-generators">Hacking generators</a></h2>
+<h2 id="hacking-generators"><a class="header" href="#hacking-generators">Hacking generators</a></h2>
 <p>Sometimes we want to make a generator function that does not yield at all.
 In that case, you can write <code>0 &amp;&amp; yield;</code> at the start of the function;
 this will make your function a generator function, but it will not yield anything.
