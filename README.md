@@ -2,6 +2,8 @@
 
 A library to use async/await in PHP using generators.
 
+Read the [await-generator book](https://sof3.github.io/await-generator/master) for a thorough tutorial.
+
 ## Documentation
 await-generator is a wrapper to convert a traditional callback-async function into async/await functions.
 
