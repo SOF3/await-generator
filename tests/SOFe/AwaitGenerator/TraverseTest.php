@@ -34,7 +34,7 @@ use function get_class;
 class TraverseTest extends TestCase{
 	private function oneThree() : Generator{
 		yield 1 => Traverser::VALUE;
-		yield GeneratorUtils::empty();
+		yield GeneratorUtil::empty();
 		yield 3 => Traverser::VALUE;
 	}
 
