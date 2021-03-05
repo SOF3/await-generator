@@ -2,3 +2,4 @@
 /vendor/
 *.log
 infection-per-mutator.md
+.phpunit.result.cache
