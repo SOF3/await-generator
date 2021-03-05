@@ -1,15 +1,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Property SOFe\\\\AwaitGenerator\\\\Await\\<T\\>\\:\\:\\$catches \\(array\\<string, callable\\(Throwable\\)\\: void\\>\\) does not accept array\\('' \\=\\> \\(array\\<string, callable\\(Throwable\\)\\: void\\>&callable\\(\\)\\: mixed\\)\\|\\(callable\\(Throwable\\)\\: void\\)\\)\\.$#"
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
 			count: 1
 			path: await-generator/src/SOFe/AwaitGenerator/Await.php
 
-		-
-			message: "#^Method SOFe\\\\AwaitGenerator\\\\GeneratorUtil\\:\\:empty\\(\\) should return T but returns T\\|null\\.$#"
-			count: 1
-			path: await-generator/src/SOFe/AwaitGenerator/GeneratorUtil.php
-
-		-
-			message: "#Unreachable statement - code above always terminates.#"
-			path: await-generator/src/SOFe/AwaitGenerator/Await.php
