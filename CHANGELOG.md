@@ -1,6 +1,12 @@
 Changelog
 ===
 
+## 3.1.0
+- Added `Traverser` API
+	- Added `Traverser::next()`
+	- Added `Traverser::collect()`
+	- Added `Traverser::interrupt()`
+
 ## 3.0.0
 - Added `Await::all()` and `Await::race()` for a generator interface
 - Fixed crash during double promise resolution, ignores second call instead
