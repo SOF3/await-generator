@@ -82,12 +82,13 @@ if the generator is not yielded fully.
 If you perform async operations in the `finally` block,
 you **must** drain the traverser fully.
 If you don't want the iterator to continue executing,
-you may use the `$traverser->interrupt()` method,
+you may use the `yield $traverser->interrupt()` method,
 which keeps throwing the first parameter
 (`SOFe\AwaitGenerator\InterruptException` by default)
 into the async iterator until it stops executing.
 Beware that `interrupt` may throw an `AwaitException`
-if the underlying generator catches exceptions during `yield Await::VALUE`s.
+if the underlying generator catches exceptions during `yield Await::VALUE`s
+(hence consuming the interrupts).
 
 It is not necessary to interrupt the traverser
 if there are no `finally` blocks containing `yield` statements.

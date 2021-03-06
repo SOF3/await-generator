@@ -32,7 +32,7 @@ use function get_class;
  * @small
  */
 class TraverseTest extends TestCase{
-	private function oneThree() : Generator{
+	private static function oneThree() : Generator{
 		yield 1 => Traverser::VALUE;
 		yield GeneratorUtil::empty();
 		yield 3 => Traverser::VALUE;
@@ -40,10 +40,45 @@ class TraverseTest extends TestCase{
 
 	public function testArrayCollect(){
 		Await::f2c(function() : Generator{
-			$trav = new Traverser($this->oneThree());
+			$trav = new Traverser(self::oneThree());
 			return yield $trav->collect();
 		}, function(array $array){
 			self::assertSame([1, 3], $array);
+		});
+	}
+
+	public function testNormalInterrupt(){
+		Await::f2c(function() : Generator{
+			$trav = new Traverser(self::oneThree());
+			self::assertTrue(yield $trav->next($value));
+			self::assertSame(1, $value);
+
+			return yield $trav->interrupt();
+		}, function($result) {
+			self::assertSame(null, $result);
+		});
+	}
+
+	public function testCaughtInterruptFinalized(){
+		Await::f2c(function() : Generator{
+			$trav = Traverser::fromClosure(function() : Generator{
+				try{
+					yield GeneratorUtil::empty();
+					yield 1 => Traverser::VALUE;
+					yield GeneratorUtil::empty();
+					yield 2 => Traverser::VALUE;
+				}finally{
+					yield 3 => Traverser::VALUE;
+					yield GeneratorUtil::empty();
+					yield 4 => Traverser::VALUE;
+				}
+			});
+			self::assertTrue(yield $trav->next($value));
+			self::assertSame(1, $value);
+
+			return yield $trav->interrupt();
+		}, function($result) {
+			self::assertSame(null, $result);
 		});
 	}
 }

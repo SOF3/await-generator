@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace SOFe\AwaitGenerator;
 
+use Closure;
 use Generator;
 use Iterator;
 use Throwable;
@@ -44,6 +45,13 @@ final class Traverser{
 
 	public function __construct(Generator $inner){
 		$this->inner = $inner;
+	}
+
+	/**
+	 * @phpstan-param Closure(): Generator $closure
+	 */
+	public static function fromClosure(Closure $closure) : self{
+		return new self($closure());
 	}
 
 	/**
@@ -98,8 +106,8 @@ final class Traverser{
 	public function interrupt(Throwable $ex = null, int $attempts = self::MAX_INTERRUPTS) : Generator{
 		$ex = $ex ?? InterruptException::get();
 		for($i = 0; $i < $attempts; $i++){
-			$this->inner->throw($ex);
 			try{
+				$this->inner->throw($ex);
 				$hasMore = yield $this->next($_);
 				if(!$hasMore){
 					return null;
