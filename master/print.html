@@ -97,7 +97,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="generators.html"><strong aria-hidden="true">2.</strong> Generators</a></li><li class="chapter-item expanded "><a href="async.html"><strong aria-hidden="true">3.</strong> Asynchronous programming</a></li><li class="chapter-item expanded "><a href="main.html"><strong aria-hidden="true">4.</strong> Using await-generator</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="await-gen.html"><strong aria-hidden="true">4.1.</strong> Awaiting generators</a></li><li class="chapter-item expanded "><a href="await-once.html"><strong aria-hidden="true">4.2.</strong> Using callback-style from generators</a></li><li class="chapter-item expanded "><a href="f2c-g2c.html"><strong aria-hidden="true">4.3.</strong> Exposing a generator to normal API</a></li><li class="chapter-item expanded "><a href="all-race.html"><strong aria-hidden="true">4.4.</strong> Running generators concurrently</a></li></ol></li><li class="chapter-item expanded "><a href="semver.html"><strong aria-hidden="true">5.</strong> Versioning concerns</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="generators.html"><strong aria-hidden="true">2.</strong> Generators</a></li><li class="chapter-item expanded "><a href="async.html"><strong aria-hidden="true">3.</strong> Asynchronous programming</a></li><li class="chapter-item expanded "><a href="main.html"><strong aria-hidden="true">4.</strong> Using await-generator</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="await-gen.html"><strong aria-hidden="true">4.1.</strong> Awaiting generators</a></li><li class="chapter-item expanded "><a href="await-once.html"><strong aria-hidden="true">4.2.</strong> Using callback-style from generators</a></li><li class="chapter-item expanded "><a href="f2c-g2c.html"><strong aria-hidden="true">4.3.</strong> Exposing a generator to normal API</a></li><li class="chapter-item expanded "><a href="all-race.html"><strong aria-hidden="true">4.4.</strong> Running generators concurrently</a></li><li class="chapter-item expanded "><a href="async-iterators.html"><strong aria-hidden="true">4.5.</strong> Async iterators</a></li></ol></li><li class="chapter-item expanded "><a href="semver.html"><strong aria-hidden="true">5.</strong> Versioning concerns</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -582,6 +582,90 @@ function main(): Generator {
 	var_dump($v); // int(1)
 }
 </code></pre>
+<h1 id="async-iterators"><a class="header" href="#async-iterators">Async iterators</a></h1>
+<p>In normal PHP functions, there is only a single return value.
+If we want to return data progressively,
+generators should have been used,
+where the user can iterate on the returned generator.
+However, if the user intends to perform async operations
+in every step of progressive data fetching,
+the <code>next()</code> method needs to be async too.
+In other languages, this is called &quot;saync generator&quot; or &quot;async iterator&quot;.
+However, since await-generator has hijacked the generator syntax,
+it is not possible to create such structures directly.</p>
+<p>Instead, await-generator exposes the <code>Traverser</code> class,
+which is an extension to the normal await-generator syntax,
+providing an additional yield mode <code>Traverser::VALUE</code>,
+which allows an async function to yield async iteration values.
+A key (the current traversed value) is passed with <code>Traverser::VALUE</code>.
+The resultant generator is wrapped with the <code>Traverser</code> class,
+which provides na asynchronous <code>next()</code> method that
+executes the generator asynchronously and returns the next traversed value,</p>
+<h2 id="example-1"><a class="header" href="#example-1">Example</a></h2>
+<p>In normal PHP, we may have an line iterator on a file stream like this:</p>
+<pre><code class="language-php">function lines(string $file) : Generator {
+	$fh = fopen($file, &quot;rt&quot;);
+	try {
+		while(($line = fgets($fh)) !== false) {
+			yield $line;
+		}
+	} finally {
+		fclose($fh);
+	}
+}
+
+function count_empty_lines(string $file) {
+	$count = 0;
+	foreach(lines($file) as $line) {
+		if(trim($line) === &quot;&quot;) $count++;
+	}
+	return $count;
+}
+</code></pre>
+<p>What if we have async versions of <code>fopen</code>, <code>fgets</code> and ``
+and want to reimplement this <code>lines</code> function as async?</p>
+<p>We would use the <code>Traverser</code> class instead:</p>
+<pre><code class="language-php">function async_lines(string $file) : Generator {
+	$fh = yield async_fopen($file, &quot;rt&quot;);
+	try {
+		while(true) {
+			$line = yield async_fgets($fh);
+			if($line === false) {
+				return;
+			}
+			yield $line =&gt; Await::VALUE;
+		}
+	} finally {
+		yield async_fclose($fh);
+	}
+}
+
+function async_count_empty_lines(string $file) : Generator {
+	$count = 0;
+
+	$traverser = new Traverser(async_lines($file));
+	while(yield $traverser-&gt;next($line)) {
+		if(trim($line) === &quot;&quot;) $count++;
+	}
+
+	return $count;
+}
+</code></pre>
+<h2 id="interrupting-a-generator"><a class="header" href="#interrupting-a-generator">Interrupting a generator</a></h2>
+<p>Yielding inside <code>finally</code> may cause a crash
+if the generator is not yielded fully.
+If you perform async operations in the <code>finally</code> block,
+you <strong>must</strong> drain the traverser fully.
+If you don't want the iterator to continue executing,
+you may use the <code>yield $traverser-&gt;interrupt()</code> method,
+which keeps throwing the first parameter
+(<code>SOFe\AwaitGenerator\InterruptException</code> by default)
+into the async iterator until it stops executing.
+Beware that <code>interrupt</code> may throw an <code>AwaitException</code>
+if the underlying generator catches exceptions during <code>yield Await::VALUE</code>s
+(hence consuming the interrupts).</p>
+<p>It is not necessary to interrupt the traverser
+if there are no <code>finally</code> blocks containing <code>yield</code> statements.</p>
 <h1 id="versioning-concerns"><a class="header" href="#versioning-concerns">Versioning concerns</a></h1>
 <p>await-generator is guaranteed to be
 shade-compatible, backward-compatible and partly forward-compatible.</p>
