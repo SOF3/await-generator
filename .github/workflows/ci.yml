@@ -19,6 +19,7 @@ jobs:
         with:
           php-version: ${{matrix.php-version}}
           tools: composer
+          coverage: xdebug2
       - run: composer update --optimize-autoloader
       - name: phpunit test
         env:
@@ -59,6 +60,7 @@ jobs:
         with:
           php-version: ${{matrix.php-version}}
           tools: composer
+          coverage: xdebug2
       - run: composer update --optimize-autoloader
       - name: infection
         env:
