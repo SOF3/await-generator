@@ -81,4 +81,30 @@ class TraverseTest extends TestCase{
 			self::assertSame(null, $result);
 		});
 	}
+
+	public function testLoopingInterruptCatch(){
+		Await::f2c(function() : Generator{
+			$trav = Traverser::fromClosure(function() : Generator{
+				while(true){
+					try{
+						yield GeneratorUtil::empty();
+						yield 1 => Traverser::VALUE;
+						yield GeneratorUtil::empty();
+						yield 2 => Traverser::VALUE;
+					}catch(\Exception $ex){
+						yield GeneratorUtil::empty();
+						yield 3 => Traverser::VALUE;
+					}
+				}
+			});
+			self::assertTrue(yield $trav->next($value));
+			self::assertSame(1, $value);
+
+			return yield $trav->interrupt();
+		}, function() {
+			self::assertFalse("unreachable");
+		}, function(\Exception $ex) {
+			self::assertEquals("Generator did not terminate after 16 interrupts", $ex->getMessage());
+		});
+	}
 }
