@@ -23,6 +23,8 @@ declare(strict_types=1);
 namespace SOFe\AwaitGenerator;
 
 use Generator;
+use Iterator;
+use Throwable;
 use function func_num_args;
 
 /**
@@ -35,6 +37,7 @@ use function func_num_args;
  */
 final class Traverser{
 	public const VALUE = "traverse.value";
+	public const MAX_INTERRUPTS = 16;
 
 	/** @var Generator */
 	private $inner;
@@ -50,15 +53,15 @@ final class Traverser{
 	 * Returns false if there are no more values.
 	 */
 	public function next(&$valueRef) : Generator{
-		while($this->inner->valid()) {
+		while($this->inner->valid()){
 			$k = $this->inner->key();
 			$v = $this->inner->current();
 			$this->inner->next();
 
-			if($v === self::VALUE) {
+			if($v === self::VALUE){
 				$valueRef = $k;
 				return true;
-			} else {
+			}else{
 				// fallback to parent async context
 				yield $k => $v;
 			}
@@ -73,9 +76,41 @@ final class Traverser{
 	 */
 	public function collect() : Generator{
 		$array = [];
-		while(yield $this->next($value)) {
+		while(yield $this->next($value)){
 			$array[] = $value;
 		}
 		return $array;
+	}
+
+	/**
+	 * Throw an exception into the underlying generator repeatedly
+	 * so that all `finally` blocks can get asynchronously executed.
+	 *
+	 * If the underlying generator throws an exception not identical to `$ex`,
+	 * this function will return the new exceptioin.
+	 * Returns null if the underlying generator successfully terminated or throws.
+	 *
+	 * Throws `AwaitException` if `$attempts` throws were performed
+	 * and the iterator is still executing.
+	 *
+	 * All values iterated during interruption are discarded.
+	 */
+	public function interrupt(Throwable $ex = null, int $attempts = self::MAX_INTERRUPTS) : Generator{
+		$ex = $ex ?? InterruptException::get();
+		for($i = 0; $i < $attempts; $i++){
+			$this->inner->throw($ex);
+			try{
+				$hasMore = yield $this->next($_);
+				if(!$hasMore){
+					return null;
+				}
+			}catch(Throwable $caught){
+				if($caught === $ex){
+					$caught = null;
+				}
+				return $caught;
+			}
+		}
+		throw new AwaitException("Generator did not terminate after $attempts interrupts");
 	}
 }

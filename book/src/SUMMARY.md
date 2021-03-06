@@ -8,4 +8,5 @@
 	- [Using callback-style from generators](await-once.md)
 	- [Exposing a generator to normal API](f2c-g2c.md)
 	- [Running generators concurrently](all-race.md)
+	- [Async iterators](async-iterators.md)
 - [Versioning concerns](semver.md)
