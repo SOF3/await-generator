@@ -43,7 +43,7 @@ function count_empty_lines(string $file) {
 }
 ```
 
-What if we have async versions of `fopen`, `fgets` and ``
+What if we have async versions of `fopen`, `fgets` and `fclose`
 and want to reimplement this `lines` function as async?
 
 We would use the `Traverser` class instead:
