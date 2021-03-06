@@ -203,7 +203,7 @@ function count_empty_lines(string $file) {
 	return $count;
 }
 </code></pre>
-<p>What if we have async versions of <code>fopen</code>, <code>fgets</code> and ``
+<p>What if we have async versions of <code>fopen</code>, <code>fgets</code> and <code>fclose</code>
 and want to reimplement this <code>lines</code> function as async?</p>
 <p>We would use the <code>Traverser</code> class instead:</p>
 <pre><code class="language-php">function async_lines(string $file) : Generator {
