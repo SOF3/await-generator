@@ -16,7 +16,7 @@ providing an additional yield mode `Traverser::VALUE`,
 which allows an async function to yield async iteration values.
 A key (the current traversed value) is passed with `Traverser::VALUE`.
 The resultant generator is wrapped with the `Traverser` class,
-which provides na asynchronous `next()` method that
+which provides an asynchronous `next()` method that
 executes the generator asynchronously and returns the next traversed value,
 
 ## Example
