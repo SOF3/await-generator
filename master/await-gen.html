@@ -194,7 +194,7 @@ You can use try-catch to handle these exceptions.</p>
 
 function main(): Generator {
 	try {
-		err();
+		yield err();
 	} catch(Exception $e) {
 		var_dump($e-&gt;getMessage()); // string(4) &quot;Test&quot;
 	}
