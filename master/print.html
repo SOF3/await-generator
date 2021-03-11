@@ -235,7 +235,7 @@ This return value is not handled the same way as a <code>yield</code>;
 it is obtained using <code>$generator-&gt;getReturn()</code>.
 However, the return type hint must always be <code>Generator</code>
 no matter what you return, or if you don't return:</p>
-<pre><code class="language-php">function qux() -&gt; Generator {
+<pre><code class="language-php">function qux(): Generator {
 	yield 1;
 	return 2;
 }
