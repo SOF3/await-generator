@@ -88,7 +88,7 @@ However, the return type hint must always be `Generator`
 no matter what you return, or if you don't return:
 
 ```php
-function qux() -> Generator {
+function qux(): Generator {
 	yield 1;
 	return 2;
 }
