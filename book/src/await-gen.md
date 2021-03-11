@@ -35,7 +35,7 @@ function err(): Generator {
 
 function main(): Generator {
 	try {
-		err();
+		yield err();
 	} catch(Exception $e) {
 		var_dump($e->getMessage()); // string(4) "Test"
 	}
