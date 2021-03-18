@@ -48,7 +48,7 @@ class Await extends PromiseState{
 
 	/**
 	 * @var Generator
-	 * @phpstan-var Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator>, mixed, T>
+	 * @phpstan-var Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator|MustYield>, mixed, T>
 	 * */
 	private $generator;
 	/**
@@ -69,7 +69,7 @@ class Await extends PromiseState{
 	private $lastResolveUnrejected = null;
 	/**
 	 * @var string|string[]|null
-	 * @phpstan-var Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator<mixed, mixed, mixed, mixed>|null
+	 * @phpstan-var Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator<mixed, mixed, mixed, mixed>|MustYield|null
 	 */
 	private $current = null;
 
@@ -80,7 +80,7 @@ class Await extends PromiseState{
 	 * Converts a `Function<AwaitGenerator>` to a VoidCallback
 	 *
 	 * @param callable            $closure
-	 * @phpstan-param callable(): Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $closure
+	 * @phpstan-param callable(): Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator|MustYield, mixed, T> $closure
 	 * @param callable|null       $onComplete
 	 * @phpstan-param (callable(T): void)|null  $onComplete
 	 * @param callable[]|callable $catches
@@ -96,7 +96,7 @@ class Await extends PromiseState{
 	 * Converts an AwaitGenerator to a VoidCallback
 	 *
 	 * @param Generator           $generator
-	 * @phpstan-param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $generator
+	 * @phpstan-param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator|MustYield, mixed, T> $generator
 	 * @param callable|null       $onComplete
 	 * @phpstan-param (callable(T): void)|null  $onComplete
 	 * @param callable[]|callable $catches
@@ -128,8 +128,8 @@ class Await extends PromiseState{
 	 * Throws exception as soon as any of the generators throws an exception.
 	 *
 	 * @template U
-	 * @param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>[] $generators
-	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U[]>
+	 * @param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator|MustYield, mixed, U>[] $generators
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator|MustYield, mixed, U[]>
 	 */
 	public static function all(array $generators) : Generator{
 		if(count($generators) === 0){
@@ -168,8 +168,8 @@ class Await extends PromiseState{
 	 *
 	 * @template K
 	 * @template U
-	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $generators
-	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, array{K, U}>
+	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator|MustYield, mixed, U>> $generators
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator|MustYield, mixed, array{K, U}>
 	 */
 	public static function race(array $generators) : Generator{
 		if(count($generators) === 0){
@@ -342,6 +342,9 @@ class Await extends PromiseState{
 			};
 		}
 
+		if($current instanceof MustYield){
+			$current = $current->use();
+		}
 		if($current instanceof Generator){
 			if(!empty($this->promiseQueue)){
 				$this->reject(new UnawaitedCallbackException("Yielding a generator"));
