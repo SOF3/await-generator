@@ -137,6 +137,18 @@ class AwaitTest extends TestCase{
 		});
 	}
 
+	public function testExcessResolve() : void{
+		Await::f2c(function() : Generator{
+			yield Await::REJECT;
+		}, function(){
+			self::assertTrue(false, "unexpected resolve call");
+		}, function($ex) : void{
+			self::assertInstanceOf(AwaitException::class, $ex);
+			/** @var AwaitException $ex */
+			self::assertEquals("Cannot yield Await::REJECT without yielding Await::RESOLVE first; they must be yielded in pairs", $ex->getMessage());
+		});
+	}
+
 	public function testDoubleReject() : void{
 		$firstRejectOk = false;
 		Await::f2c(function() use (&$firstRejectOk) : Generator{
