@@ -38,6 +38,7 @@ use function func_num_args;
  *
  * @template T
  * @phpstan-import-type Command from Await
+ * @phpstan-import-type Promise from Await
  * @phpstan-type AsyncIterator Generator<mixed|T, Command|Traverser::VALUE, mixed, mixed>
  */
 final class Traverser{
@@ -55,7 +56,8 @@ final class Traverser{
 	}
 
 	/**
-	 * @phpstan-param Closure(): Generator<T> $closure
+	 * @phpstan-param Closure(): AsyncIterator<T> $closure
+	 * @phpstan-return Traverser<T>
 	 */
 	public static function fromClosure(Closure $closure) : self{
 		return new self($closure());

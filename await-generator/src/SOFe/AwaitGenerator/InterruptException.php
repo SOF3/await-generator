@@ -29,6 +29,7 @@ use Exception;
  * when `Traverser::interrupt()` is called.
  */
 final class InterruptException extends Exception{
+	/** @var self */
 	private static $instance;
 
 	public static function get() : self {

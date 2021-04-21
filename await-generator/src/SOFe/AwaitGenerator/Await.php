@@ -37,7 +37,7 @@ use function is_callable;
 
 /**
  * @template T
- * @phpstan-type Command Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator
+ * @phpstan-type Command Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator<mixed, mixed, mixed, mixed>
  * @phpstan-type Promise Generator<mixed, Command, mixed, T>
  */
 class Await extends PromiseState{
