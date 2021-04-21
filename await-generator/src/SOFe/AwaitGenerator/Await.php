@@ -37,6 +37,8 @@ use function is_callable;
 
 /**
  * @template T
+ * @phpstan-type Command Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator
+ * @phpstan-type Promise Generator<mixed, Command, mixed, T>
  */
 class Await extends PromiseState{
 	public const RESOLVE = "resolve";
@@ -48,7 +50,7 @@ class Await extends PromiseState{
 
 	/**
 	 * @var Generator
-	 * @phpstan-var Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator>, mixed, T>
+	 * @phpstan-var Promise<T>
 	 * */
 	private $generator;
 	/**
@@ -69,7 +71,7 @@ class Await extends PromiseState{
 	private $lastResolveUnrejected = null;
 	/**
 	 * @var string|string[]|null
-	 * @phpstan-var Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator<mixed, mixed, mixed, mixed>|null
+	 * @phpstan-var Command|null
 	 */
 	private $current = null;
 
@@ -79,11 +81,11 @@ class Await extends PromiseState{
 	/**
 	 * Converts a `Function<AwaitGenerator>` to a VoidCallback
 	 *
-	 * @param callable            $closure
-	 * @phpstan-param callable(): Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $closure
-	 * @param callable|null       $onComplete
-	 * @phpstan-param (callable(T): void)|null  $onComplete
-	 * @param callable[]|callable $catches
+	 * @param callable                                                                   $closure
+	 * @phpstan-param callable(): Promise<T>                                             $closure
+	 * @param callable|null                                                              $onComplete
+	 * @phpstan-param (callable(T): void)|null                                           $onComplete
+	 * @param callable[]|callable                                                        $catches
 	 * @phpstan-param array<string, callable(Throwable): void>|callable(Throwable): void $catches
 	 *
 	 * @return Await<T>
@@ -95,11 +97,11 @@ class Await extends PromiseState{
 	/**
 	 * Converts an AwaitGenerator to a VoidCallback
 	 *
-	 * @param Generator           $generator
-	 * @phpstan-param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $generator
-	 * @param callable|null       $onComplete
-	 * @phpstan-param (callable(T): void)|null  $onComplete
-	 * @param callable[]|callable $catches
+	 * @param Generator                                                                  $generator
+	 * @phpstan-param Promise<T>                                                         $generator
+	 * @param callable|null                                                              $onComplete
+	 * @phpstan-param (callable(T): void)|null                                           $onComplete
+	 * @param callable[]|callable                                                        $catches
 	 * @phpstan-param array<string, callable(Throwable): void>|callable(Throwable): void $catches
 	 *
 	 * @return Await<T>
@@ -128,8 +130,8 @@ class Await extends PromiseState{
 	 * Throws exception as soon as any of the generators throws an exception.
 	 *
 	 * @template U
-	 * @param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>[] $generators
-	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U[]>
+	 * @param Promise<U>[] $generators
+	 * @return Promise<U[]>
 	 */
 	public static function all(array $generators) : Generator{
 		if(count($generators) === 0){
@@ -168,8 +170,8 @@ class Await extends PromiseState{
 	 *
 	 * @template K
 	 * @template U
-	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $generators
-	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, array{K, U}>
+	 * @param array<K, Promise<U>> $generators
+	 * @return Promise<array{K, U}>
 	 */
 	public static function race(array $generators) : Generator{
 		if(count($generators) === 0){
@@ -190,7 +192,7 @@ class Await extends PromiseState{
 	/**
 	 * A wrapper around wakeup() to convert deep recursion to tail recursion
 	 *
-	 * @param callable|null $executor
+	 * @param callable|null                   $executor
 	 * @phpstan-param (callable(): void)|null $executor
 	 *
 	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.

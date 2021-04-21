@@ -33,22 +33,29 @@ use function func_num_args;
  *
  * The function can be written like a normal await-generator function.
  * When yielding a value is intended,
- * the user can run `yield $value => Await::VALUE;`
+ * the user can run `yield $value => Traverser::VALUE;`
  * to stop and output the value.
+ *
+ * @template T
+ * @phpstan-import-type Command from Await
+ * @phpstan-type AsyncIterator Generator<mixed|T, Command|Traverser::VALUE, mixed, mixed>
  */
 final class Traverser{
 	public const VALUE = "traverse.value";
 	public const MAX_INTERRUPTS = 16;
 
-	/** @var Generator */
+	/** @var AsyncIterator<T> */
 	private $inner;
 
+	/**
+	 * @phpstan-param AsyncIterator<T> $inner
+	 */
 	public function __construct(Generator $inner){
 		$this->inner = $inner;
 	}
 
 	/**
-	 * @phpstan-param Closure(): Generator $closure
+	 * @phpstan-param Closure(): Generator<T> $closure
 	 */
 	public static function fromClosure(Closure $closure) : self{
 		return new self($closure());
@@ -59,6 +66,9 @@ final class Traverser{
 	 * and assigns the next yielded value to `$valueRef` and returns true.
 	 *
 	 * Returns false if there are no more values.
+	 *
+	 * @phpstan-param T $valueRef
+	 * @phpstan-return Promise<bool>
 	 */
 	public function next(&$valueRef) : Generator{
 		while($this->inner->valid()){
@@ -81,6 +91,8 @@ final class Traverser{
 	/**
 	 * Asynchronously waits for all remaining values in the underlying iterator
 	 * and collects them into a linear array.
+	 *
+	 * @phpstan-return Promise<T[]>
 	 */
 	public function collect() : Generator{
 		$array = [];
@@ -102,6 +114,8 @@ final class Traverser{
 	 * and the iterator is still executing.
 	 *
 	 * All values iterated during interruption are discarded.
+	 *
+	 * @phpstan-return Promise<Throwable|null>
 	 */
 	public function interrupt(Throwable $ex = null, int $attempts = self::MAX_INTERRUPTS) : Generator{
 		$ex = $ex ?? InterruptException::get();
