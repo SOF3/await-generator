@@ -22,8 +22,10 @@ declare(strict_types=1);
 
 namespace SOFe\AwaitGenerator;
 
+use InvalidArgumentException;
 use Throwable;
 use function assert;
+use function func_num_args;
 
 abstract class PromiseState{
 	public const STATE_PENDING = 0;
@@ -46,12 +48,20 @@ abstract class PromiseState{
 	public function resolve($value) : void{
 		assert($this->state === self::STATE_PENDING);
 
+		if(func_num_args() > 1){
+			throw new InvalidArgumentException("Await::RESOLVE output called with more than one parameter, but only one value can be resolved");
+		}
+
 		$this->state = self::STATE_RESOLVED;
 		$this->resolved = $value;
 	}
 
 	public function reject(Throwable $value) : void{
 		assert($this->state === self::STATE_PENDING);
+
+		if(func_num_args() > 1){
+			throw new InvalidArgumentException("Await::REJECT output called with more than one parameter, but only one value can be resolved");
+		}
 
 		$this->state = self::STATE_REJECTED;
 		$this->rejected = $value;
