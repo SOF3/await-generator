@@ -133,7 +133,7 @@ class Await extends PromiseState{
 	 */
 	public static function all(array $generators) : Generator{
 		if(count($generators) === 0){
-			throw new AwaitException("Cannot await all on an empty array of generators");
+			return [];
 		}
 
 		foreach($generators as $k => $generator){
