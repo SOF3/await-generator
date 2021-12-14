@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## 3.1.1
+- Allow `Await::all([])` to simply return empty array
+
 ## 3.1.0
 - Added `Traverser` API
 	- Added `Traverser::next()`
