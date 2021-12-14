@@ -4,39 +4,26 @@
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>await-generator tutorial</title>
-        
         <meta name="robots" content="noindex" />
-        
-        
 
 
         <!-- Custom HTML head -->
-        
-
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
 
-        
         <link rel="icon" href="favicon.svg">
-        
-        
         <link rel="shortcut icon" href="favicon.png">
-        
         <link rel="stylesheet" href="css/variables.css">
         <link rel="stylesheet" href="css/general.css">
         <link rel="stylesheet" href="css/chrome.css">
-        
         <link rel="stylesheet" href="css/print.css" media="print">
-        
 
         <!-- Fonts -->
         <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
-        
         <link rel="stylesheet" href="fonts/fonts.css">
-        
 
         <!-- Highlight.js Stylesheets -->
         <link rel="stylesheet" href="highlight.css">
@@ -44,9 +31,7 @@
         <link rel="stylesheet" href="ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
-        
 
-        
     </head>
     <body>
         <!-- Provide site root to javascript -->
@@ -105,7 +90,6 @@
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                
                 <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky bordered">
                     <div class="left-buttons">
@@ -122,29 +106,24 @@
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                         </ul>
-                        
                         <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
                             <i class="fa fa-search"></i>
                         </button>
-                        
                     </div>
 
                     <h1 class="menu-title">await-generator tutorial</h1>
 
                     <div class="right-buttons">
-                        
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
-                        
-                        
+
                     </div>
                 </div>
 
-                
                 <div id="search-wrapper" class="hidden">
                     <form id="searchbar-outer" class="searchbar-outer">
-                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
                     </form>
                     <div id="searchresults-outer" class="searchresults-outer hidden">
                         <div id="searchresults-header" class="searchresults-header"></div>
@@ -152,7 +131,6 @@
                         </ul>
                     </div>
                 </div>
-                
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script type="text/javascript">
@@ -173,7 +151,7 @@ It allows you to write code more easily in a style called &quot;asynchronous&quo
 <p>This tutorial involves concepts from PocketMine-MP,
 a server software for Minecraft written in PHP.
 The target audience is plugin developers for PocketMine-MP.</p>
-<h1 id="generators"><a class="header" href="#generators">Generators</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="generators"><a class="header" href="#generators">Generators</a></h1>
 <p>A PHP function that contains a <code>yield</code> keyword is called a &quot;generator function&quot;.</p>
 <pre><code class="language-php">function foo() {
 	echo &quot;hi!\n&quot;;
@@ -259,7 +237,7 @@ var_dump($generator-&gt;getReturn());
 <pre><code>NULL
 int(1)
 </code></pre>
-<h1 id="asynchronous-programming"><a class="header" href="#asynchronous-programming">Asynchronous programming</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="asynchronous-programming"><a class="header" href="#asynchronous-programming">Asynchronous programming</a></h1>
 <p>Traditionally, when you call a function,
 it performs the required actions and returns after they're done.
 In asynchronous programming,
@@ -382,14 +360,14 @@ Think about how complicated this would become when
 we want to use asynchronous functions in loops!</p>
 <p>The await-generator library allows users to write async code in synchronous style.
 As you might have guessed, the <code>yield</code> keyword is a replacement for callbacks.</p>
-<h1 id="using-await-generator"><a class="header" href="#using-await-generator">Using await-generator</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="using-await-generator"><a class="header" href="#using-await-generator">Using await-generator</a></h1>
 <p>await-generator provides an alternative approach to asynchronous programming.
 Functions that use async logic are written in generator functions.
 The main trick is that your function pauses (using <code>yield</code>)
 when you want to wait for a value,
 then await-generator resumes your function and
 sends you the return value from the async function via <code>$generator-&gt;send()</code>.</p>
-<h1 id="awaiting-generators"><a class="header" href="#awaiting-generators">Awaiting generators</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="awaiting-generators"><a class="header" href="#awaiting-generators">Awaiting generators</a></h1>
 <p>Since every async function is implemented as a generator function,
 simply calling it will not have any effects.
 Instead, you have to <code>yield</code> the generator.
@@ -426,7 +404,7 @@ function main(): Generator {
 	}
 }
 </code></pre>
-<h1 id="using-callback-style-from-generators"><a class="header" href="#using-callback-style-from-generators">Using callback-style from generators</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="using-callback-style-from-generators"><a class="header" href="#using-callback-style-from-generators">Using callback-style from generators</a></h1>
 <p>Although it is easier to work with generator functions,
 ultimately, you will need to work with functions that do not use await-generator.
 In that case, callbacks are easier to use.</p>
@@ -502,7 +480,7 @@ Let's see what we can do with a countdown:</p>
 }
 </code></pre>
 <p>This is much simpler than using <code>ClosureTask</code> in a loop!</p>
-<h1 id="exposing-a-generator-to-normal-api"><a class="header" href="#exposing-a-generator-to-normal-api">Exposing a generator to normal API</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="exposing-a-generator-to-normal-api"><a class="header" href="#exposing-a-generator-to-normal-api">Exposing a generator to normal API</a></h1>
 <p>Recall that generator functions do not do anything when they get called.
 Eventually, we have to call the generator function from a non-await-generator context.
 We can use the <code>Await::g2c</code> function for this:</p>
@@ -532,7 +510,7 @@ and pass it directly:</p>
 	var_dump($ex-&gt;getMessage()); // string(6) &quot;random&quot;
 });
 </code></pre>
-<h1 id="running-generators-concurrently"><a class="header" href="#running-generators-concurrently">Running generators concurrently</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="running-generators-concurrently"><a class="header" href="#running-generators-concurrently">Running generators concurrently</a></h1>
 <p>In addition to calling multiple generators sequentially,
 you can also use <code>Await::all()</code> or <code>Await::race()</code> to run multiple generators.</p>
 <p>If you have a JavaScript background, you can think of <code>Generator</code> objects as promises
@@ -582,7 +560,7 @@ function main(): Generator {
 	var_dump($v); // int(1)
 }
 </code></pre>
-<h1 id="async-iterators"><a class="header" href="#async-iterators">Async iterators</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="async-iterators"><a class="header" href="#async-iterators">Async iterators</a></h1>
 <p>In normal PHP functions, there is only a single return value.
 If we want to return data progressively,
 generators should have been used,
@@ -666,7 +644,7 @@ if the underlying generator catches exceptions during <code>yield Await::VALUE</
 (hence consuming the interrupts).</p>
 <p>It is not necessary to interrupt the traverser
 if there are no <code>finally</code> blocks containing <code>yield</code> statements.</p>
-<h1 id="versioning-concerns"><a class="header" href="#versioning-concerns">Versioning concerns</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="versioning-concerns"><a class="header" href="#versioning-concerns">Versioning concerns</a></h1>
 <p>await-generator is guaranteed to be
 shade-compatible, backward-compatible and partly forward-compatible.</p>
 <p>Await-generator uses generator objects for communication.
@@ -688,9 +666,7 @@ await-generator is versioned just like the normal semver for you.)</p>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                        
 
-                        
 
                         <div style="clear: both"></div>
                     </nav>
@@ -698,49 +674,34 @@ await-generator is versioned just like the normal semver for you.)</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                
 
-                
             </nav>
 
         </div>
 
-        
 
-        
 
-        
 
-        
         <script type="text/javascript">
             window.playground_copyable = true;
         </script>
-        
 
-        
 
-        
         <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
-        
 
         <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
         <script src="book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
-        
 
-        
-        
         <script type="text/javascript">
         window.addEventListener('load', function() {
             window.setTimeout(window.print, 100);
         });
         </script>
-        
-        
 
     </body>
 </html>
