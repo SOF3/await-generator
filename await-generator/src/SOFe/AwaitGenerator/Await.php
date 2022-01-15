@@ -188,6 +188,21 @@ class Await extends PromiseState{
 	}
 
 	/**
+	 * Executes a callback-style async function using JavaScript Promise-like API.
+	 *
+	 * This *differs* from JavaScript Promise in that $closure is NOT executed
+	 * until it is yielded and processed by an Await runtime.
+	 */
+	public static function promise(Closure $closure) : Generator{
+		$resolve = yield Await::RESOLVE;
+		$reject = yield Await::REJECT;
+
+		$closure($resolve, $reject);
+		return yield Await::ONCE;
+	}
+
+
+	/**
 	 * A wrapper around wakeup() to convert deep recursion to tail recursion
 	 *
 	 * @param callable|null $executor
