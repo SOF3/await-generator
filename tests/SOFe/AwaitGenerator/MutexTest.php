@@ -24,6 +24,7 @@ namespace SOFe\AwaitGenerator;
 
 use Generator;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use stdClass;
 
 /**
@@ -57,7 +58,7 @@ class MutexTest extends TestCase{
 		});
 
 		self::assertTrue($mutex->isIdle(), "mutex should initialize is idle");
-		self::assertSame(0, $done, "Await::f2c context did not resolve");
+		self::assertSame(0, $done, "Await::f2c did not resolve");
 	}
 
 	public function testNotIdleDuringLock() : void{
@@ -174,5 +175,27 @@ class MutexTest extends TestCase{
 		});
 
 		self::assertSame(0, $hasRunClosure, "mutex should continue running subsequent closures despite throwing exceptions");
+	}
+
+	public function testDoubleRelease() : void{
+		$done = 2;
+
+		Await::f2c(function() use(&$done){
+			$mutex = new Mutex;
+			yield from $mutex->acquire();
+			$mutex->release();
+
+			$done--;
+
+			$mutex->release();
+		}, null, [
+			RuntimeException::class => function(RuntimeException $ex) use(&$done){
+				self::assertSame("Attempt to release a released mutex", $ex->getMessage());
+
+				$done--;
+			},
+		]);
+
+		self::assertSame(0, $done, "Await::f2c did not reject");
 	}
 }
