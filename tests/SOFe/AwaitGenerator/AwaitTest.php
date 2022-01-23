@@ -768,6 +768,43 @@ class AwaitTest extends TestCase{
 		}
 	}
 
+	public function testGeneratorTrap() : void{
+		$data = [];
+
+		$generator = function() use(&$data) : Generator{
+			$data[] = 1;
+			self::voidCallbackLater(null, yield Await::RESOLVE);
+			$data[] = 2;
+			yield Await::ONCE;
+			$data[] = 3;
+			self::voidCallbackImmediate(null, yield Await::RESOLVE);
+			$data[] = 4;
+			yield Await::ONCE;
+			$data[] = 5;
+
+			return $data;
+		};
+
+		$beforeTrapCounter = 100;
+		$afterTrapCounter = 200;
+
+		$trap = Await::trap($generator(), function($_gen, $value) use(&$data, &$beforeTrapCounter) : bool {
+			if($value === Await::ONCE){
+				$data[] = $beforeTrapCounter++;
+			}
+
+			return false;
+		}, function($_gen, $value) use(&$data, &$afterTrapCounter) : bool {
+			if($value === Await::ONCE){
+				$data[] = $afterTrapCounter++;
+			}
+
+			return false;
+		});
+
+		self::assertLaterResolve(fn() => $trap, [1, 2, 100, 200, 3, 4, 101, 201, 5]);
+	}
+
 	public function testSameImmediateResolveImmediateResolve() : void{
 		$rand = [0x12345678, 0x4bcd3f96];
 		self::assertImmediateResolve(function() use ($rand) : Generator{

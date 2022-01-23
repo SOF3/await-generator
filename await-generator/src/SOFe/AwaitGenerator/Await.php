@@ -29,6 +29,8 @@ use Generator;
 use ReflectionClass;
 use ReflectionGenerator;
 use Throwable;
+use TypeError;
+
 use function array_merge;
 use function assert;
 use function count;
@@ -185,6 +187,40 @@ class Await extends PromiseState{
 		}
 		[$k, $result] = yield self::RACE;
 		return [$k, $result];
+	}
+
+	/**
+	 * Wraps a generator that executes some action before and after suspension points (`yield`s).
+	 */
+	public static function trap(Generator $generator, Closure $beforeSuspend, Closure $afterSuspend) : Generator {
+		while($generator->valid()) {
+			$key = $generator->key();
+			$value = $generator->current();
+
+			$continue = $beforeSuspend($generator, $value, $key);
+			if(!is_bool($continue)) {
+				throw new TypeError("beforeSuspend closure must return a bool (return true if beforeSuspend resumed the generator)");
+			}
+			if($continue) {
+				continue;
+			}
+
+			$send = yield $key => $value;
+
+			$continue = $afterSuspend($generator, $value, $key, $send);
+			if(!is_bool($continue)) {
+				throw new TypeError("afterSuspend closure must return a bool (return true if afterSuspend resumed the generator)");
+			}
+			if($continue) {
+				continue;
+			}
+
+			if($generator->valid()) {
+				$generator->send($send);
+			}
+		}
+
+		return $generator->getReturn();
 	}
 
 	/**
