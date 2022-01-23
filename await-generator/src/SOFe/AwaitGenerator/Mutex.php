@@ -53,7 +53,7 @@ final class Mutex{
 	 * Returns whether the mutex is idle,
 	 * i.e. not acquired by any coroutine.
 	 */
-	public function isIdle() {
+	public function isIdle() : bool{
 		return !$this->acquired;
 	}
 
@@ -111,7 +111,7 @@ final class Mutex{
 	public function run(Generator $generator) : Generator{
 		yield from $this->acquire();
 		try{
-			yield from $generator;
+			return yield from $generator;
 		}finally{
 			$this->release();
 		}

@@ -24,6 +24,7 @@ namespace SOFe\AwaitGenerator;
 
 use Generator;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 /**
  * @small
@@ -32,6 +33,31 @@ class MutexTest extends TestCase{
 	public function testInitAsIdle() : void{
 		$mutex = new Mutex;
 		self::assertTrue($mutex->isIdle(), "mutex should initialize is idle");
+	}
+
+	public function testReturnAsIs() : void{
+		$mutex = new Mutex;
+		$return = new stdClass;
+
+		$done = 2;
+
+		Await::f2c(function() use($mutex, $return, &$done) : Generator{
+			$value = yield from $mutex->runClosure(function() use($return) : Generator{
+				false && yield;
+				return $return;
+			});
+
+			self::assertSame($return, $value, "mutex should pass through returned values");
+
+			$done--;
+			return $value;
+		}, function($value) use($return, &$done) {
+			self::assertSame($return, $value, "mutex should pass through returned values");
+			$done--;
+		});
+
+		self::assertTrue($mutex->isIdle(), "mutex should initialize is idle");
+		self::assertSame(0, $done, "Await::f2c context did not resolve");
 	}
 
 	public function testNotIdleDuringLock() : void{
@@ -59,7 +85,7 @@ class MutexTest extends TestCase{
 			$done--;
 		});
 
-		self::assertSame($done, 0, "all branches should be executed");
+		self::assertSame(0, $done, "all branches should be executed");
 	}
 
 	public function testMutualExclusion() : void{
@@ -119,5 +145,34 @@ class MutexTest extends TestCase{
 
 		self::assertSame(9, $eventCounter++, "nextTick should resume coroutine");
 		self::assertTrue($mutex->isIdle(), "mutex should be idle when both locks are released");;
+	}
+
+	public function testSupportException() : void{
+		$mutex = new Mutex;
+
+		$hasThrown = false;
+
+		Await::f2c(function() use(&$hasThrown, $mutex) : Generator{
+			try{
+				yield from $mutex->runClosure(function() : Generator{
+					throw new DummyException;
+				});
+			}catch(DummyException $e){
+				$hasThrown = true;
+			}
+		});
+
+		self::assertTrue($hasThrown, "Mutex does not pass through exception");
+
+		$hasRunClosure = 1;
+
+		Await::f2c(function() use($mutex, &$hasRunClosure) : Generator{
+			yield from $mutex->runClosure(function() use(&$hasRunClosure) : Generator{
+				false && yield;
+				$hasRunClosure = 0;
+			});
+		});
+
+		self::assertSame(0, $hasRunClosure, "mutex should continue running subsequent closures despite throwing exceptions");
 	}
 }
