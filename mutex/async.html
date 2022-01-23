@@ -1,0 +1,318 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Asynchronous programming - await-generator tutorial</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="generators.html"><strong aria-hidden="true">2.</strong> Generators</a></li><li class="chapter-item expanded "><a href="async.html" class="active"><strong aria-hidden="true">3.</strong> Asynchronous programming</a></li><li class="chapter-item expanded "><a href="main.html"><strong aria-hidden="true">4.</strong> Using await-generator</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="await-gen.html"><strong aria-hidden="true">4.1.</strong> Awaiting generators</a></li><li class="chapter-item expanded "><a href="await-once.html"><strong aria-hidden="true">4.2.</strong> Using callback-style from generators</a></li><li class="chapter-item expanded "><a href="f2c-g2c.html"><strong aria-hidden="true">4.3.</strong> Exposing a generator to normal API</a></li><li class="chapter-item expanded "><a href="all-race.html"><strong aria-hidden="true">4.4.</strong> Running generators concurrently</a></li><li class="chapter-item expanded "><a href="async-iterators.html"><strong aria-hidden="true">4.5.</strong> Async iterators</a></li></ol></li><li class="chapter-item expanded "><a href="semver.html"><strong aria-hidden="true">5.</strong> Versioning concerns</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">await-generator tutorial</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="asynchronous-programming"><a class="header" href="#asynchronous-programming">Asynchronous programming</a></h1>
+<p>Traditionally, when you call a function,
+it performs the required actions and returns after they're done.
+In asynchronous programming,
+the program logic may be executed <em>after</em> a function returns.</p>
+<p>This leads to two problems.
+First, the function can't return you with any useful results,
+because the results are only available after the logic completes.
+Second, you may do something else assuming the logic is completed,
+which leads to a bug.
+For example:</p>
+<pre><code class="language-php">private $data;
+
+function loadData($player) {
+	// we will set $this-&gt;data[$player] some time later.
+}
+
+function main() {
+	$this-&gt;loadData(&quot;SOFe&quot;);
+	echo $this-&gt;data[&quot;SOFe&quot;]; // Undefined offset &quot;SOFe&quot;
+}
+</code></pre>
+<p>Here, <code>loadData</code> is the function that loads data asynchronously.
+<code>main</code> is implemented incorrectly, assuming that <code>loadData</code> is synchronous,
+i.e. it assumes that <code>$this-&gt;data[&quot;SOFe&quot;]</code> is initialized.</p>
+<h2 id="using-callbacks"><a class="header" href="#using-callbacks">Using callbacks</a></h2>
+<p>One of the simplest ways to solve this problem is to use callbacks.
+The caller can pass a closure to the async function,
+then the async function will run this closure when it has finished.
+An example function signature would be like this:</p>
+<pre><code class="language-php">function loadData($player, Closure $callback) {
+	// $callback will be called when player data have been loaded.
+}
+
+function main() {
+	$this-&gt;loadData(&quot;SOFe&quot;, function() {
+		echo $this-&gt;data[&quot;SOFe&quot;]; // this is guaranteed to work now
+	});
+}
+</code></pre>
+<p>The <code>$callback</code> will be called when some other logic happens.
+This depends on the implementation of the <code>loadData</code> logic.
+This may be when a player sends a certain packet,
+or when a scheduled task gets run,
+or other scenarios.</p>
+<h3 id="more-complex-callbacks"><a class="header" href="#more-complex-callbacks">More complex callbacks</a></h3>
+<p>(This section is deliberately complicated and hard to understand,
+because the purpose is to tell you that using callbacks is bad.)</p>
+<p>What if we want to call multiple async functions one by one?
+In synchronous code, it would be simple:</p>
+<pre><code class="language-php">$a = a();
+$b = b($a);
+$c = c($b);
+$d = d($c);
+var_dump($d);
+</code></pre>
+<p>In async code, we might need to do this (let's say <code>a</code>, <code>b</code>, <code>c</code>, <code>d</code> are async):</p>
+<pre><code class="language-php">a(function($a) {
+	b($a, function($b) {
+		c($b, function($c) {
+			d($c, function($d) {
+				var_dump($d);
+			});
+		});
+	});
+});
+</code></pre>
+<p>Looks ugly, but readable enough.
+It might look more confusing if we need to pass <code>$a</code> to <code>$d</code> though.</p>
+<p>But what if we want to do if/else?
+In synchronous code, it looks like this:</p>
+<pre><code class="language-php">$a = a();
+if($a !== null) {
+	$output = b($a);
+} else {
+	$output = c() + 1;
+}
+
+$d = very_complex_code($output);
+$e = that_deals_with($output);
+var_dump($d + $e + $a);
+</code></pre>
+<p>In async code, it is much more confusing:</p>
+<pre><code class="language-php">a(function($a) {
+	if($a !== null) {
+		b($a, function($output) use($a) {
+				$d = very_complex_code($output);
+				$e = that_deals_with($output);
+				var_dump($d + $e + $a);
+		});
+	} else {
+		c(function($output) use($a) {
+				$output = $output + 1;
+				$d = very_complex_code($output);
+				$e = that_deals_with($output);
+				var_dump($d + $e + $a);
+		});
+	}
+});
+</code></pre>
+<p>But we don't want to copy-paste the three lines of duplicated code.
+Maybe we can assign the whole closure to a variable:</p>
+<pre><code class="language-php">a(function($a) {
+	$closure = function($output) use($a) {
+		$d = very_complex_code($output);
+		$e = that_deals_with($output);
+		var_dump($d + $e + $a);
+	};
+
+	if($a !== null) {
+		b($a, $closure);
+	} else {
+		c(function($output) use($closure) {
+			$closure($output + 1);
+		});
+	}
+});
+</code></pre>
+<p>Oh no, this is getting out of control.
+Think about how complicated this would become when
+we want to use asynchronous functions in loops!</p>
+<p>The await-generator library allows users to write async code in synchronous style.
+As you might have guessed, the <code>yield</code> keyword is a replacement for callbacks.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="generators.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="main.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="generators.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="main.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </body>
+</html>
