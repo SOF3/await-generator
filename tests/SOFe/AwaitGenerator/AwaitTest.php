@@ -740,16 +740,9 @@ class AwaitTest extends TestCase{
 	}
 
 	public function testGeneratorAllEmpty() : void{
-		try{
-			Await::f2c(function() : Generator{
-				yield Await::all([]);
-			}, function() : void{
-				self::assertTrue(false, "unexpected resolve call");
-			});
-		}catch(AwaitException $e){
-			self::assertEquals("Unhandled async exception: Cannot await all on an empty array of generators", $e->getMessage());
-			self::assertEquals("Cannot await all on an empty array of generators", $e->getPrevious()->getMessage());
-		}
+		self::assertImmediateResolve(function() : Generator{
+			return yield Await::all([]);
+		}, []);;
 	}
 
 	public function testGeneratorRaceResolve() : void{
