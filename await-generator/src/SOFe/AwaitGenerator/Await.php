@@ -191,6 +191,14 @@ class Await extends PromiseState{
 
 	/**
 	 * Wraps a generator that executes some action before and after suspension points (`yield`s).
+     * @phpstan-template TKey
+     * @phpstan-template TValue
+     * @phpstan-template TSend
+     * @phpstan-template TReturn
+     * @phpstan-param Generator<TKey, TValue, TSend, TReturn> $generator
+     * @phpstan-param Closure(Generator, TValue, TKey): bool $beforeSuspend
+     * @phpstan-param Closure(Generator, TValue, TKey, TSend): bool $afterSuspend
+     * @phpstan-return Generator<TKey, TValue, TSend, TReturn>
 	 */
 	public static function trap(Generator $generator, Closure $beforeSuspend, Closure $afterSuspend) : Generator {
 		while($generator->valid()) {
