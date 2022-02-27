@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## 3.2.0
+- Added `Mutex`
+
 ## 3.1.1
 - Allow `Await::all([])` to simply return empty array
 
