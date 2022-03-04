@@ -88,8 +88,8 @@ class Await extends PromiseState{
 	 * @param callable            $closure
 	 * @phpstan-param callable(): Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $closure
 	 * @param callable|null       $onComplete
-	 * @phpstan-param (callable(T): void)|null  $onComplete
-	 * @param callable[]|callable $catches
+	 * @phpstan-param (callable(T): void)|null $onComplete This argument has been deprecated. Append the call to the generator closure instead.
+	 * @param callable[]|callable $catches This argument has been deprecated. Use a try-catch block in the generator closure instead.
 	 * @phpstan-param array<string, callable(Throwable): void>|callable(Throwable): void $catches
 	 *
 	 * @return Await<T>
@@ -104,8 +104,8 @@ class Await extends PromiseState{
 	 * @param Generator           $generator
 	 * @phpstan-param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $generator
 	 * @param callable|null       $onComplete
-	 * @phpstan-param (callable(T): void)|null  $onComplete
-	 * @param callable[]|callable $catches
+	 * @phpstan-param (callable(T): void)|null $onComplete This argument has been deprecated. Append the call to the generator closure instead.
+	 * @param callable[]|callable $catches This argument has been deprecated. Use a try-catch block in the generator instead.
 	 * @phpstan-param array<string, callable(Throwable): void>|callable(Throwable): void $catches
 	 *
 	 * @return Await<T>
