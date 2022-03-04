@@ -198,6 +198,9 @@ class Await extends PromiseState{
 	 *
 	 * This *differs* from JavaScript Promise in that $closure is NOT executed
 	 * until it is yielded and processed by an Await runtime.
+	 *
+	 * @param Closure(Closure(T): void, Closure(Throwable): void): void $closure
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T>
 	 */
 	public static function promise(Closure $closure) : Generator{
 		$resolve = yield Await::RESOLVE;
