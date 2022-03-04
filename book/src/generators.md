@@ -94,6 +94,39 @@ function qux(): Generator {
 }
 ```
 
+## Calling another generator
+You can call another generator in a generator,
+which will pass through all the yielded values
+and send back all the sent values
+using the `yield from` syntax.
+The `yield from` expression resolves to the return value of the generator.
+
+```php
+function test($value): Generator {
+	$send = yield $value;
+	return $send;
+}
+
+function main(): Generator {
+	$a = yield from test(1);
+	$b = yield from test(2);
+	var_dump($a + $b);
+}
+
+$generator = main();
+$generator->rewind();
+var_dump($generator->current());
+$generator->send(3);
+var_dump($generator->current());
+$generator->send(4);
+```
+
+```
+int(1)
+int(2)
+int(7)
+```
+
 ## Hacking generators
 Sometimes we want to make a generator function that does not yield at all.
 In that case, you can write `0 && yield;` at the start of the function;
