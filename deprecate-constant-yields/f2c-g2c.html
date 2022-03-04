@@ -154,24 +154,12 @@ Await::g2c($this-&gt;generatorFunction());
 </code></pre>
 <p>Sometimes we want to write the generator function as a closure
 and pass it directly:</p>
-<pre><code class="language-php">Await::f2c(function(): \Generator {
+<pre><code class="language-php">Await::f2c(function(): Generator {
 	// some async logic
 });
 </code></pre>
-<p>The return/throw value of the generator can be handled in callback style too:</p>
-<pre><code class="language-php">Await::f2c(function(): \Generator {
-	0 &amp;&amp; yield;
-	if(rand() % 2 == 1) {
-		return 1;
-	} else {
-		throw new \Exception(&quot;random&quot;);
-	}
-}, function($value) {
-	var_dump($value); // int(1)
-}, function($ex) {
-	var_dump($ex-&gt;getMessage()); // string(6) &quot;random&quot;
-});
-</code></pre>
+<p>You can also use <code>Await::g2c</code>/<code>Await::f2c</code>
+to schedule a separate async function in the background.</p>
 
                     </main>
 
