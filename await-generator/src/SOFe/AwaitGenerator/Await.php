@@ -39,11 +39,17 @@ use function is_callable;
  * @template T
  */
 class Await extends PromiseState{
+	/** @internal Use `Await::promise` instead */
 	public const RESOLVE = "resolve";
+	/** @internal Use `Await::promise` instead */
 	public const RESOLVE_MULTI = [Await::RESOLVE];
+	/** @internal Use `Await::promise` instead */
 	public const REJECT = "reject";
+	/** @internal Use `Await::promise` instead */
 	public const ONCE = "once";
+	/** @internal Use `Await::all` instead */
 	public const ALL = "all";
+	/** @internal Use `Await::race` instead */
 	public const RACE = "race";
 
 	/**
