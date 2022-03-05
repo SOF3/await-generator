@@ -1,7 +1,6 @@
 name: await-generator
 version: 3.2.0
 php:
-  - 7.2
   - 8.0
 author: SOFe
 antigen: SOFe\AwaitGenerator
