@@ -158,7 +158,7 @@ it is obvious where exactly the suspension points are,
 and you only need to check for state mutations at the known suspension points.
 
 ### Trapping suspension points
-await-generator provides a feature called ["trapping"](trap-pr),
+await-generator provides a feature called ["trapping"][trap-pr],
 which allows users to add pre-suspend and pre-resume hooks to a generator.
 This is simply achieved by adding an adapter to the generator,
 and does not even require explicit support from the await-generator runtime.
