@@ -2,19 +2,7 @@
 Although it is easier to work with generator functions,
 ultimately, you will need to work with functions that do not use await-generator.
 In that case, callbacks are easier to use.
-
-Using callback-style functions involves two steps.
-First, you create a callback passed to the function.
-Second, you tell await-generator to pause until the callback is called.
-
-The first step can be done simply by writing `yield`.
-Upon yielding no values (or `null`),
-await-generator will immediately resume your function
-and send you a callback that will notify await-generator about function completion.
-
-To achieve the second step, you have to yield a constant `Await::ONCE`.
-This tells await-generator to resume your function
-when the previous callback from `yield` is called.
+This is achieved by `Await::promise`.
 
 ```php
 function a(Closure $callback): void {
@@ -23,8 +11,7 @@ function a(Closure $callback): void {
 }
 
 function main(): Generator {
-	$callback = yield;
-	yield Await::ONCE;
+	return yield from Await::promise(fn($resolve) => a($resolve));
 }
 ```
 
@@ -39,8 +26,7 @@ function a(Closure $callback, Closure $onError): void {
 }
 
 function main(): Generator {
-	$callback = yield;
-	yield Await::ONCE;
+	return yield from Await::promise(fn($resolve, $reject) => a($resolve, $reject));
 }
 ```
 
@@ -52,25 +38,23 @@ or throws an exception if the task is cancelled:
 use pocketmine\scheduler\Task;
 
 public function sleep(): Generator {
-	$resolve = yield;
-	$reject = yield Await::REJECT;
-	$task = new class($resolve, $reject) extends Task {
-		private $resolve;
-		private $reject;
-		public function __construct($resolve, $reject) {
-			$this->resolve = $resolve;
-			$this->reject = $reject;
-		}
-		public function onRun(int $tick) {
-			($this->resolve)();
-		}
-		public function onCancel() {
-			($this->reject)(new \Exception("Task cancelled"));
-		}
-	};
-	$this->getServer()->getScheduler()->scheduleDelayedTask($task, 20);
-
-	yield Await::ONCE;
+	yield from Await::promise(function($resolve, $reject) {
+		$task = new class($resolve, $reject) extends Task {
+			private $resolve;
+			private $reject;
+			public function __construct($resolve, $reject) {
+				$this->resolve = $resolve;
+				$this->reject = $reject;
+			}
+			public function onRun(int $tick) {
+				($this->resolve)();
+			}
+			public function onCancel() {
+				($this->reject)(new \Exception("Task cancelled"));
+			}
+		};
+		$this->getServer()->getScheduler()->scheduleDelayedTask($task, 20);
+	});
 }
 ```
 
@@ -81,7 +65,7 @@ Let's see what we can do with a countdown:
 function countdown($player) {
 	for($i = 10; $i > 0; $i--) {
 		$player->sendMessage("$i seconds left");
-		yield $this->sleep();
+		yield from $this->sleep();
 	}
 
 	$player->sendMessage("Time's up!");

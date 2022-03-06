@@ -15,24 +15,10 @@ Sometimes we want to write the generator function as a closure
 and pass it directly:
 
 ```php
-Await::f2c(function(): \Generator {
+Await::f2c(function(): Generator {
 	// some async logic
 });
 ```
 
-The return/throw value of the generator can be handled in callback style too:
-
-```php
-Await::f2c(function(): \Generator {
-	0 && yield;
-	if(rand() % 2 == 1) {
-		return 1;
-	} else {
-		throw new \Exception("random");
-	}
-}, function($value) {
-	var_dump($value); // int(1)
-}, function($ex) {
-	var_dump($ex->getMessage()); // string(6) "random"
-});
-```
+You can also use `Await::g2c`/`Await::f2c`
+to schedule a separate async function in the background.

@@ -39,11 +39,17 @@ use function is_callable;
  * @template T
  */
 class Await extends PromiseState{
+	/** @internal Use `Await::promise` instead */
 	public const RESOLVE = "resolve";
+	/** @internal Use `Await::promise` instead */
 	public const RESOLVE_MULTI = [Await::RESOLVE];
+	/** @internal Use `Await::promise` instead */
 	public const REJECT = "reject";
+	/** @internal Use `Await::promise` instead */
 	public const ONCE = "once";
+	/** @internal Use `Await::all` instead */
 	public const ALL = "all";
+	/** @internal Use `Await::race` instead */
 	public const RACE = "race";
 
 	/**
@@ -82,8 +88,8 @@ class Await extends PromiseState{
 	 * @param callable            $closure
 	 * @phpstan-param callable(): Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $closure
 	 * @param callable|null       $onComplete
-	 * @phpstan-param (callable(T): void)|null  $onComplete
-	 * @param callable[]|callable $catches
+	 * @phpstan-param (callable(T): void)|null $onComplete This argument has been deprecated. Append the call to the generator closure instead.
+	 * @param callable[]|callable $catches This argument has been deprecated. Use a try-catch block in the generator closure instead.
 	 * @phpstan-param array<string, callable(Throwable): void>|callable(Throwable): void $catches
 	 *
 	 * @return Await<T>
@@ -98,8 +104,8 @@ class Await extends PromiseState{
 	 * @param Generator           $generator
 	 * @phpstan-param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $generator
 	 * @param callable|null       $onComplete
-	 * @phpstan-param (callable(T): void)|null  $onComplete
-	 * @param callable[]|callable $catches
+	 * @phpstan-param (callable(T): void)|null $onComplete This argument has been deprecated. Append the call to the generator closure instead.
+	 * @param callable[]|callable $catches This argument has been deprecated. Use a try-catch block in the generator instead.
 	 * @phpstan-param array<string, callable(Throwable): void>|callable(Throwable): void $catches
 	 *
 	 * @return Await<T>
@@ -186,6 +192,24 @@ class Await extends PromiseState{
 		[$k, $result] = yield self::RACE;
 		return [$k, $result];
 	}
+
+	/**
+	 * Executes a callback-style async function using JavaScript Promise-like API.
+	 *
+	 * This *differs* from JavaScript Promise in that $closure is NOT executed
+	 * until it is yielded and processed by an Await runtime.
+	 *
+	 * @param Closure(Closure(T): void, Closure(Throwable): void): void $closure
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T>
+	 */
+	public static function promise(Closure $closure) : Generator{
+		$resolve = yield Await::RESOLVE;
+		$reject = yield Await::REJECT;
+
+		$closure($resolve, $reject);
+		return yield Await::ONCE;
+	}
+
 
 	/**
 	 * A wrapper around wakeup() to convert deep recursion to tail recursion

@@ -804,15 +804,10 @@ class AwaitTest extends TestCase{
 	public function testSameLaterRejectImmediateResolve() : void{
 		$rand = 0x12345678;
 		$ex = new DummyException();
-		self::assertImmediateResolve(function() use ($rand, $ex) : Generator{
-			$resolve = yield Await::RESOLVE;
-			$reject = yield Await::REJECT;
-			// they are the same pair!
+		self::assertImmediateResolve(fn() => Await::promise(function($resolve, $reject) use($rand, $ex) {
 			self::voidCallbackLater($ex, $reject);
 			self::voidCallbackImmediate($rand, $resolve);
-			$once = yield Await::ONCE;
-			return $once;
-		}, $rand);
+		}), $rand);
 		self::callLater();
 	}
 
@@ -900,11 +895,11 @@ class AwaitTest extends TestCase{
 	}
 
 	private static function generatorReturnLater($ret) : Generator{
-		return yield self::voidCallbackLater($ret, yield) => Await::ONCE;
+		return yield from Await::promise(fn($resolve) => self::voidCallbackLater($ret, $resolve));
 	}
 
 	private static function generatorThrowLater(Throwable $ex) : Generator{
-		yield self::voidCallbackLater(null, yield) => Await::ONCE;
+		yield from Await::promise(fn($resolve) => self::voidCallbackLater(null, $resolve));
 		throw $ex;
 	}
 
@@ -915,6 +910,6 @@ class AwaitTest extends TestCase{
 	}
 
 	private static function generatorVoidLater() : Generator{
-		yield self::voidCallbackLater(null, yield) => Await::ONCE;
+		yield from Await::promise(fn($resolve) => self::voidCallbackLater(null, $resolve));
 	}
 }
