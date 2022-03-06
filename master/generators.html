@@ -209,6 +209,34 @@ no matter what you return, or if you don't return:</p>
 	return 2;
 }
 </code></pre>
+<h2 id="calling-another-generator"><a class="header" href="#calling-another-generator">Calling another generator</a></h2>
+<p>You can call another generator in a generator,
+which will pass through all the yielded values
+and send back all the sent values
+using the <code>yield from</code> syntax.
+The <code>yield from</code> expression resolves to the return value of the generator.</p>
+<pre><code class="language-php">function test($value): Generator {
+	$send = yield $value;
+	return $send;
+}
+
+function main(): Generator {
+	$a = yield from test(1);
+	$b = yield from test(2);
+	var_dump($a + $b);
+}
+
+$generator = main();
+$generator-&gt;rewind();
+var_dump($generator-&gt;current());
+$generator-&gt;send(3);
+var_dump($generator-&gt;current());
+$generator-&gt;send(4);
+</code></pre>
+<pre><code>int(1)
+int(2)
+int(7)
+</code></pre>
 <h2 id="hacking-generators"><a class="header" href="#hacking-generators">Hacking generators</a></h2>
 <p>Sometimes we want to make a generator function that does not yield at all.
 In that case, you can write <code>0 &amp;&amp; yield;</code> at the start of the function;

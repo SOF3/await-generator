@@ -145,25 +145,15 @@
                         <h1 id="using-callback-style-from-generators"><a class="header" href="#using-callback-style-from-generators">Using callback-style from generators</a></h1>
 <p>Although it is easier to work with generator functions,
 ultimately, you will need to work with functions that do not use await-generator.
-In that case, callbacks are easier to use.</p>
-<p>Using callback-style functions involves two steps.
-First, you create a callback passed to the function.
-Second, you tell await-generator to pause until the callback is called.</p>
-<p>The first step can be done simply by writing <code>yield</code>.
-Upon yielding no values (or <code>null</code>),
-await-generator will immediately resume your function
-and send you a callback that will notify await-generator about function completion.</p>
-<p>To achieve the second step, you have to yield a constant <code>Await::ONCE</code>.
-This tells await-generator to resume your function
-when the previous callback from <code>yield</code> is called.</p>
+In that case, callbacks are easier to use.
+This is achieved by <code>Await::promise</code>.</p>
 <pre><code class="language-php">function a(Closure $callback): void {
 	// The other function that uses callbacks.
 	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
 }
 
 function main(): Generator {
-	$callback = yield;
-	yield Await::ONCE;
+	return yield from Await::promise(fn($resolve) =&gt; a($resolve));
 }
 </code></pre>
 <p>Some callback-style async functions may also accept an <code>$onError</code> callback parameter.
@@ -175,8 +165,7 @@ Then <code>Await::ONCE</code> will call your function </p>
 }
 
 function main(): Generator {
-	$callback = yield;
-	yield Await::ONCE;
+	return yield from Await::promise(fn($resolve, $reject) =&gt; a($resolve, $reject));
 }
 </code></pre>
 <h2 id="example"><a class="header" href="#example">Example</a></h2>
@@ -185,25 +174,23 @@ or throws an exception if the task is cancelled:</p>
 <pre><code class="language-php">use pocketmine\scheduler\Task;
 
 public function sleep(): Generator {
-	$resolve = yield;
-	$reject = yield Await::REJECT;
-	$task = new class($resolve, $reject) extends Task {
-		private $resolve;
-		private $reject;
-		public function __construct($resolve, $reject) {
-			$this-&gt;resolve = $resolve;
-			$this-&gt;reject = $reject;
-		}
-		public function onRun(int $tick) {
-			($this-&gt;resolve)();
-		}
-		public function onCancel() {
-			($this-&gt;reject)(new \Exception(&quot;Task cancelled&quot;));
-		}
-	};
-	$this-&gt;getServer()-&gt;getScheduler()-&gt;scheduleDelayedTask($task, 20);
-
-	yield Await::ONCE;
+	yield from Await::promise(function($resolve, $reject) {
+		$task = new class($resolve, $reject) extends Task {
+			private $resolve;
+			private $reject;
+			public function __construct($resolve, $reject) {
+				$this-&gt;resolve = $resolve;
+				$this-&gt;reject = $reject;
+			}
+			public function onRun(int $tick) {
+				($this-&gt;resolve)();
+			}
+			public function onCancel() {
+				($this-&gt;reject)(new \Exception(&quot;Task cancelled&quot;));
+			}
+		};
+		$this-&gt;getServer()-&gt;getScheduler()-&gt;scheduleDelayedTask($task, 20);
+	});
 }
 </code></pre>
 <p>This is a bit complex indeed, but it gets handy once we have this function defined!
@@ -211,7 +198,7 @@ Let's see what we can do with a countdown:</p>
 <pre><code class="language-php">function countdown($player) {
 	for($i = 10; $i &gt; 0; $i--) {
 		$player-&gt;sendMessage(&quot;$i seconds left&quot;);
-		yield $this-&gt;sleep();
+		yield from $this-&gt;sleep();
 	}
 
 	$player-&gt;sendMessage(&quot;Time's up!&quot;);
