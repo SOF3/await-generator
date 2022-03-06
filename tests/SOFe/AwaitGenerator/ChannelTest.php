@@ -23,6 +23,7 @@ declare(strict_types=1);
 namespace SOFe\AwaitGenerator;
 
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 /**
  * @small
@@ -244,7 +245,7 @@ class ChannelTest extends TestCase{
 		self::assertSame(0, $channel->getReceiveQueueSize());
 	}
 
-	public function testNonBlockSend() : void {
+	public function testNonBlockSend() : void{
 		/** @var Channel<string> $channel */
 		$channel = new Channel;
 		$clock = new MockClock;
@@ -253,7 +254,7 @@ class ChannelTest extends TestCase{
 
 		Await::f2c(function() use($channel, $clock, &$eventCounter){
 			yield from $clock->sleepUntil(1);
-			$channel->sendNonBlock("a");
+			$channel->sendWithoutWait("a");
 			$eventCounter += 1;
 		});
 
@@ -276,7 +277,7 @@ class ChannelTest extends TestCase{
 
 		Await::f2c(function() use($channel, $clock, &$eventCounter){
 			yield from $clock->sleepUntil(4);
-			$channel->sendNonBlock("a");
+			$channel->sendWithoutWait("a");
 			$eventCounter += 1;
 		});
 
@@ -299,5 +300,35 @@ class ChannelTest extends TestCase{
 		self::assertSame(4, $eventCounter);
 		self::assertSame(0, $channel->getSendQueueSize());
 		self::assertSame(0, $channel->getReceiveQueueSize());
+	}
+
+	public function testTrySend() : void{
+		/** @var Channel<string> $channel */
+		$channel = new Channel;
+
+		$received = false;
+
+		self::assertFalse($channel->trySend("a"));
+
+		Await::f2c(function() use($channel, &$received) {
+			$value = yield from $channel->receive();
+			self::assertSame("b", $value);
+			$received = true;
+		});
+
+		self::assertTrue($channel->trySend("b"));
+	}
+
+	public function testTryReceive() : void{
+		/** @var Channel<string> $channel */
+		$channel = new Channel;
+
+		$receive = $channel->tryReceiveOr("b");
+		self::assertSame("b", $receive);
+
+		$channel->sendWithoutWait("a");
+		$receive = $channel->tryReceiveOr("b");
+
+		self::assertSame("a", $receive);
 	}
 }

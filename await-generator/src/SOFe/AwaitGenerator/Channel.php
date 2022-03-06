@@ -38,9 +38,12 @@ final class Channel{
 	}
 
 	/**
+	 * Sends a value to the channel,
+	 * and wait until the value is received by the other side.
+	 *
 	 * @param T $value
 	 */
-	public function sendAndWait($value): Generator {
+	public function sendAndWait($value) : Generator{
 		if($this->state instanceof ReceivingChannelState){
 			$receiver = array_shift($this->state->queue);
 			if(count($this->state->queue) === 0){
@@ -59,11 +62,45 @@ final class Channel{
 		});
 	}
 
-	public function sendNonBlock($value) : void{
+	/**
+	 * Send a value to the channnel
+	 * without waiting for a receiver.
+	 *
+	 * This method always returns immediately.
+	 * It is equivalent to calling `Await::g2c($channel->sendAndWait($value))`.
+	 *
+	 * @param T $value
+	 */
+	public function sendWithoutWait($value) : void{
 		Await::g2c($this->sendAndWait($value));
 	}
 
-	public function receive(): Generator {
+	/**
+	 * Try to send a value to the channel if there is a receive waiting.
+	 * Returns whether the value successfully sent.
+	 *
+	 * @param T $value
+	 */
+	public function trySend($value) : bool {
+		if($this->state instanceof ReceivingChannelState) {
+			$receiver = array_shift($this->state->queue);
+			if(count($this->state->queue) === 0){
+				$this->state = new EmptyChannelState;
+			}
+			$receiver($value);
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Receive a value from the channel.
+	 * Waits for a sender if there is currently no sender waiting.
+	 *
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T>
+	 */
+	public function receive() : Generator{
 		if($this->state instanceof SendingChannelState){
 			[$value, $sender] = array_shift($this->state->queue);
 			if(count($this->state->queue) === 0){
@@ -80,6 +117,28 @@ final class Channel{
 		return yield from Await::promise(function($resolve){
 			$this->state->queue[] = $resolve;
 		});
+	}
+
+	/**
+	 * Try to receive a value from the channel if there is a sender waiting.
+	 * Returns `$default` if there is no sender waiting.
+	 *
+	 * @template U
+	 * @param U $default
+	 *
+	 * @return T|U
+	 */
+	public function tryReceiveOr($default) {
+		if($this->state instanceof SendingChannelState) {
+			[$value, $sender] = array_shift($this->state->queue);
+			if(count($this->state->queue) === 0){
+				$this->state = new EmptyChannelState;
+			}
+			$sender();
+			return $value;
+		}
+
+		return $default;
 	}
 
 	public function getSendQueueSize() : int {
