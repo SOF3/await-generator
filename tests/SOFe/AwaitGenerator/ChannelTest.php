@@ -97,27 +97,43 @@ class ChannelTest extends TestCase{
 
 		$clock->nextTick(1);
 		self::assertSame(0, $eventCounter);
+		self::assertSame(1, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(2);
 		self::assertSame(0, $eventCounter);
+		self::assertSame(2, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(3);
 		self::assertSame(2, $eventCounter);
+		self::assertSame(1, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(4);
 		self::assertSame(2, $eventCounter);
+		self::assertSame(2, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(5);
 		self::assertSame(4, $eventCounter);
+		self::assertSame(1, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(6);
 		self::assertSame(6, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(7);
 		self::assertSame(6, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(1, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(8);
 		self::assertSame(8, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 	}
 
 	public function testReceiveFirst() : void{
@@ -189,27 +205,43 @@ class ChannelTest extends TestCase{
 
 		$clock->nextTick(1);
 		self::assertSame(0, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(1, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(2);
 		self::assertSame(0, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(2, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(3);
 		self::assertSame(2, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(1, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(4);
 		self::assertSame(2, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(2, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(5);
 		self::assertSame(4, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(1, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(6);
 		self::assertSame(6, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(7);
 		self::assertSame(6, $eventCounter);
+		self::assertSame(1, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(8);
 		self::assertSame(8, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 	}
 
 	public function testNonBlockSend() : void {
@@ -250,14 +282,22 @@ class ChannelTest extends TestCase{
 
 		$clock->nextTick(1);
 		self::assertSame(1, $eventCounter);
+		self::assertSame(1, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(2);
 		self::assertSame(2, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(3);
 		self::assertSame(2, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(1, $channel->getReceiveQueueSize());
 
 		$clock->nextTick(4);
 		self::assertSame(4, $eventCounter);
+		self::assertSame(0, $channel->getSendQueueSize());
+		self::assertSame(0, $channel->getReceiveQueueSize());
 	}
 }
