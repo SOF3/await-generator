@@ -11,7 +11,9 @@ from generators and traditional async callbacks to await-generator.
 ## Why await-generator?
 Traditional async programming requires callbacks,
 which leads to spaghetti code known as "callback hell":
-
+<details>
+    <summary>Click to reveal example callback hell</summary>
+    
 ```php
 load_data(function($data) {
     $init = count($data) === 0 ? init_data(...) : fn($then) => $then($data);
@@ -56,7 +58,8 @@ load_data(function($data) {
     });
 });
 ```
-
+    
+</details>
 With await-generator, this is simplified into:
 
 ```php
