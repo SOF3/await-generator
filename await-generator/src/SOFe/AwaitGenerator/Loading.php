@@ -25,7 +25,6 @@ namespace SOFe\AwaitGenerator;
 use AssertionError;
 use Closure;
 use Generator;
-use RuntimeException;
 
 /**
  * `Loading` is a class that represents an asynchronously loaded value.
