@@ -30,6 +30,8 @@ use Generator;
  * `Loading` is a class that represents an asynchronously loaded value.
  * Users with an instance of `Loading` can call `get` to wait for the loading process to complete.
  *
+ * This is somewhat similar to the `Promise` class in JavaScript.
+ *
  * @template T
  */
 final class Loading{
@@ -37,6 +39,9 @@ final class Loading{
 	private ?array $onLoaded = [];
 	private $value;
 
+	/**
+	 * @param Closure(): Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $loader
+	 */
 	public function __construct(Closure $loader){
 		Await::f2c(function() use($loader) {
 			$this->value = yield from $loader();
@@ -53,6 +58,9 @@ final class Loading{
 		});
 	}
 
+	/**
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T>
+	 */
 	public function get() : Generator{
 		if($this->onLoaded !== null){
 			yield from Await::promise(function($resolve){
