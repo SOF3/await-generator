@@ -1,6 +1,10 @@
 Changelog
 ===
 
+## 3.3.0
+- Added `Await::promise`
+- Deprecated all constnat yields in favour of `Await::promise`
+
 ## 3.2.0
 - Added `Mutex`
 
