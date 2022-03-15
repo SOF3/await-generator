@@ -445,7 +445,7 @@ function main(): Generator {
 <p>Some callback-style async functions may also accept an <code>$onError</code> callback parameter.
 This callback can be created by calling <code>Await::REJECT</code>.
 Then <code>Await::ONCE</code> will call your function </p>
-<pre><code>function a(Closure $callback, Closure $onError): void {
+<pre><code class="language-php">function a(Closure $callback, Closure $onError): void {
 	// The other function that uses callbacks.
 	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
 }
