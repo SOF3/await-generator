@@ -63,7 +63,7 @@ final class Channel{
 	}
 
 	/**
-	 * Send a value to the channnel
+	 * Send a value to the channel
 	 * without waiting for a receiver.
 	 *
 	 * This method always returns immediately.
