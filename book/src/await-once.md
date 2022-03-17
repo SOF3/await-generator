@@ -19,7 +19,7 @@ Some callback-style async functions may also accept an `$onError` callback param
 This callback can be created by calling `Await::REJECT`.
 Then `Await::ONCE` will call your function 
 
-```
+```php
 function a(Closure $callback, Closure $onError): void {
 	// The other function that uses callbacks.
 	// Let's assume this function will call $callback("foo") some time later.

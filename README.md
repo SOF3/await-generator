@@ -1,165 +1,175 @@
-# await-generator [![Build Status](https://github.com/SOF3/await-generator/workflows/CI/badge.svg)](https://github.com/SOF3/await-generator/actions?query=workflow%3ACI) [![Codecov](https://img.shields.io/codecov/c/github/codecov/example-python.svg)](https://codecov.io/gh/SOF3/await-generator)
+# await-generator
+[![Build Status][ci-badge]][ci-page]
+[![Codecov][codecov-badge]][codecov-page]
 
-A library to use async/await in PHP using generators.
-
-Read the [await-generator book](https://sof3.github.io/await-generator/master) for a thorough tutorial.
+A library to use async/await pattern in PHP.
 
 ## Documentation
-await-generator is a wrapper to convert a traditional callback-async function into async/await functions.
+Read the [await-generator tutorial][book] for an introduction
+from generators and traditional async callbacks to await-generator.
 
-### Why await-generator?
-The callback-async function requires passing and creating many onComplete callables throughout the code, making the code very unreadable, known as the "callback hell". The async/await approach allows code to be written linearly and in normal language control structures (e.g. `if`, `for`, `return`), as if the code was not written async.
-
-An example of callback hell vs await-generator:
-![](https://media.discordapp.net/attachments/373199722573201410/807112614747963412/unknown.png?width=1386&height=573)
-
-### Can I maintain backward compatibility?
-As a wrapper, the whole `Await` can be used as a callback-async function, and the ultimate async functions can also be callback-async functions, but the logic between can be purely written in async/await style. Therefore, the entry API can still be callback-async style, and no changes are required in your library methods that accept callback-async calling.
-
-### How to migrate to async/await pattern easily?
-The following steps are recommended:
-- For any function with a `callable $onComplete` parameter you want to migrate (and possibly a `callable $onError`), trace up its caller stack until there are external API methods that you can't change, or until there are no more callers that pass an `$onComplete` to trace.
-- For this "ultimate caller" function, wrap all the code in an `Await::f2c()` call such that
-  - the first parameter is a generator function that wraps the original code
-  - the second parameter is the input `$onComplete` (if any)
-  - the third parameter
-- Now migrate the code in the first parameter. There are three types of statements that you need to change:
-  - If it is an internal async function (something that you just traced up),
-    1. change it to `yield async_function()`, and remove the callable parameters in the code
-    2. modify the called function's signature so that it no longer requires a callable, and returns a Generator
-    3. migrate the code inside the function in the same way (no need to wrap with `Await::closure()`)
-  - If it is an external async function (something that you can't change),
-    - change it to `yield async_function(yield) => Await::ONCE`, where the second `yield` should be placed at the
-    - if it has an error callback, pass `yield Await::REJECT` instead. Note that `yield Await::REJECT` must be resolved _after_ the empty `yield` (equivalent to `yield Await::RESOLVE`); if the error callback is required first, `Await::RESOLVE` has to be yielded in the previous statement.
-- For places the callable should be passed
-  - Yielding a Generator will return the return value from the Generator
-  - For any original `$onComplete()` + `return` calls, return the argument originally for `$onComplete` directly in an array. Since only one value can be returned, only one value will be passed into the onComplete function, i.e. the value sent to the `yield` statement in the caller for internal calls. For external calls, i.e. where the generator is passed to `Await::f2c()` or `Await::g2c()` directly, argument expansion can be operated manually.
-
-## Best/Idiomatic practices
-### `yield` vs `yield from`
-The straightforward approach to calling another generator function is to `yield from` that function, but await-generator cannot distinguish the `yield` statements from the current function and the called function. To have separate scopes for both generator functions such that state-sensitive statements like `Await::ALL` work correctly, the generator should be yielded directly.
-
-### Return type hints
-Always add the return type hint generator functions with `Generator`. PHP is a very "PoWeRfUl" language that automatically detects whether a function is a generator function by searching the presence of the `yield` token in the code, so if the developer someday removes all `yield` lines for whatever reason (e.g. behavioural changes), the function is no longer a generator function. To detect this kind of bugs as soon as possible (and also to allow IDEs to report errors), always declare the `Generator` type hint.
-
-### Empty generator function
-As mentioned above, a PHP function is only a generator function when it contains a `yield` token. But a function may still want to return a generator without having `yield` for many reasons, such as interface implementation or API consistency. [This StackOverflow question](https://stackoverflow.com/q/25428615/3990767) discusses a handful of approaches to produce an empty generator.
-
-In await-generator, for the sake of consistency, the idiomatic way to create an immediate-return generator is to add a `false && yield;` line at the beginning of the function. It is more concise than `if(false) yield;` (because some code styles mandate line breaks behind if statements), and it has superstitiously better performance than `yield from [];`. `false &&` is an obvious implication that the following line is dead code, and is rarely used in other occasions, so the expression `false && yield;` is idiomatic to imply "let's make sure this is a generator function". It is reasonable to include this line even in functions that already contain other `yield` statements.
-
-### `yield Await::ONCE`
-The syntax to produce a generator from a callback function consists of two lines:
-
+## Why await-generator?
+Traditional async programming requires callbacks,
+which leads to spaghetti code known as "callback hell":
+<details>
+    <summary>Click to reveal example callback hell</summary>
+    
 ```php
-callback_function(yield, yield Await::REJECT);
-yield Await::ONCE;
+load_data(function($data) {
+    $init = count($data) === 0 ? init_data(...) : fn($then) => $then($data);
+    $init(function($data) {
+        $output = [];
+        foreach($data as $k => $datum) {
+            processData($datum, function($result) use(&$output, $data) {
+                $output[$k] = $result;
+                if(count($output) === count($data)) {
+                    createQueries($output, function($queries) {
+                        $run = function($i) use($queries, &$run) {
+                            runQuery($queries[$i], function() use($i, $queries, $run) {
+                                if($i === count($queries)) {
+                                    $done = false;
+                                    commitBatch(function() use(&$done) {
+                                        if(!$done) {
+                                            $done = true;
+                                            echo "Done!\n";
+                                        }
+                                    });
+                                    onUserClose(function() use(&$done) {
+                                        if(!$done) {
+                                            $done = true;
+                                            echo "User closed!\n";
+                                        }
+                                    });
+                                    onTimeout(function() use(&$done) {
+                                        if(!$done) {
+                                            $done = true;
+                                            echo "Timeout!\n";
+                                        }
+                                    });
+                                } else {
+                                    $run($i + 1);
+                                }
+                            });
+                        };
+                    });
+                }
+            });
+        }
+    });
+});
 ```
-
-To make code more concise, it is idiomatic to use the following instead:
-
-```php
-yield callback_function(yield, yield Await::REJECT) => Await::ONCE;
-```
-
-Since await-generator ignores the yielded key for `Await::ONCE`, the following two snippets have identical effect. However, some IDEs might not like this since `callback_function()` most likely returns void and is invalid to use in the yielded key.
-
-## Example with [libasynql](https://github.com/poggit/libasynql)
-### Sequential await
-> Task: Execute select query `query1`; for each result row, execute insert query `query2` with the `name` column as `name` from the previous result. Execute queries one by one; don't start the second insert query before the first insert query completes.
-
-Without await-generator:
+    
+</details>
+With await-generator, this is simplified into:
 
 ```php
-$done = function() {
-  $this->getLogger()->info("Done!");
+$data = yield from load_data();
+if(count($data) === 0) $data = yield from init_data();
+$output = yield from Await::all(array_map(fn($datum) => processData($datum), $data));
+$queries = yield from createQueries($output);
+foreach($queries as $query) yield from runQuery($query);
+[$which, ] = yield from Await::race([
+    0 => commitBatch(),
+    1 => onUserClose(),
+    2 => onTimeout(),
+])
+echo match($which) {
+    0 => "Done!\n",
+    1 => "User closed!\n",
+    2 => "Timeout!\n",
 };
-$onError = function(SqlError $error) {
-  $this->getLogger()->logException($error);
-};
-$this->connector->executeSelect("query1", [], function(array $rows) use($done, $onError) {
-  $i = 0;
-  $next = function() use($next, $done, $onError, &$i) {
-    $this->connector->executeInsert("query2", ["name" => $rows[$i++]["name"]], isset($rows[$i]) ? $next : $done, $onError);
-  };
-  $next();
-}, $onError);
 ```
 
-With await-generator:
+## Can I maintain backward compatibility?
+Yes, await-generator does not impose any restrictions on your existing API.
+You can wrap all await-generator calls as internal implementation detail,
+although you are strongly encouraged to expose the generator functions directly.
+
+await-generator starts an await context with the `Await::f2c` method,
+with which you can adapt into the usual callback syntax:
 
 ```php
-function asyncSelect(string $query, array $args) : Generator {
-  $this->connector->executeSelect($query, $args, yield, yield Await::REJECT);
-  return yield Await::ONCE;
-}
-function asyncInsert(string $query, array $args) : Generator {
-  $this->connector->executeInsert($query, $args, yield, yield Await::REJECT);
-  return yield Await::ONCE;
+function oldApi($args, Closure $onSuccess) {
+    Await::f2c(fn() => $onSuccess(yield from newApi($args)));
 }
 ```
 
-```php
-$done = function() {
-  $this->getLogger()->info("Done!");
-};
-$onError = function(SqlError $error) {
-  $this->getLogger()->logException($error);
-};
-Await::f2c(function() {
-  $rows = yield $this->asyncSelect("query1", []);
-  foreach($rows as $row) {
-    yield $this->asyncInsert("query2", ["name" => $row["name"]]);
-  }
-}, $done, $onError);
-```
-
-Although the first example has shorter code, you can see that the looping logic (the `$next` function) is very complicated.
-
-### Simultaneous await
-> Task: same as above, except all insert queries are executed simultaneously
-
-Without await-generator:
+Or if you want to handle errors too:
 
 ```php
-$done = function() {
-  $this->getLogger()->info("Done!");
-};
-$onError = function(SqlError $error) {
-  $this->getLogger()->logException($error);
-};
-$this->connector->executeSelect("query1", [], function(array $rows) use($done, $onError) {
-  $i = count($rows);
-  foreach($rows as $row) {
-    $this->connector->executeInsert("query2", ["name" => $row["name"]], function() use($done, &$i) {
-      $i--;
-      if($i === 0) $done();
-    }, $onError);
-  }
-}, $onError);
-```
-
-With await-generator:
-
-```php
-function asyncSelect(string $query, array $args) : Generator {
-  $this->connector->executeSelect($query, $args, yield, yield Await::REJECT);
-  return yield Await::ONCE;
+function newApi($args, Closure $onSuccess, Closure $onError) {
+    Await::f2c(function() use($onSuccess, $onError) {
+        try {
+            $onSuccess(yield from newApi($args));
+        } catch(Exception $ex) {
+            $onError($ex);
+        }
+    });
 }
-
 ```
+
+You can continue to call functions implemented as callback style
+using the `Await::promise` method (similar to `new Promise` in JS):
 
 ```php
-$done = function() {
-  $this->getLogger()->info("Done!");
-};
-$onError = function(SqlError $error) {
-  $this->getLogger()->logException($error);
-};
-Await::f2c(function() {
-  $rows = yield $this->asyncSelect("query1", []);
-  foreach($rows as $row) {
-    $this->connector->executeInsert("query2", ["name" => $row["name"]], yield, yield Await::REJECT);
-  }
-  yield Await::ALL;
-}, $done, $onError);
+yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, $reject));
 ```
+
+## Why *not* await-generator
+await-generator has a few common pitfalls:
+
+- Forgetting to `yield from` a `Generator<void>` method will end up doing nothing.
+- If you delete all `yield`s from a function,
+  it automatically becomes a non-generator function thanks to PHP magic.
+  This issue can be mitigated by always adding `: Generator` to the function signature.
+- `finally` blocks may never get executed if an async function never resolves
+  (e.g. `Await::promise(fn($resolve) => null)`).
+
+While these pitfalls cause some trouble,
+await-generator style is still much less bug-prone than a callback hell.
+
+## But what about fibers?
+This might be a subjective comment,
+but I do not prefer fibers for a few reasons:
+
+### Explicit suspension in type signature
+![fiber.jpg](./fiber.jpeg)
+
+For example, it is easy to tell from the type signature that
+`$channel->send($value): Generator<void>` suspends until the value is sent
+and `$channel->sendBuffered($value): void`
+is a non-suspending method that returns immediately.
+Type signatures are often self-explanatory.
+
+Of course, users could call `sleep()` anyway,
+but it is quite obvious to everyone that `sleep()` blocks the whole runtime
+(if they didn't already know, they will find out when the whole world stops).
+
+### Concurrent states
+When a function suspends, many other things can happen.
+Indeed, calling a function allows the implementation to call any other functions
+which could modify your states anyway,
+but a sane, genuine implementation of e.g. an HTTP request
+wouldn't call functions that modify the private states of your library.
+But this assumption does not hold with fibers
+because the fiber is preempted and other fibers can still modify the private states.
+This means you have to check for possible changes in private properties
+every time you call any function that *might* be suspending.
+
+On the other hand, using explicit await,
+it is obvious where exactly the suspension points are,
+and you only need to check for state mutations at the known suspension points.
+
+### Trapping suspension points
+await-generator provides a feature called ["trapping"][trap-pr],
+which allows users to add pre-suspend and pre-resume hooks to a generator.
+This is simply achieved by adding an adapter to the generator,
+and does not even require explicit support from the await-generator runtime.
+This is currently not possible with fibers.
+
+[book]: https://sof3.github.io/await-generator/master/
+[ci-badge]: https://github.com/SOF3/await-generator/workflows/CI/badge.svg
+[ci-page]: https://github.com/SOF3/await-generator/actions?query=workflow%3ACI
+[codecov-badge]: https://img.shields.io/codecov/c/github/codecov/example-python.svg
+[codecov-page]: https://codecov.io/gh/SOF3/await-generator
+[trap-pr]: https://github.com/SOF3/await-generator/pull/106
