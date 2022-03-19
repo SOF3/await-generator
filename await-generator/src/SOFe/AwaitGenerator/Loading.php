@@ -70,4 +70,13 @@ final class Loading{
 
 		return $this->value;
 	}
+
+	/**
+	 * @template U
+	 * @param U $default
+	 * @return T|U
+	 */
+	public function getSync($default) {
+		return $this->onLoaded === null ? $this->value : $default;
+	}
 }

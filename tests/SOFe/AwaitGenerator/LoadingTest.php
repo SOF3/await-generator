@@ -31,13 +31,17 @@ class LoadingTest extends TestCase{
 	public function testImmediate() : void{
 		$loading = new Loading(fn() => GeneratorUtil::empty("a"));
 
+		self::assertSame("a", $loading->getSync(1));
+
 		$done = false;
 		Await::f2c(function() use($loading, &$done) {
 			$value = yield from $loading->get();
 			self::assertSame("a", $value);
+			self::assertSame("a", $loading->getSync(1));
 
 			$value = yield from $loading->get();
 			self::assertSame("a", $value, "Cannot get value the second time");
+			self::assertSame("a", $loading->getSync(1));
 
 			$done = true;
 		});
@@ -53,13 +57,17 @@ class LoadingTest extends TestCase{
 			return "b";
 		});
 
+		self::assertSame(1, $loading->getSync(1));
+
 		$beforeDone = false;
 		Await::f2c(function() use($loading, &$beforeDone) {
 			$value = yield from $loading->get();
 			self::assertSame("b", $value);
+			self::assertSame("b", $loading->getSync(1));
 
 			$value = yield from $loading->get();
 			self::assertSame("b", $value, "Cannot get value the second time");
+			self::assertSame("b", $loading->getSync(1));
 
 			$beforeDone = true;
 		});
@@ -70,15 +78,19 @@ class LoadingTest extends TestCase{
 
 			$value = yield from $loading->get();
 			self::assertSame("b", $value);
+			self::assertSame("b", $loading->getSync(1));
 
 			$value = yield from $loading->get();
 			self::assertSame("b", $value, "Cannot get value the second time");
+			self::assertSame("b", $loading->getSync(1));
 
 			$afterDone = true;
 		});
 
 		self::assertFalse($beforeDone);
 		self::assertFalse($afterDone);
+
+		self::assertSame(1, $loading->getSync(1));
 
 		$clock->nextTick(1);
 
