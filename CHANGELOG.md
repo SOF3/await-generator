@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## 3.4.1
+- Added `Loading::getSync`
+
 ## 3.4.0
 - Added `Channel`
 
