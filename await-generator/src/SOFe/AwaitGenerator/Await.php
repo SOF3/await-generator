@@ -28,6 +28,7 @@ use Exception;
 use Generator;
 use ReflectionClass;
 use ReflectionGenerator;
+use RuntimeException;
 use Throwable;
 use function array_merge;
 use function assert;
@@ -51,6 +52,7 @@ class Await extends PromiseState{
 	public const ALL = "all";
 	/** @internal Use `Await::race` instead */
 	public const RACE = "race";
+	private const CLEAR_RESOLVE = "clear-resolve";
 
 	/** @var bool */
 	private static $warnedDeprecatedDirectYield = false;
@@ -213,6 +215,64 @@ class Await extends PromiseState{
 		return yield Await::ONCE;
 	}
 
+	/**
+	 * Execute a hook function before/after every suspension point in a generator coroutine.
+	 *
+	 * Note that the hook is only executed for suspension points of the coroutine,
+	 * not child coroutines started from the coroutine (through `Await::f2c`/`Await::g2c`).
+	 * Furthermore, this captures suspension points of child generators through `yield from $generator`,
+	 * but for child generators through the deprecated syntax `yield $generator`,
+	 * the hook is only executed after the child generator is completely executed.
+	 *
+	 * This function does not process `Traverser` generators.
+	 *
+	 * If an exception (but not throwables in general) is thrown from `$preSuspend`/`$postSuspend`,
+	 * the exception is moved to be thrown from the generator instead.
+	 * Note that it is unspecified what happens if an exception is thrown from `$preSuspend` and
+	 * the generator coroutine executes another suspension point in `catch`/`finally`.
+	 *
+	 * @param null|Closure(): void $preSuspend
+	 * @param null|Closure(mixed): void $postSuspend the first parameter is the yield result.
+	 */
+	public static function trap(Generator $generator, ?Closure $preSuspend = null, ?Closure $postSuspend = null) : Generator {
+		while($generator->valid()) {
+			$key = $generator->key();
+			$value = $generator->current();
+
+			if($value === self::ONCE || $value === self::ALL || $value === self::RACE || $value instanceof Generator) {
+				try {
+					$preSuspend();
+				} catch(Exception $ex) {
+					try {
+						yield self::CLEAR_RESOLVE;
+					} catch(AwaitException $awaitEx) {
+						if($awaitEx->getMessage() === "Unknown yield value") {
+							// CLEAR_RESOLVE is a new feature that may not be supported on older runtimes,
+							// but it is not critically important to use it.
+						} else {
+							throw new RuntimeException("CLEAR_RESOLVE should not throw", 0, $awaitEx);
+						}
+					}
+					$generator->throw($ex);
+					continue;
+				}
+			}
+
+			$send = yield $key => $value;
+
+			if($value === self::ONCE || $value === self::ALL || $value === self::RACE || $value instanceof Generator) {
+				try {
+					$postSuspend($send);
+				} catch(Exception $ex) {
+					$generator->throw($ex);
+					continue;
+				}
+			}
+		}
+
+		return $generator->getReturn();
+	}
+
 
 	/**
 	 * A wrapper around wakeup() to convert deep recursion to tail recursion
@@ -328,6 +388,15 @@ class Await extends PromiseState{
 
 			$this->sleeping = true;
 			return null;
+		}
+
+		if($current === self::CLEAR_RESOLVE){
+			$this->promiseQueue = [];
+			$this->lastResolveUnrejected = null;
+
+			return function() : void{
+				$this->generator->send(null);
+			};
 		}
 
 		if($current === self::ONCE || $current === self::ALL){
