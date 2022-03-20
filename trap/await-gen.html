@@ -145,27 +145,23 @@
                         <h1 id="awaiting-generators"><a class="header" href="#awaiting-generators">Awaiting generators</a></h1>
 <p>Since every async function is implemented as a generator function,
 simply calling it will not have any effects.
-Instead, you have to <code>yield</code> the generator.
-await-generator will still resume your function
-when the yielded generator finished running,
-and send you the value returned by the yielded generator.</p>
+Instead, you have to <code>yield from</code> the generator.</p>
 <pre><code class="language-php">function a(): Generator {
 	// some other async logic here
 	return 1;
 }
 
 function main(): Generator {
-	$a = yield $this-&gt;a();
+	$a = yield from $this-&gt;a();
 	var_dump($a);
 }
 </code></pre>
-<p>It is easy to forget to <code>yield</code> the generator.</p>
+<p>It is easy to forget to <code>yield from</code> the generator.</p>
 <!-- TODO provide suggestions -->
 <!-- TODO does phpstan detect this? -->
 <h2 id="handling-errors"><a class="header" href="#handling-errors">Handling errors</a></h2>
-<p>await-generator will make your <code>yield</code> throw an exception
-if the generator function you called threw an exception.
-You can use try-catch to handle these exceptions.</p>
+<p><code>yield from</code> will throw an exception
+if the generator function you called threw an exception.</p>
 <pre><code class="language-php">function err(): Generator {
 	// some other async logic here
 	throw new Exception(&quot;Test&quot;);
@@ -173,7 +169,7 @@ You can use try-catch to handle these exceptions.</p>
 
 function main(): Generator {
 	try {
-		yield err();
+		yield from err();
 	} catch(Exception $e) {
 		var_dump($e-&gt;getMessage()); // string(4) &quot;Test&quot;
 	}

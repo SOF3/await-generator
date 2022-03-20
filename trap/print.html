@@ -218,6 +218,34 @@ no matter what you return, or if you don't return:</p>
 	return 2;
 }
 </code></pre>
+<h2 id="calling-another-generator"><a class="header" href="#calling-another-generator">Calling another generator</a></h2>
+<p>You can call another generator in a generator,
+which will pass through all the yielded values
+and send back all the sent values
+using the <code>yield from</code> syntax.
+The <code>yield from</code> expression resolves to the return value of the generator.</p>
+<pre><code class="language-php">function test($value): Generator {
+	$send = yield $value;
+	return $send;
+}
+
+function main(): Generator {
+	$a = yield from test(1);
+	$b = yield from test(2);
+	var_dump($a + $b);
+}
+
+$generator = main();
+$generator-&gt;rewind();
+var_dump($generator-&gt;current());
+$generator-&gt;send(3);
+var_dump($generator-&gt;current());
+$generator-&gt;send(4);
+</code></pre>
+<pre><code>int(1)
+int(2)
+int(7)
+</code></pre>
 <h2 id="hacking-generators"><a class="header" href="#hacking-generators">Hacking generators</a></h2>
 <p>Sometimes we want to make a generator function that does not yield at all.
 In that case, you can write <code>0 &amp;&amp; yield;</code> at the start of the function;
@@ -370,27 +398,23 @@ sends you the return value from the async function via <code>$generator-&gt;send
 <div style="break-before: page; page-break-before: always;"></div><h1 id="awaiting-generators"><a class="header" href="#awaiting-generators">Awaiting generators</a></h1>
 <p>Since every async function is implemented as a generator function,
 simply calling it will not have any effects.
-Instead, you have to <code>yield</code> the generator.
-await-generator will still resume your function
-when the yielded generator finished running,
-and send you the value returned by the yielded generator.</p>
+Instead, you have to <code>yield from</code> the generator.</p>
 <pre><code class="language-php">function a(): Generator {
 	// some other async logic here
 	return 1;
 }
 
 function main(): Generator {
-	$a = yield $this-&gt;a();
+	$a = yield from $this-&gt;a();
 	var_dump($a);
 }
 </code></pre>
-<p>It is easy to forget to <code>yield</code> the generator.</p>
+<p>It is easy to forget to <code>yield from</code> the generator.</p>
 <!-- TODO provide suggestions -->
 <!-- TODO does phpstan detect this? -->
 <h2 id="handling-errors"><a class="header" href="#handling-errors">Handling errors</a></h2>
-<p>await-generator will make your <code>yield</code> throw an exception
-if the generator function you called threw an exception.
-You can use try-catch to handle these exceptions.</p>
+<p><code>yield from</code> will throw an exception
+if the generator function you called threw an exception.</p>
 <pre><code class="language-php">function err(): Generator {
 	// some other async logic here
 	throw new Exception(&quot;Test&quot;);
@@ -398,7 +422,7 @@ You can use try-catch to handle these exceptions.</p>
 
 function main(): Generator {
 	try {
-		yield err();
+		yield from err();
 	} catch(Exception $e) {
 		var_dump($e-&gt;getMessage()); // string(4) &quot;Test&quot;
 	}
@@ -407,38 +431,27 @@ function main(): Generator {
 <div style="break-before: page; page-break-before: always;"></div><h1 id="using-callback-style-from-generators"><a class="header" href="#using-callback-style-from-generators">Using callback-style from generators</a></h1>
 <p>Although it is easier to work with generator functions,
 ultimately, you will need to work with functions that do not use await-generator.
-In that case, callbacks are easier to use.</p>
-<p>Using callback-style functions involves two steps.
-First, you create a callback passed to the function.
-Second, you tell await-generator to pause until the callback is called.</p>
-<p>The first step can be done simply by writing <code>yield</code>.
-Upon yielding no values (or <code>null</code>),
-await-generator will immediately resume your function
-and send you a callback that will notify await-generator about function completion.</p>
-<p>To achieve the second step, you have to yield a constant <code>Await::ONCE</code>.
-This tells await-generator to resume your function
-when the previous callback from <code>yield</code> is called.</p>
+In that case, callbacks are easier to use.
+This is achieved by <code>Await::promise</code>.</p>
 <pre><code class="language-php">function a(Closure $callback): void {
 	// The other function that uses callbacks.
 	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
 }
 
 function main(): Generator {
-	$callback = yield;
-	yield Await::ONCE;
+	return yield from Await::promise(fn($resolve) =&gt; a($resolve));
 }
 </code></pre>
 <p>Some callback-style async functions may also accept an <code>$onError</code> callback parameter.
 This callback can be created by calling <code>Await::REJECT</code>.
 Then <code>Await::ONCE</code> will call your function </p>
-<pre><code>function a(Closure $callback, Closure $onError): void {
+<pre><code class="language-php">function a(Closure $callback, Closure $onError): void {
 	// The other function that uses callbacks.
 	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
 }
 
 function main(): Generator {
-	$callback = yield;
-	yield Await::ONCE;
+	return yield from Await::promise(fn($resolve, $reject) =&gt; a($resolve, $reject));
 }
 </code></pre>
 <h2 id="example"><a class="header" href="#example">Example</a></h2>
@@ -447,25 +460,23 @@ or throws an exception if the task is cancelled:</p>
 <pre><code class="language-php">use pocketmine\scheduler\Task;
 
 public function sleep(): Generator {
-	$resolve = yield;
-	$reject = yield Await::REJECT;
-	$task = new class($resolve, $reject) extends Task {
-		private $resolve;
-		private $reject;
-		public function __construct($resolve, $reject) {
-			$this-&gt;resolve = $resolve;
-			$this-&gt;reject = $reject;
-		}
-		public function onRun(int $tick) {
-			($this-&gt;resolve)();
-		}
-		public function onCancel() {
-			($this-&gt;reject)(new \Exception(&quot;Task cancelled&quot;));
-		}
-	};
-	$this-&gt;getServer()-&gt;getScheduler()-&gt;scheduleDelayedTask($task, 20);
-
-	yield Await::ONCE;
+	yield from Await::promise(function($resolve, $reject) {
+		$task = new class($resolve, $reject) extends Task {
+			private $resolve;
+			private $reject;
+			public function __construct($resolve, $reject) {
+				$this-&gt;resolve = $resolve;
+				$this-&gt;reject = $reject;
+			}
+			public function onRun(int $tick) {
+				($this-&gt;resolve)();
+			}
+			public function onCancel() {
+				($this-&gt;reject)(new \Exception(&quot;Task cancelled&quot;));
+			}
+		};
+		$this-&gt;getServer()-&gt;getScheduler()-&gt;scheduleDelayedTask($task, 20);
+	});
 }
 </code></pre>
 <p>This is a bit complex indeed, but it gets handy once we have this function defined!
@@ -473,7 +484,7 @@ Let's see what we can do with a countdown:</p>
 <pre><code class="language-php">function countdown($player) {
 	for($i = 10; $i &gt; 0; $i--) {
 		$player-&gt;sendMessage(&quot;$i seconds left&quot;);
-		yield $this-&gt;sleep();
+		yield from $this-&gt;sleep();
 	}
 
 	$player-&gt;sendMessage(&quot;Time's up!&quot;);
@@ -492,24 +503,12 @@ Await::g2c($this-&gt;generatorFunction());
 </code></pre>
 <p>Sometimes we want to write the generator function as a closure
 and pass it directly:</p>
-<pre><code class="language-php">Await::f2c(function(): \Generator {
+<pre><code class="language-php">Await::f2c(function(): Generator {
 	// some async logic
 });
 </code></pre>
-<p>The return/throw value of the generator can be handled in callback style too:</p>
-<pre><code class="language-php">Await::f2c(function(): \Generator {
-	0 &amp;&amp; yield;
-	if(rand() % 2 == 1) {
-		return 1;
-	} else {
-		throw new \Exception(&quot;random&quot;);
-	}
-}, function($value) {
-	var_dump($value); // int(1)
-}, function($ex) {
-	var_dump($ex-&gt;getMessage()); // string(6) &quot;random&quot;
-});
-</code></pre>
+<p>You can also use <code>Await::g2c</code>/<code>Await::f2c</code>
+to schedule a separate async function in the background.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="running-generators-concurrently"><a class="header" href="#running-generators-concurrently">Running generators concurrently</a></h1>
 <p>In addition to calling multiple generators sequentially,
 you can also use <code>Await::all()</code> or <code>Await::race()</code> to run multiple generators.</p>
