@@ -52,6 +52,9 @@ class Await extends PromiseState{
 	/** @internal Use `Await::race` instead */
 	public const RACE = "race";
 
+	/** @var bool */
+	private static $warnedDeprecatedDirectYield = false;
+
 	/**
 	 * @var Generator
 	 * @phpstan-var Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator>, mixed, T>
@@ -367,6 +370,11 @@ class Await extends PromiseState{
 		}
 
 		if($current instanceof Generator){
+			if(!self::$warnedDeprecatedDirectYield) {
+				echo "\n" . 'NOTICE: `yield $generator` has been deprecated, please use `yield from $generator` instead.' . "\n";
+				self::$warnedDeprecatedDirectYield = true;
+			}
+
 			if(!empty($this->promiseQueue)){
 				$this->reject(new UnawaitedCallbackException("Yielding a generator"));
 				return null;
