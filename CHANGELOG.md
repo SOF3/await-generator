@@ -1,6 +1,10 @@
 Changelog
 ===
 
+## 3.4.2
+- Updated phpstan hint to allow promise resolver to have no arguments
+- Deprecated `yield $generator`, use `yield from $generator` instead
+
 ## 3.4.1
 - Added `Loading::getSync`
 
