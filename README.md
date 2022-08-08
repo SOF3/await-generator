@@ -84,7 +84,7 @@ echo match($which) {
 你可以將所有涉及 await-generator 的代碼封閉在應用程式的內部。
 但你確實應該把 generation function 直接當作程序接口。
 
-await-generator 會在 `Await::f2c` method 開始進行異步代碼流控制，這樣「回調」 <!-- TODO: helpl wanted -->
+await-generator 會在 `Await::f2c` method 開始進行異步代碼流控制，它接受一般的「回調」語法，這樣就無需再 <!-- TODO: help wanted-->
 await-generator starts an await context with the `Await::f2c` method,
 with which you can adapt into the usual callback syntax:
 
@@ -94,7 +94,7 @@ function oldApi($args, Closure $onSuccess) {
 }
 ```
 
-Or if you want to handle errors too:
+你也用它來處理錯誤：
 
 ```php
 function newApi($args, Closure $onSuccess, Closure $onError) {
@@ -108,22 +108,20 @@ function newApi($args, Closure $onSuccess, Closure $onError) {
 }
 ```
 
-傳統「回調」式的 function 也可以轉化成  `Await::promise` method 跟 JavaScript 的 `new Promise` 很像。它可以用來把 轉化成
-You can continue to call functions implemented as callback style
-using thein JS):
+傳統「回調式」的異步 function 也可以被 `Await::promise` method 轉化成「等待式」。它跟 JavaScript 的 `new Promise` 很像：
 
 ```php
 yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, $reject));
 ```
 
 ## 使用 await-generator 的*劣勢*
-await-generator 有很多經常的坑人的地方：
+await-generator 也有很多經常的坑人的地方：
 
 - 忘了 `yield from Generator<void>` 的結果是代碼會毫無作用；
-- 如果你的 function 沒有任何 `yield` 或者 `yield from` ， PHP 就不會把它當成 generator function 。（將所有 generator function 的 return 類型設成 `: Generator` 可預防意外行為）；
+- 如果你的 function 沒有任何 `yield` 或者 `yield from` ， PHP 就不會把它當成 generator function 。（將所有 generator function 的 return 類型設成 `: Generator` 可減輕影響）；
 - `finally` blocks may never get executed if an async function never resolves
   (e.g. `Await::promise(fn($resolve) => null)`)；
-- 如果 `try` 裡面的異步代碼沒有全面結束， `finally` 就不會被執行 （例： `Await::promise(fn($resolve) => null)`）；
+- 如果異步代碼沒有全面結束， `finally` 也不會被執行 （例： `Await::promise(fn($resolve) => null)`）；
 
 儘管地方會導致一些問題， await-generator 的設計模式依然比「回調地獄」更難出 bug 。
 
