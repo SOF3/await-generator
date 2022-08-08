@@ -9,7 +9,7 @@ Read the [await-generator tutorial][book] for an introduction
 from generators and traditional async callbacks to await-generator.
 
 ## 使用 await-generator 的優勢
-傳統的異步代碼流需要靠回調（callback 、匿名 function）來實現，這導致了「callback hell 回調地獄」（每個異步 function 都要開新的回調）的情況出現，代碼難以被閱讀、管理。
+傳統的異步代碼流需要靠「callback 回調」（匿名 function）來實現。每個異步 function 都要開新的「回調」，然後把異步 function 後面的代碼整個搬進去，導致了代碼變成「callback hell 回調地獄」，難以被閱讀、管理。
 <details>
     <summary>點擊以查看「回調地獄」例子</summary>
     
