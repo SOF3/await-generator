@@ -1,19 +1,18 @@
-Eng | [繁](README.zho.md) | [簡](README.chs.md)
+[Eng](README.md) | 繁 | [簡](README.chs.md)
 # await-generator
 [![Build Status][ci-badge]][ci-page]
 [![Codecov][codecov-badge]][codecov-page]
 
-A library to use async/await pattern in PHP.
+給予 PHP 「async/await 等待式異步」（代碼流控制）設計模式的程式庫。
 
 ## Documentation
 Read the [await-generator tutorial][book] for an introduction
 from generators and traditional async callbacks to await-generator.
 
-## Why await-generator?
-Traditional async programming requires callbacks,
-which leads to spaghetti code known as "callback hell":
+## 使用 await-generator 的優勢
+傳統的異步代碼流需要靠「callback 回調」（匿名 function）來實現。每個異步 function 都要開新的「回調」，然後把異步 function 後面的代碼整個搬進去，導致了代碼變成「callback hell 回調地獄」，難以被閱讀、管理。
 <details>
-    <summary>Click to reveal example callback hell</summary>
+    <summary>點擊以查看「回調地獄」例子</summary>
     
 ```php
 load_data(function($data) {
@@ -61,7 +60,7 @@ load_data(function($data) {
 ```
     
 </details>
-With await-generator, this is simplified into:
+如果使用 await-generator ，以上代碼就可以被簡化為：
 
 ```php
 $data = yield from load_data();
@@ -81,11 +80,12 @@ echo match($which) {
 };
 ```
 
-## Can I maintain backward compatibility?
-Yes, await-generator does not impose any restrictions on your existing API.
-You can wrap all await-generator calls as internal implementation detail,
-although you are strongly encouraged to expose the generator functions directly.
+## 使用後的代碼可以維持「backward compatibility 回溯相容性」嗎？
+是的，  await-generator 不會對已有的程式接口（API）造成任何限制。
+你可以將所有涉及 await-generator 的代碼封閉在應用程式的內部。
+但你確實應該把 generation function 直接當作程序接口。
 
+await-generator 會在 `Await::f2c` method 開始進行異步代碼流控制，它接受一般的「回調」語法，這樣就無需再 <!-- TODO: help wanted-->
 await-generator starts an await context with the `Await::f2c` method,
 with which you can adapt into the usual callback syntax:
 
@@ -95,7 +95,7 @@ function oldApi($args, Closure $onSuccess) {
 }
 ```
 
-Or if you want to handle errors too:
+你也用它來處理錯誤：
 
 ```php
 function newApi($args, Closure $onSuccess, Closure $onError) {
@@ -109,27 +109,25 @@ function newApi($args, Closure $onSuccess, Closure $onError) {
 }
 ```
 
-You can continue to call functions implemented as callback style
-using the `Await::promise` method (similar to `new Promise` in JS):
+傳統「回調式」的異步 function 也可以被 `Await::promise` method 轉化成「等待式」。它跟 JavaScript 的 `new Promise` 很像：
 
 ```php
 yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, $reject));
 ```
 
-## Why *not* await-generator
-await-generator has a few common pitfalls:
+## 使用 await-generator 的*劣勢*
+await-generator 也有很多經常的坑人的地方：
 
-- Forgetting to `yield from` a `Generator<void>` method will end up doing nothing.
-- If you delete all `yield`s from a function,
-  it automatically becomes a non-generator function thanks to PHP magic.
-  This issue can be mitigated by always adding `: Generator` to the function signature.
+- 忘了 `yield from Generator<void>` 的結果是代碼會毫無作用；
+- 如果你的 function 沒有任何 `yield` 或者 `yield from` ， PHP 就不會把它當成 generator function 。（將所有 generator function 的 return 類型設成 `: Generator` 可減輕影響）；
 - `finally` blocks may never get executed if an async function never resolves
-  (e.g. `Await::promise(fn($resolve) => null)`).
+  (e.g. `Await::promise(fn($resolve) => null)`)；
+- 如果異步代碼沒有全面結束， `finally` 也不會被執行 （例： `Await::promise(fn($resolve) => null)`）；
 
-While these pitfalls cause some trouble,
-await-generator style is still much less bug-prone than a callback hell.
+儘管地方會導致一些問題， await-generator 的設計模式依然比「回調地獄」更難出 bug 。
 
-## But what about fibers?
+## 不是有 fibers 嗎？
+雖然這樣說很主觀，但本人相對地不喜歡 fibers ，
 This might be a subjective comment,
 but I do not prefer fibers for a few reasons:
 
