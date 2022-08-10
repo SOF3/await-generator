@@ -60,7 +60,7 @@ load_data(function($data) {
 ```
     
 </details>
-如果使用 await-generator ，以上代碼就可以被簡化為：
+	如果使用 await-generator ，以上代碼就可以被簡化為：
 
 ```php
 $data = yield from load_data();
@@ -119,7 +119,7 @@ yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, 
 await-generator 也有很多經常坑人的地方：
 
 - 忘了 `yield from` 的代碼會毫無作用；
-- 如果你的函數沒有任何 `yield` 或者 `yield from` ， PHP 就不會把它當成生成器函數。（將所有應為生成器的函數 return 類型設成 `: Generator` 可減輕影響）；
+- 如果你的函數沒有任何 `yield` 或者 `yield from` ， PHP 就不會把它當成生成器函數。（在所有應為生成器的函數類型註釋中加上 `: Generator` 可減輕影響）；
 - 如果異步代碼沒有全面結束， `finally` 也不會被執行 （例： `Await::promise(fn($resolve) => null)`）；
 
 儘管一些地方會導致問題， await-generator 的設計模式出 bug 的機會依然比「回調地獄」少 。
@@ -129,18 +129,13 @@ await-generator 也有很多經常坑人的地方：
 This might be a subjective comment,
 but I do not prefer fibers for a few reasons:
 
-### 靠 return 的類型就能區分異步與非異步函數
-![fiber.jpg](./fiber.jpeg)
+### 靠類型註釋就能區分異步、非異步函數
+![../fiber.jpg](./fiber.jpeg)
+例如能直觀地看出 `$channel->send($value): Generator<void>` 會暫停代碼流至有數值被送入生成器； `$channel->sendBuffered($value): void`
+則不會暫停代碼流，method 的代碼會在一次過執行後回傳。
+類型註釋通常是不言自明的。
 
-For example, it is easy to tell from the type signature that
-`$channel->send($value): Generator<void>` suspends until the value is sent
-and `$channel->sendBuffered($value): void`
-is a non-suspending method that returns immediately.
-Type signatures are often self-explanatory.
-
-Of course, users could call `sleep()` anyway,
-but it is quite obvious to everyone that `sleep()` blocks the whole runtime
-(if they didn't already know, they will find out when the whole world stops).
+當然，用戶可以直接呼叫 `sleep()` ，但全世界都應清楚 `sleep()` 會卡住整個線程（就算他們不懂也會在整個「世界」停止時發現）。
 
 ### Concurrent states
 When a function suspends, many other things can happen.
