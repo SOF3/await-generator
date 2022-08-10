@@ -131,7 +131,7 @@ await-generator 也有很多經常的坑人的地方：
 This might be a subjective comment,
 but I do not prefer fibers for a few reasons:
 
-### Explicit suspension in type signature
+### 靠 return 的類型就能區分異步與非異步 function
 ![fiber.jpg](./fiber.jpeg)
 
 For example, it is easy to tell from the type signature that
