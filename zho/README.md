@@ -124,7 +124,7 @@ await-generator 也有很多經常坑人的地方：
   (e.g. `Await::promise(fn($resolve) => null)`)；
 - 如果異步代碼沒有全面結束， `finally` 也不會被執行 （例： `Await::promise(fn($resolve) => null)`）；
 
-儘管地方會導致一些問題， await-generator 的設計模式依然比「回調地獄」更難出 bug 。
+儘管一些地方會導致問題， await-generator 的設計模式出 bug的機會依然比「回調地獄」少 。
 
 ## 不是有 fibers 嗎？
 雖然這樣說很主觀，但本人相對地不喜歡 fibers ，
