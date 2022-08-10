@@ -9,8 +9,8 @@
 Read the [await-generator tutorial][book] for an introduction
 from generators and traditional async callbacks to await-generator.
 
-## 使用 await-generator 的優勢
-傳統的異步代碼流需要靠「callback 回調」（匿名 function）來實現。每個異步 function 都要開新的「回調」，然後把異步 function 後面的代碼整個搬進去，導致了代碼變成「callback hell 回調地獄」，難以被閱讀、管理。
+## await-generator 的優勢
+傳統的異步代碼流需要靠回調（匿名 function）來實現。每個異步 function 都要開新的回調，然後把異步 function 後面的代碼整個搬進去，導致了代碼變成「callback hell 回調地獄」，難以被閱讀、管理。
 <details>
     <summary>點擊以查看「回調地獄」例子</summary>
     
@@ -85,7 +85,7 @@ echo match($which) {
 你可以將所有涉及 await-generator 的代碼封閉在應用程式的內部。
 但你確實應該把 generation function 直接當作程序接口。
 
-await-generator 會在 `Await::f2c` method 開始進行異步代碼流控制，它接受一般的「回調」語法，這樣就無需再 <!-- TODO: help wanted-->
+await-generator 會在 `Await::f2c` method 開始進行異步代碼流控制，它接受一般的回調語法，這樣就無需再 <!-- TODO: help wanted-->
 await-generator starts an await context with the `Await::f2c` method,
 with which you can adapt into the usual callback syntax:
 
@@ -115,7 +115,7 @@ function newApi($args, Closure $onSuccess, Closure $onError) {
 yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, $reject));
 ```
 
-## 使用 await-generator 的*劣勢*
+## await-generator 的*劣勢*
 await-generator 也有很多經常的坑人的地方：
 
 - 忘了 `yield from Generator<void>` 的結果是代碼會毫無作用；
@@ -127,15 +127,22 @@ await-generator 也有很多經常的坑人的地方：
 儘管地方會導致一些問題， await-generator 的設計模式依然比「回調地獄」更難出 bug 。
 
 ## 不是有 fibers 嗎？
-雖然這樣說很主觀，但本人相對地不喜歡 fibers ，它缺少了以下等特色：
+雖然這樣說很主觀，但本人相對地不喜歡 fibers ，
+This might be a subjective comment,
+but I do not prefer fibers for a few reasons:
 
-### 靠 return 的類型就能區分異步與非異步 function
+### Explicit suspension in type signature
 ![fiber.jpg](./fiber.jpeg)
 
-例如 `$channel->send($value): Generator<void>` 很容易就看出會暫停代碼流至有數值被傳入 generator ，而 `$channel->sendBuffered($value): void` 則不會暫停代碼流。
-Return 類型通常都是不辯自明的。
+For example, it is easy to tell from the type signature that
+`$channel->send($value): Generator<void>` suspends until the value is sent
+and `$channel->sendBuffered($value): void`
+is a non-suspending method that returns immediately.
+Type signatures are often self-explanatory.
 
-當然，用戶可以直接用 `sleep()` ，但大家都清楚 `sleep()` 會卡住整個線程（不懂的人也會被時間暫停坑個明明白白）。
+Of course, users could call `sleep()` anyway,
+but it is quite obvious to everyone that `sleep()` blocks the whole runtime
+(if they didn't already know, they will find out when the whole world stops).
 
 ### Concurrent states
 When a function suspends, many other things can happen.
