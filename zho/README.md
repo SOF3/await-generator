@@ -1,4 +1,4 @@
-[Eng](../README.md) | 繁 | [简](../cho)
+[Eng](../README.md) | 繁 | [简](../chs)
 # await-generator
 [![Build Status][ci-badge]][ci-page]
 [![Codecov][codecov-badge]][codecov-page]
