@@ -10,7 +10,7 @@ Read the [await-generator tutorial][book] for an introduction
 from generators and traditional async callbacks to await-generator.
 
 ## await-generator 的優勢
-傳統的異步代碼流需要靠回調（匿名 function）來實現。每個異步 function 都要開新的回調，然後把異步 function 後面的代碼整個搬進去，導致了代碼變成「callback hell 回調地獄」，難以被閱讀、管理。
+傳統的異步代碼流需要靠回調（匿名函數）來實現。每個異步函數都要開新的回調，然後把異步函數後面的代碼整個搬進去，導致了代碼變成「callback hell 回調地獄」，難以被閱讀、管理。
 <details>
     <summary>點擊以查看「回調地獄」例子</summary>
     
@@ -82,8 +82,8 @@ echo match($which) {
 
 ## 使用後的代碼可以維持「backward compatibility 回溯相容性」嗎？
 是的，  await-generator 不會對已有的程式接口（API）造成任何限制。
-你可以將所有涉及 await-generator 的代碼封閉在應用程式的內部。
-但你確實應該把 generation function 直接當作程序接口。
+你可以將所有涉及 await-generator 的代碼封閉在程式的內部。
+但你確實應該把生成器函數直接當作程序接口。
 
 await-generator 會在 `Await::f2c` method 開始進行異步代碼流控制，它接受一般的回調語法，這樣就無需再 <!-- TODO: help wanted-->
 await-generator starts an await context with the `Await::f2c` method,
@@ -109,7 +109,7 @@ function newApi($args, Closure $onSuccess, Closure $onError) {
 }
 ```
 
-傳統「回調式」的異步 function 也可以被 `Await::promise` method 轉化成「等待式」。它跟 JavaScript 的 `new Promise` 很像：
+傳統「回調式」的異步函數也可以被 `Await::promise` method 轉化成「等待式」。它跟 JavaScript 的 `new Promise` 很像：
 
 ```php
 yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, $reject));
@@ -119,7 +119,7 @@ yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, 
 await-generator 也有很多經常坑人的地方：
 
 - 忘了 `yield from` 的代碼會毫無作用；
-- 如果你的 function 沒有任何 `yield` 或者 `yield from` ， PHP 就不會把它當成 generator function 。（將所有 generator function 的 return 類型設成 `: Generator` 可減輕影響）；
+- 如果你的函數沒有任何 `yield` 或者 `yield from` ， PHP 就不會把它當成生成器函數。（將所有應為生成器的函數 return 類型設成 `: Generator` 可減輕影響）；
 - 如果異步代碼沒有全面結束， `finally` 也不會被執行 （例： `Await::promise(fn($resolve) => null)`）；
 
 儘管一些地方會導致問題， await-generator 的設計模式出 bug 的機會依然比「回調地獄」少 。
@@ -129,7 +129,7 @@ await-generator 也有很多經常坑人的地方：
 This might be a subjective comment,
 but I do not prefer fibers for a few reasons:
 
-### 靠 return 的類型就能區分異步與非異步 function
+### 靠 return 的類型就能區分異步與非異步函數
 ![fiber.jpg](./fiber.jpeg)
 
 For example, it is easy to tell from the type signature that
