@@ -85,9 +85,7 @@ echo match($which) {
 你可以將所有涉及 await-generator 的代碼封閉在程式的內部。
 但你確實應該把生成器函數直接當作程式接口。
 
-await-generator 會在 `Await::f2c` method 開始進行異步代碼流控制，它接受一般的回調語法，這樣就無需再 <!-- TODO: help wanted-->
-await-generator starts an await context with the `Await::f2c` method,
-with which you can adapt into the usual callback syntax:
+await-generator 會在 `Await::f2c` method 開始進行異步代碼流控制，你可以將它視為「等待式」至「回調式」的轉接頭。
 
 ```php
 function oldApi($args, Closure $onSuccess) {
@@ -109,7 +107,7 @@ function newApi($args, Closure $onSuccess, Closure $onError) {
 }
 ```
 
-傳統「回調式」的異步函數也可以被 `Await::promise` method 轉化成「等待式」。它跟 JavaScript 的 `new Promise` 很像：
+「回調式」也可以被 `Await::promise` method 轉化成「等待式」。它跟 JavaScript 的 `new Promise` 很像：
 
 ```php
 yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, $reject));
