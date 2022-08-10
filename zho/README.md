@@ -116,9 +116,9 @@ yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, 
 ```
 
 ## await-generator 的*劣勢*
-await-generator 也有很多經常的坑人的地方：
+await-generator 也有很多經常坑人的地方：
 
-- 忘了 `yield from Generator<void>` 的結果是代碼會毫無作用；
+- 忘了 `yield from` 的代碼會毫無作用；
 - 如果你的 function 沒有任何 `yield` 或者 `yield from` ， PHP 就不會把它當成 generator function 。（將所有 generator function 的 return 類型設成 `: Generator` 可減輕影響）；
 - `finally` blocks may never get executed if an async function never resolves
   (e.g. `Await::promise(fn($resolve) => null)`)；
