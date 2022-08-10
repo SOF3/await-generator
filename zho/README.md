@@ -107,7 +107,7 @@ function newApi($args, Closure $onSuccess, Closure $onError) {
 }
 ```
 
-「回調式」也可以被 `Await::promise` method 轉化成「等待式」。它跟 JavaScript 的 `new Promise` 很像：
+「回調式」同樣可以被 `Await::promise` method 轉化成「等待式」。它跟 JavaScript 的 `new Promise` 很像：
 
 ```php
 yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, $reject));
