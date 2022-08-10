@@ -128,7 +128,7 @@ await-generator 也有很多經常坑人的地方：
 ### 靠類型註釋就能區分異步、非異步函數
 ![../fiber.jpg](./fiber.jpeg)
 例如能直觀地看出 `$channel->send($value): Generator<void>` 會暫停代碼流至有數值被送入生成器； `$channel->sendBuffered($value): void`
-則不會暫停代碼流，method 的代碼會在一次過執行後回傳。
+則不會暫停代碼流，這個 method 的代碼會在一次過執行後回傳。
 類型註釋通常是不言自明的。
 
 當然，用戶可以直接呼叫 `sleep()` ，但全世界都應清楚 `sleep()` 會卡住整個線程（就算他們不懂也會在整個「世界」停止時發現）。
