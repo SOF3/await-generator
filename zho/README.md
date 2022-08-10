@@ -83,7 +83,7 @@ echo match($which) {
 ## 使用後的代碼可以維持「backward compatibility 回溯相容性」嗎？
 是的，  await-generator 不會對已有的程式接口（API）造成任何限制。
 你可以將所有涉及 await-generator 的代碼封閉在程式的內部。
-但你確實應該把生成器函數直接當作程序接口。
+但你確實應該把生成器函數直接當作程式接口。
 
 await-generator 會在 `Await::f2c` method 開始進行異步代碼流控制，它接受一般的回調語法，這樣就無需再 <!-- TODO: help wanted-->
 await-generator starts an await context with the `Await::f2c` method,
