@@ -118,7 +118,7 @@ await-generator 也有很多經常坑人的地方：
 
 - 忘了 `yield from` 的代碼會毫無作用；
 - 如果你的函數沒有任何 `yield` 或者 `yield from` ， PHP 就不會把它當成生成器函數。（在所有應為生成器的函數類型註釋中加上 `: Generator` 可減輕影響）；
-- 如果異步代碼沒有全面結束， `finally` 也不會被執行 （例： `Await::promise(fn($resolve) => null)`）；
+- 如果異步代碼沒有全面結束， `finally` 裏面也不會被執行 （例： `Await::promise(fn($resolve) => null)`）；
 
 儘管一些地方會導致問題， await-generator 的設計模式出 bug 的機會依然比「回調地獄」少 。
 
