@@ -127,22 +127,15 @@ await-generator 也有很多經常的坑人的地方：
 儘管地方會導致一些問題， await-generator 的設計模式依然比「回調地獄」更難出 bug 。
 
 ## 不是有 fibers 嗎？
-雖然這樣說很主觀，但本人相對地不喜歡 fibers ，
-This might be a subjective comment,
-but I do not prefer fibers for a few reasons:
+雖然這樣說很主觀，但本人相對地不喜歡 fibers ，它缺少了以下等特色：
 
-### Explicit suspension in type signature
+### 靠 return 的類型就能區分異步與非異步 function
 ![fiber.jpg](./fiber.jpeg)
 
-For example, it is easy to tell from the type signature that
-`$channel->send($value): Generator<void>` suspends until the value is sent
-and `$channel->sendBuffered($value): void`
-is a non-suspending method that returns immediately.
-Type signatures are often self-explanatory.
+例如 `$channel->send($value): Generator<void>` 很容易就看出會暫停代碼流至有數值被傳入 generator ，而 `$channel->sendBuffered($value): void` 則不會暫停代碼流。
+Return 類型通常都是不辯自明的。
 
-Of course, users could call `sleep()` anyway,
-but it is quite obvious to everyone that `sleep()` blocks the whole runtime
-(if they didn't already know, they will find out when the whole world stops).
+當然，用戶可以直接用 `sleep()` ，但大家都清楚 `sleep()` 會卡住整個線程（不懂的人也會被時間暫停坑個明明白白）。
 
 ### Concurrent states
 When a function suspends, many other things can happen.
