@@ -133,20 +133,16 @@ await-generator 也有很多經常坑人的地方：
 
 當然，用戶可以直接呼叫 `sleep()` ，但全世界都應清楚 `sleep()` 會卡住整個線程（就算他們不懂也會在整個「世界」停止時發現）。
 
-### Concurrent states
-When a function suspends, many other things can happen.
-Indeed, calling a function allows the implementation to call any other functions
-which could modify your states anyway,
-but a sane, genuine implementation of e.g. an HTTP request
-wouldn't call functions that modify the private states of your library.
-But this assumption does not hold with fibers
-because the fiber is preempted and other fibers can still modify the private states.
-This means you have to check for possible changes in private properties
-every time you call any function that *might* be suspending.
+### 連貫的狀態
+當一個函數被暫停時會發生許多其他的事情。
+的確，這樣在呼叫它時給予了其他執行者呼叫任何可修改你狀態的函數。
+但是一個正常的、合理的構造，例如 HTTP 請求所呼叫的函數不應會修改你程式庫的私有狀態。
+但是這個假設對於 fibers 來說並不成立
+因為當一個光纖被暫停後，剩下的仍然可以修改內部狀態。
+每次你呼叫任何*可能*會被暫停的函數時，你都必須檢查內部屬性的可能變化。
 
-On the other hand, using explicit await,
-it is obvious where exactly the suspension points are,
-and you only need to check for state mutations at the known suspension points.
+await-generator 相比起 fibers ，異步、非異步代碼能簡單區分，且暫停點的確切位置顯而易見。
+因此你只需要在已知的暫停點檢查狀態的變化。
 
 ### Trapping suspension points
 await-generator provides a feature called ["trapping"][trap-pr],
