@@ -146,12 +146,11 @@ await-generator 也有很多經常坑人的地方：
 await-generator 相比起纖程，異步、非異步代碼能簡單區分，且暫停點的確切位置顯而易見。
 因此你只需要在已知的暫停點檢查狀態的變化。
 
-### Trapping suspension points
-await-generator provides a feature called ["trapping"][trap-pr],
-which allows users to add pre-suspend and pre-resume hooks to a generator.
-This is simply achieved by adding an adapter to the generator,
-and does not even require explicit support from the await-generator runtime.
-This is currently not possible with fibers.
+### 捕捉暫停點
+await-generator 提供了一個叫做「[捕捉][trap-pr]」的功能。
+它允許用戶攔截生成器的暫停點和恢復點，在它暫停或恢復前執行一段加的插代碼。
+這只需透過向生成器添加一個轉接頭來實現。甚至不需要 await-generator 引擎的額外支援。
+這目前在纖程中無法做到。
 
 [book]: https://sof3.github.io/await-generator/master/
 [ci-badge]: https://github.com/SOF3/await-generator/workflows/CI/badge.svg
