@@ -10,7 +10,8 @@ Read the [await-generator tutorial][book] for an introduction
 from generators and traditional async callbacks to await-generator.
 
 ## await-generator 的優勢
-傳統的異步代碼流需要靠回調（匿名函數）來實現。每個異步函數都要開新的回調，然後把異步函數後面的代碼整個搬進去，導致了代碼變成「callback hell 回調地獄」，難以被閱讀、管理。
+傳統的異步代碼流需要靠回調（匿名函數）來實現。
+每個異步函數都要開新的回調，然後把異步函數後面的代碼整個搬進去，導致了代碼變成「callback hell 回調地獄」，難以被閱讀、管理。
 <details>
     <summary>點擊以查看「回調地獄」例子</summary>
     
@@ -60,7 +61,7 @@ load_data(function($data) {
 ```
     
 </details>
-	如果使用 await-generator ，以上代碼就可以被簡化為：
+如果使用 await-generator ，以上代碼就可以被簡化為：
 
 ```php
 $data = yield from load_data();
@@ -81,7 +82,7 @@ echo match($which) {
 ```
 
 ## 使用後的代碼可以維持「backward compatibility 回溯相容性」嗎？
-是的，  await-generator 不會對已有的程式接口（API）造成任何限制。
+是的， await-generator 不會對已有的程式接口（API）造成任何限制。
 你可以將所有涉及 await-generator 的代碼封閉在程式的內部。
 但你確實應該把生成器函數直接當作程式接口。
 
@@ -107,7 +108,8 @@ function newApi($args, Closure $onSuccess, Closure $onError) {
 }
 ```
 
-「回調式」同樣可以被 `Await::promise` method 轉化成「等待式」。它跟 JavaScript 的 `new Promise` 很像：
+「回調式」同樣可以被 `Await::promise` method 轉化成「等待式」。
+它跟 JavaScript 的 `new Promise` 很像：
 
 ```php
 yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, $reject));
@@ -117,13 +119,13 @@ yield from Await::promise(fn($resolve, $reject) => oldFunction($args, $resolve, 
 await-generator 也有很多經常坑人的地方：
 
 - 忘了 `yield from` 的代碼會毫無作用；
-- 如果你的函數沒有任何 `yield` 或者 `yield from` ， PHP 就不會把它當成生成器函數。（在所有應為生成器的函數類型註釋中加上 `: Generator` 可減輕影響）；
-- 如果異步代碼沒有全面結束， `finally` 裏面的代碼也不會被執行 （例： `Await::promise(fn($resolve) => null)`）；
+- 如果你的函數沒有任何 `yield` 或者 `yield from` ， PHP 就不會把它當成生成器函數（在所有應為生成器的函數類型註釋中加上 `: Generator` 可減輕影響）；
+- 如果異步代碼沒有全面結束， `finally` 裏面的代碼也不會被執行（例： `Await::promise(fn($resolve) => null)`）；
 
 儘管一些地方會導致問題， await-generator 的設計模式出 bug 的機會依然比「回調地獄」少 。
 
-## 不是有 fibers 嗎？
-雖然這樣說很主觀，但本人因為以下 fibers 缺少的特色而相對地不喜歡它：
+## 不是有纖程嗎？
+雖然這樣說很主觀，但本人因為以下纖程缺少的特色而相對地不喜歡它：
 
 ### 靠類型註釋就能區分異步、非異步函數
 ![../../fiber.jpg](./fiber.jpeg)
@@ -131,17 +133,17 @@ await-generator 也有很多經常坑人的地方：
 則不會暫停代碼流，這個 method 的代碼會在一次過執行後回傳。
 類型註釋通常是不言自明的。
 
-當然，用戶可以直接呼叫 `sleep()` ，但大家都應清楚 `sleep()` 會卡住整個線程（就算他們不懂也會在整個「世界」停止時發現）。
+當然，用戶可以直接調用 `sleep()` ，但大家都應清楚 `sleep()` 會卡住整個線程（就算他們不懂也會在整個「世界」停止時發現）。
 
 ### 連貫的狀態
 當一個函數被暫停時會發生許多其他的事情。
 調用函數時固然給予了實現者調用可修改狀態函數的可能性，
 但是一個正常的、合理的實現，例如 HTTP 請求所調用的函數不應修改你程式庫的內部狀態。
-但是這個假設對於 fibers 來說並不成立，
+但是這個假設對於纖程來說並不成立，
 因為當一個纖程被暫停後，其他纖程仍然可以修改你的內部狀態。
 每次你調用任何*可能*會被暫停的函數時，你都必須檢查內部狀態的可能變化。
 
-await-generator 相比起 fibers ，異步、非異步代碼能簡單區分，且暫停點的確切位置顯而易見。
+await-generator 相比起纖程，異步、非異步代碼能簡單區分，且暫停點的確切位置顯而易見。
 因此你只需要在已知的暫停點檢查狀態的變化。
 
 ### Trapping suspension points
