@@ -157,13 +157,9 @@ function qux\(\)\: Generator \{&#10;&#9;yield 1\;&#10;&#9;return 2\;&#10;\}&#10;
 > The `yield from` expression resolves to the return value of the generator\.
    * zho
 
-你可以在一個生成器中調用另外的生成器，
-<!-- TODO: Help wanted. -->
-You can call another generator in a generator,
-which will pass through all the yielded values
-and send back all the sent values
-using the `yield from` syntax\.
-The `yield from` expression resolves to the return value of the generator\.
+你可以在一個生成器中調用另外的生成器，這樣在執行你的生成器時就會經過它所有的 `yield` 。
+在此期間，傳入你生成器的數值會給了它，它傳出的數值也會是你生成器傳出的數值，等同於將它的代碼嵌入了你的生成器。
+`yield from` 的結果將是它的回傳結果。
 
 ***
 > function test\(\$value\)\: Generator \{&#10;&#9;\$send \= yield \$value\;&#10;&#9;return \$send\;&#10;\}&#10;&#10;function main\(\)\: Generator \{&#10;&#9;\$a \= yield from test\(1\)\;&#10;&#9;\$b \= yield from test\(2\)\;&#10;&#9;var\_dump\(\$a \+ \$b\)\;&#10;\}&#10;&#10;\$generator \= main\(\)\;&#10;\$generator\-\>rewind\(\)\;&#10;var\_dump\(\$generator\-\>current\(\)\)\;&#10;\$generator\-\>send\(3\)\;&#10;var\_dump\(\$generator\-\>current\(\)\)\;&#10;\$generator\-\>send\(4\)\;&#10;
@@ -181,7 +177,7 @@ int\(1\)&#10;int\(2\)&#10;int\(7\)&#10;
 > Hacking generators
    * zho
 
-Hacking generators
+假的生成器
 
 ***
 > Sometimes we want to make a generator function that does not yield at all\.
@@ -192,12 +188,10 @@ Hacking generators
 > even if you run this line many times\.
    * zho
 
-Sometimes we want to make a generator function that does not yield at all\.
-In that case, you can write `0 && yield;` at the start of the function\;
-this will make your function a generator function, but it will not yield anything\.
-As of PHP 7\.4\.0, `0 && yield;` is a no\-op,
-which means it will not affect your program performance
-even if you run this line many times\.
+我們有時候會想做一個不含 `yield` 的生成器。
+那時，我們可以在普通函數的最初加上 `0 && yield;` ，使它成為一個不暫停代碼流的生成器函數。
+從 PHP 7\.4\.0 起， `0 && yield;` 就是一個「no\-op」。
+這意味著它不會影響你的代碼的性能，哪怕你運行它多次。
 
 ***
 > function emptyGenerator\(\)\: Generator \{&#10;&#9;0 \&\& yield\;&#10;&#9;return 1\;&#10;\}&#10;&#10;\$generator \= emptyGenerator\(\)\;&#10;var\_dump\(\$generator\-\>next\(\)\)\;&#10;var\_dump\(\$generator\-\>getReturn\(\)\)\;&#10;
