@@ -1,7 +1,7 @@
 > Using callback\-style from generators
    * zho
 
-Using callback\-style from generators
+轉接「等待式」至「回調式」
 
 ***
 > Although it is easier to work with generator functions,
@@ -10,10 +10,10 @@ Using callback\-style from generators
 > This is achieved by `Await::promise`\.
    * zho
 
-Although it is easier to work with generator functions,
-ultimately, you will need to work with functions that do not use await\-generator\.
-In that case, callbacks are easier to use\.
-This is achieved by `Await::promise`\.
+儘管生成器函數更容易使用，將來你卻還是會用到非 await\-generator 的函數。
+在這種情況下，回調更容易使用。
+這是由`Await::promise`實現的。
+<!-- TODO: Help wanted -->
 
 ***
 > function a\(Closure \$callback\)\: void \{&#10;&#9;\/\/ The other function that uses callbacks\.&#10;&#9;\/\/ Let\'s assume this function will call \$callback\(\"foo\"\) some time later\.&#10;\}&#10;&#10;function main\(\)\: Generator \{&#10;&#9;return yield from Await\:\:promise\(fn\(\$resolve\) \=\> a\(\$resolve\)\)\;&#10;\}&#10;

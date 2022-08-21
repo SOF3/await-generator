@@ -1,9 +1,4 @@
-# 轉接「等待式」至「回調式」
-儘管生成器函數更容易使用，將來你卻還是會用到非 await\-generator 的函數。
-在這種情況下，回調更容易使用。
-這是由`Await::promise`實現的。
-<!-- TODO: Help wanted -->
-
+# Using callback-style from generators
 Although it is easier to work with generator functions,
 ultimately, you will need to work with functions that do not use await-generator.
 In that case, callbacks are easier to use.
