@@ -3,7 +3,7 @@ In addition to calling multiple generators sequentially,
 you can also use `Await::all()` or `Await::race()` to run multiple generators.
 
 If you have a JavaScript background, you can think of `Generator` objects as promises
-and `Await::all()` and `Await::race()` are just `Promise.all()` aand `Promise.race()`.
+and `Await::all()` and `Await::race()` are just `Promise.all()` and `Promise.race()`.
 
 ## `Await::all()`
 `Await::all()` allows you to run an array of generators at the same time.
