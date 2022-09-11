@@ -133,7 +133,7 @@ await-generator 也有很多經常坑人的地方：
 
 ![../../fiber.jpg](https://github.com/SOF3/await-generator/raw/master/fiber.jpeg)
 
-> 好傢伙，我都等不及要回應我的 HTTP 請求了。
+> 好傢伙，我都等不及要回應我的 HTTP 請求了。<br />
 > 那個框架肯定還沒把它清除。
 
 例如能直觀地看出 `$channel->send($value): Generator<void>` 會暫停代碼流至有數值被送入生成器； `$channel->sendBuffered($value): void`
