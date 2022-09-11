@@ -130,7 +130,9 @@ await-generator 也有很多經常坑人的地方：
 ### 靠類型註釋就能區分異步、非異步函數
 > 先生，你已在暫停的纖程待了三十秒。
 > 因為有人為了實現一個界面而調用 Fiber::suspend() 。
+
 ![../../fiber.jpg](https://github.com/SOF3/await-generator/raw/master/fiber.jpeg)
+
 > 好傢伙，我都等不及要回應我的 HTTP 請求了。
 > 那個框架肯定還沒把它清除。
 
