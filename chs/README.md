@@ -5,9 +5,8 @@
 
 给予 PHP 「async/await 等待式异步」（代码流控制）设计模式的程序库。
 
-## Documentation
-Read the [await-generator tutorial][book] for an introduction
-from generators and traditional async callbacks to await-generator.
+## 文档
+请阅读 [await-generator 教学（中文版赶工中）][book]，了解涵盖了生成器、传统「回调式异步」，再到 await-generator 的介绍。
 
 ## await-generator 的优势
 传统的异步代码流需要靠回调（匿名函数）来实现。
