@@ -127,7 +127,7 @@ await-generator 也有很多經常坑人的地方：
 雖然這樣說很主觀，但本人因為以下纖程缺少的特色而相對地不喜歡它：
 
 ### 靠類型註釋就能區分異步、非異步函數
-> 先生，你已在暫停的纖程待了三十秒。
+> 先生，你已在暫停的纖程待了三十秒。<br />
 > 因為有人為了實現一個界面而調用 Fiber::suspend() 。
 
 ![../../fiber.jpg](https://github.com/SOF3/await-generator/raw/master/fiber.jpeg)
