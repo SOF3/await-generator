@@ -1,4 +1,4 @@
-[Eng](../README.md) | 繁 | [简](../chs)
+[Eng](../README.md) | [繁](../zho) | 简
 # await-generator
 [![Build Status][ci-badge]][ci-page]
 [![Codecov][codecov-badge]][codecov-page]
@@ -6,12 +6,10 @@
 给予 PHP 「async/await 等待式异步」（代码流控制）设计模式的程序库。
 
 ## 文档
-建议先阅读 [await-generator 教学（中文版赶工中）](../book)，它涵盖了生成器、传统「回调式异步」，再到 await-generator 等概念的介绍。
-
-以下部分名词在 await-generator 教学中都更详细地讲解（「回调」等）。
+请阅读 [await-generator 教学（中文版赶工中）](../book)，了解涵盖了生成器、传统「回调式异步」，再到 await-generator 的介绍。
 
 ## await-generator 的优势
-传统的异步代码流需要靠回调来实现。
+传统的异步代码流需要靠回调（匿名函数）来实现。
 每个异步函数都要开新的回调，然后把异步函数后面的代码整个搬进去，导致了代码变成「callback hell 回调地狱」，难以被阅读、管理。
 <details>
     <summary>点击以查看「回调地狱」例子</summary>
@@ -82,12 +80,12 @@ echo match($which) {
 };
 ```
 
-## 使用后的代码可以维持「backward compatibility 回溯相容性」吗？
-是的， await-generator 不会对已有的程序接口（API）造成任何限制。
+## 使用后的代码可以维持回溯相容性吗？
+是的， await-generator 不会对已有的接口造成任何限制。
 你可以将所有涉及 await-generator 的代码封闭在程序的内部。
 但你确实应该把生成器函数直接当作程序接口。
 
-await-generator 会在 `Await::f2c` method 开始进行异步代码流控制，你可以将它视为「等待式」至「回调式」的转接头。
+await-generator 会在 `Await::f2c` 开始进行异步代码流控制，你可以将它视为「等待式」至「回调式」的转接头。
 
 ```php
 function oldApi($args, Closure $onSuccess) {
@@ -130,12 +128,12 @@ await-generator 也有很多经常坑人的地方：
 
 ### 靠类型注释就能区分异步、非异步函数
 > 先生，你已在暂停的纤程待了三十秒。<br />
-> 因为有人为了实现一个界面而调用 Fiber::suspend() 。
+> 因为有人实现一个界面时调用了 `Fiber::suspend() ` 。
 
 ![../../fiber.jpg](https://github.com/SOF3/await-generator/raw/master/fiber.jpeg)
 
 > 好家伙，我都等不及要回应我的 HTTP 请求了。<br />
-> 那个框架肯定还没把它给清除。
+> 框架肯定还没把它给超时清除。
 
 例如能直观地看出 `$channel->send($value): Generator<void>` 会暂停代码流至有数值被送入生成器； `$channel->sendBuffered($value): void`
 则不会暂停代码流，这个 method 的代码会在一次过执行后回传。
