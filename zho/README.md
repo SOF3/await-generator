@@ -80,7 +80,7 @@ echo match($which) {
 };
 ```
 
-## 使用後的代碼可以維持「backward compatibility 回溯相容性」嗎？
+## 使用後的代碼可以維持回溯相容性嗎？
 是的， await-generator 不會對已有的程式接口（API）造成任何限制。
 你可以將所有涉及 await-generator 的代碼封閉在程式的內部。
 但你確實應該把生成器函數直接當作程式接口。
