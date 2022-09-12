@@ -85,7 +85,7 @@ echo match($which) {
 你可以將所有涉及 await-generator 的代碼封閉在程式的內部。
 但你確實應該把生成器函數直接當作程式接口。
 
-await-generator 會在 `Await::f2c` method 開始進行異步代碼流控制，你可以將它視為「等待式」至「回調式」的轉接頭。
+await-generator 會在 `Await::f2c` 開始進行異步代碼流控制，你可以將它視為「等待式」至「回調式」的轉接頭。
 
 ```php
 function oldApi($args, Closure $onSuccess) {
