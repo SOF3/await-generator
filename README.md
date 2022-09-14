@@ -1,3 +1,4 @@
+Eng | [繁](zho) | [简](chs)
 # await-generator
 [![Build Status][ci-badge]][ci-page]
 [![Codecov][codecov-badge]][codecov-page]
