@@ -1,7 +1,7 @@
 > Asynchronous programming
    * zho
 
-異步代碼流
+異步編程
 
 ***
 > Traditionally, when you call a function,
@@ -10,8 +10,8 @@
 > the program logic may be executed _after_ a function returns\.
    * zho
 
-原本當我們調用一個函數，它會在完成所需的動作後終止或回傳數值。
-但在異步代碼流中，這些動作大多數會在函數終止或回傳後才執行。
+一般情況下，函數被調用時會執行動作，直到結束或回傳數值。
+但當涉及異步編程，大多數動作會在函數結束或回傳後才被執行。
 
 ***
 > This leads to two problems\.
@@ -22,8 +22,9 @@
 > For example\:
    * zho
 
-這樣就會導致兩個問題。
-一、該函數無法回傳異步動作過後才會出現的有用結果；二、如果你的代碼假設異步代碼已經完成，會導致潛在的 bug ，比如說：
+這樣就會導致兩個問題：
+一、動作所生產的結果趕不上函數的回傳，因此這些函數基本不能回傳任何有用的結果；
+二、動作的進度未知，卻被假設為完成，造成 bug 隱患。
 
 ***
 > private \$data\;&#10;&#10;function loadData\(\$player\) \{&#10;&#9;\/\/ we will set \$this\-\>data\[\$player\] some time later\.&#10;\}&#10;&#10;function main\(\) \{&#10;&#9;\$this\-\>loadData\(\"SOFe\"\)\;&#10;&#9;echo \$this\-\>data\[\"SOFe\"\]\; \/\/ Undefined offset \"SOFe\"&#10;\}&#10;
@@ -37,9 +38,10 @@ private \$data\;&#10;&#10;function loadData\(\$player\) \{&#10;&#9;\/\/ 假設 \
 > i\.e\. it assumes that `$this->data["SOFe"]` is initialized\.
    * zho
 
-`loadData` 這個函數會異步地載入資料。
-`main` 沒有正確地實現，因為它假設 `loadData` 是同步的。
-（它假設 `$this->data["SOFe"]` 在 `loadData` 結束前就已被賦值。）
+「// `$this->data[$player]` 在一段時間後才被賦值。」
+「// （未賦值錯誤）」
+`loadData` 異步地載入資料。
+但 `main` 卻誤以為它是同步的，且在結束前會為 `$this->data["SOFe"]` 賦值。
 
 ***
 > Using callbacks
@@ -54,9 +56,9 @@ private \$data\;&#10;&#10;function loadData\(\$player\) \{&#10;&#9;\/\/ 假設 \
 > An example function signature would be like this\:
    * zho
 
-這個問題最簡單直接的解決方法就是使用「callback 回調」（匿名函數）。
-異步函數的調用者可以傳遞一個回調給它，它就可以在完成異步動作後調用該回調。
-請看例子中函數的參數：
+以上問題最簡單直接的解決方法是使用「callback 回調」。
+函數調用者可傳遞回調，而它在完成異步動作後再調用該回調。
+請參考例子中函數的樣式：
 
 ***
 > function loadData\(\$player, Closure \$callback\) \{&#10;&#9;\/\/ \$callback will be called when player data have been loaded\.&#10;\}&#10;&#10;function main\(\) \{&#10;&#9;\$this\-\>loadData\(\"SOFe\", function\(\) \{&#10;&#9;&#9;echo \$this\-\>data\[\"SOFe\"\]\; \/\/ this is guaranteed to work now&#10;&#9;\}\)\;&#10;\}&#10;
@@ -72,8 +74,10 @@ function loadData\(\$player, Closure \$callback\) \{&#10;&#9;\/\/ \$callback 會
 > or other scenarios\.
    * zho
 
-回調也可以用於其他情況，這視乎 `loadData` 是怎麼實現的。
-可以是玩家發送特定的封包時、當一個排程任務被執行時等場合。
+「// `$callback` 會在資料完成載入後被調用。」
+「// 現在就能保證它已被賦值」
+`$callback` 的調用視乎 `loadData` 之邏輯的實現。
+例如當接收到特定的封包、排程任務被執行。
 
 ***
 > More complex callbacks
@@ -86,15 +90,15 @@ function loadData\(\$player, Closure \$callback\) \{&#10;&#9;\/\/ \$callback 會
 > because the purpose is to tell you that using callbacks is bad\.\)
    * zho
 
-（這個部分是故意寫到很複雜且難以理解的，目的就是要告訴你回調到底有多糟糕。）
+（此部分刻意以複雜的形式書寫，目的是要強調回調有多糟糕。）
 
 ***
 > What if we want to call multiple async functions one by one?
 > In synchronous code, it would be simple\:
    * zho
 
-那如果我們想依次（分次序地）調用函數呢？
-這在同步的代碼流就很簡單：
+如果我們想依次調用函數呢？
+這在同步編程流就很簡單：
 
 ***
 > \$a \= a\(\)\;&#10;\$b \= b\(\$a\)\;&#10;\$c \= c\(\$b\)\;&#10;\$d \= d\(\$c\)\;&#10;var_dump\(\$d\)\;&#10;
@@ -106,7 +110,7 @@ function loadData\(\$player, Closure \$callback\) \{&#10;&#9;\/\/ \$callback 會
 > In async code, we might need to do this \(let\'s say `a`, `b`, `c`, `d` are async\)\:
    * zho
 
-但是在異步的代碼流，我們則需要這樣（以下 `a`、`b`、`c`、`d` 為異步函數）：
+但到了異步編程，我們則需要這樣（以下 `a`、`b`、`c`、`d` 為異步函數）：
 
 ***
 > a\(function\(\$a\) \{&#10;&#9;b\(\$a, function\(\$b\) \{&#10;&#9;&#9;c\(\$b, function\(\$c\) \{&#10;&#9;&#9;&#9;d\(\$c, function\(\$d\) \{&#10;&#9;&#9;&#9;&#9;var_dump\(\$d\)\;&#10;&#9;&#9;&#9;\}\)\;&#10;&#9;&#9;\}\)\;&#10;&#9;\}\)\;&#10;\}\)\;&#10;
@@ -119,16 +123,16 @@ a\(function\(\$a\) \{&#10;&#9;b\(\$a, function\(\$b\) \{&#10;&#9;&#9;c\(\$b, fun
 > It might look more confusing if we need to pass `$a` to `$d` though\.
    * zho
 
-儘管很醜，代碼仍然能夠閱讀。
-但如果我們需要把 `$a` 帶進 `$d` 就會更加混亂。
+儘管代碼很醜，它現仍是可閱讀的。
+但如果我們繼續以這種方式編寫，把 `$a` 帶進 `$d` 後只會更加混亂。
 
 ***
 > But what if we want to do if\/else?
 > In synchronous code, it looks like this\:
    * zho
 
-而如果我們想用 if、else 呢？
-同步代碼流會是這樣：
+那如果我們想用 if、else 呢？
+同步編程會是這樣：
 
 ***
 > \$a \= a\(\)\;&#10;if\(\$a !\=\= null\) \{&#10;&#9;\$output \= b\(\$a\)\;&#10;\} else \{&#10;&#9;\$output \= c\(\) \+ 1\;&#10;\}&#10;&#10;\$d \= very\_complex\_code\(\$output\)\;&#10;\$e \= that\_deals\_with\(\$output\)\;&#10;var\_dump\(\$d \+ \$e \+ \$a\)\;&#10;
@@ -140,7 +144,7 @@ a\(function\(\$a\) \{&#10;&#9;b\(\$a, function\(\$b\) \{&#10;&#9;&#9;c\(\$b, fun
 > In async code, it is much more confusing\:
    * zho
 
-到了異步代碼流就顯得更加混亂了：
+到了異步編程就變得撲索迷離了：
 
 ***
 > a\(function\(\$a\) \{&#10;&#9;if\(\$a !\=\= null\) \{&#10;&#9;&#9;b\(\$a, function\(\$output\) use\(\$a\) \{&#10;&#9;&#9;&#9;&#9;\$d \= very\_complex\_code\(\$output\)\;&#10;&#9;&#9;&#9;&#9;\$e \= that\_deals\_with\(\$output\)\;&#10;&#9;&#9;&#9;&#9;var\_dump\(\$d \+ \$e \+ \$a\)\;&#10;&#9;&#9;\}\)\;&#10;&#9;\} else \{&#10;&#9;&#9;c\(function\(\$output\) use\(\$a\) \{&#10;&#9;&#9;&#9;&#9;\$output \= \$output \+ 1\;&#10;&#9;&#9;&#9;&#9;\$d \= very\_complex\_code\(\$output\)\;&#10;&#9;&#9;&#9;&#9;\$e \= that\_deals\_with\(\$output\)\;&#10;&#9;&#9;&#9;&#9;var\_dump\(\$d \+ \$e \+ \$a\)\;&#10;&#9;&#9;\}\)\;&#10;&#9;\}&#10;\}\)\;&#10;
@@ -153,7 +157,7 @@ a\(function\(\$a\) \{&#10;&#9;if\(\$a !\=\= null\) \{&#10;&#9;&#9;b\(\$a, functi
 > Maybe we can assign the whole closure to a variable\:
    * zho
 
-如果我們不想複製黏貼那三行重複的代碼，就需要將回調預先儲存在一個變數中：
+要避免以上三行代碼的重複，我們需要將回調預先儲存在變數中：
 
 ***
 > a\(function\(\$a\) \{&#10;&#9;\$closure \= function\(\$output\) use\(\$a\) \{&#10;&#9;&#9;\$d \= very\_complex\_code\(\$output\)\;&#10;&#9;&#9;\$e \= that\_deals\_with\(\$output\)\;&#10;&#9;&#9;var\_dump\(\$d \+ \$e \+ \$a\)\;&#10;&#9;\}\;&#10;&#10;&#9;if\(\$a !\=\= null\) \{&#10;&#9;&#9;b\(\$a, \$closure\)\;&#10;&#9;\} else \{&#10;&#9;&#9;c\(function\(\$output\) use\(\$closure\) \{&#10;&#9;&#9;&#9;\$closure\(\$output \+ 1\)\;&#10;&#9;&#9;\}\)\;&#10;&#9;\}&#10;\}\)\;&#10;
@@ -168,8 +172,7 @@ a\(function\(\$a\) \{&#10;&#9;\$closure \= function\(\$output\) use\(\$a\) \{&#1
    * zho
 
 不！這代碼已經逐漸失去掌控了。
-想想看，如果我們想在迴圈中使用異步函數，會變得多麼複雜。
-我們想在循環中使用非同步函數時，這將變得多麼複雜啊
+想想看，到迴圈與異步函數結合的地步時，這些天書會長成什麼樣子？
 
 ***
 > The await\-generator library allows users to write async code in synchronous style\.
