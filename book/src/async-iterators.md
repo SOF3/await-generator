@@ -6,7 +6,7 @@ where the user can iterate on the returned generator.
 However, if the user intends to perform async operations
 in every step of progressive data fetching,
 the `next()` method needs to be async too.
-In other languages, this is called "saync generator" or "async iterator".
+In other languages, this is called "async generator" or "async iterator".
 However, since await-generator has hijacked the generator syntax,
 it is not possible to create such structures directly.
 
