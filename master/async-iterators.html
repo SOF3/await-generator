@@ -150,7 +150,7 @@ where the user can iterate on the returned generator.
 However, if the user intends to perform async operations
 in every step of progressive data fetching,
 the <code>next()</code> method needs to be async too.
-In other languages, this is called &quot;saync generator&quot; or &quot;async iterator&quot;.
+In other languages, this is called &quot;async generator&quot; or &quot;async iterator&quot;.
 However, since await-generator has hijacked the generator syntax,
 it is not possible to create such structures directly.</p>
 <p>Instead, await-generator exposes the <code>Traverser</code> class,
