@@ -20,7 +20,7 @@ $array = [
 	"SOFe" => $this->loadData("SOFe"), // don't yield it yet!
 	"PEMapModder" => $this->loadData("PEMapModder"),
 ];
-$results = yield Await::all($array);
+$results = yield from Await::all($array);
 var_dump($result);
 ```
 
@@ -50,7 +50,7 @@ function sleep(int $time): Generator {
 }
 
 function main(): Generator {
-	[$k, $v] = yield Await::race([
+	[$k, $v] = yield from Await::race([
 		"two" => $this->sleep(2),
 		"one" => $this->sleep(1),
 	]);

@@ -50,7 +50,7 @@ We would use the `Traverser` class instead:
 
 ```php
 function async_lines(string $file) : Generator {
-	$fh = yield async_fopen($file, "rt");
+	$fh = yield from async_fopen($file, "rt");
 	try {
 		while(true) {
 			$line = yield async_fgets($fh);
@@ -60,7 +60,7 @@ function async_lines(string $file) : Generator {
 			yield $line => Await::VALUE;
 		}
 	} finally {
-		yield async_fclose($fh);
+		yield from async_fclose($fh);
 	}
 }
 
@@ -68,7 +68,7 @@ function async_count_empty_lines(string $file) : Generator {
 	$count = 0;
 
 	$traverser = new Traverser(async_lines($file));
-	while(yield $traverser->next($line)) {
+	while(yield from $traverser->next($line)) {
 		if(trim($line) === "") $count++;
 	}
 
