@@ -53,7 +53,7 @@ function async_lines(string $file) : Generator {
 	$fh = yield from async_fopen($file, "rt");
 	try {
 		while(true) {
-			$line = yield async_fgets($fh);
+			$line = yield from async_fgets($fh);
 			if($line === false) {
 				return;
 			}
