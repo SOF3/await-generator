@@ -186,7 +186,7 @@ function count_empty_lines(string $file) {
 and want to reimplement this <code>lines</code> function as async?</p>
 <p>We would use the <code>Traverser</code> class instead:</p>
 <pre><code class="language-php">function async_lines(string $file) : Generator {
-	$fh = yield async_fopen($file, &quot;rt&quot;);
+	$fh = yield from async_fopen($file, &quot;rt&quot;);
 	try {
 		while(true) {
 			$line = yield async_fgets($fh);
@@ -196,7 +196,7 @@ and want to reimplement this <code>lines</code> function as async?</p>
 			yield $line =&gt; Await::VALUE;
 		}
 	} finally {
-		yield async_fclose($fh);
+		yield from async_fclose($fh);
 	}
 }
 
@@ -204,7 +204,7 @@ function async_count_empty_lines(string $file) : Generator {
 	$count = 0;
 
 	$traverser = new Traverser(async_lines($file));
-	while(yield $traverser-&gt;next($line)) {
+	while(yield from $traverser-&gt;next($line)) {
 		if(trim($line) === &quot;&quot;) $count++;
 	}
 

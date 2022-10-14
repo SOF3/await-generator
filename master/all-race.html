@@ -160,7 +160,7 @@ $array = [
 	&quot;SOFe&quot; =&gt; $this-&gt;loadData(&quot;SOFe&quot;), // don't yield it yet!
 	&quot;PEMapModder&quot; =&gt; $this-&gt;loadData(&quot;PEMapModder&quot;),
 ];
-$results = yield Await::all($array);
+$results = yield from Await::all($array);
 var_dump($result);
 </code></pre>
 <p>Output:</p>
@@ -184,7 +184,7 @@ The sent value is a 2-element array containing the key and the value.</p>
 }
 
 function main(): Generator {
-	[$k, $v] = yield Await::race([
+	[$k, $v] = yield from Await::race([
 		&quot;two&quot; =&gt; $this-&gt;sleep(2),
 		&quot;one&quot; =&gt; $this-&gt;sleep(1),
 	]);

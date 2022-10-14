@@ -527,7 +527,7 @@ $array = [
 	&quot;SOFe&quot; =&gt; $this-&gt;loadData(&quot;SOFe&quot;), // don't yield it yet!
 	&quot;PEMapModder&quot; =&gt; $this-&gt;loadData(&quot;PEMapModder&quot;),
 ];
-$results = yield Await::all($array);
+$results = yield from Await::all($array);
 var_dump($result);
 </code></pre>
 <p>Output:</p>
@@ -551,7 +551,7 @@ The sent value is a 2-element array containing the key and the value.</p>
 }
 
 function main(): Generator {
-	[$k, $v] = yield Await::race([
+	[$k, $v] = yield from Await::race([
 		&quot;two&quot; =&gt; $this-&gt;sleep(2),
 		&quot;one&quot; =&gt; $this-&gt;sleep(1),
 	]);
@@ -603,7 +603,7 @@ function count_empty_lines(string $file) {
 and want to reimplement this <code>lines</code> function as async?</p>
 <p>We would use the <code>Traverser</code> class instead:</p>
 <pre><code class="language-php">function async_lines(string $file) : Generator {
-	$fh = yield async_fopen($file, &quot;rt&quot;);
+	$fh = yield from async_fopen($file, &quot;rt&quot;);
 	try {
 		while(true) {
 			$line = yield async_fgets($fh);
@@ -613,7 +613,7 @@ and want to reimplement this <code>lines</code> function as async?</p>
 			yield $line =&gt; Await::VALUE;
 		}
 	} finally {
-		yield async_fclose($fh);
+		yield from async_fclose($fh);
 	}
 }
 
@@ -621,7 +621,7 @@ function async_count_empty_lines(string $file) : Generator {
 	$count = 0;
 
 	$traverser = new Traverser(async_lines($file));
-	while(yield $traverser-&gt;next($line)) {
+	while(yield from $traverser-&gt;next($line)) {
 		if(trim($line) === &quot;&quot;) $count++;
 	}
 
