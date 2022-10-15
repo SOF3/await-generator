@@ -189,7 +189,7 @@ and want to reimplement this <code>lines</code> function as async?</p>
 	$fh = yield from async_fopen($file, &quot;rt&quot;);
 	try {
 		while(true) {
-			$line = yield async_fgets($fh);
+			$line = yield from async_fgets($fh);
 			if($line === false) {
 				return;
 			}
