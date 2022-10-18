@@ -13,7 +13,6 @@
 儘管生成器函數更容易使用，將來你卻還是會用到非 await\-generator 的函數。
 在這種情況下，回調更容易使用。
 這是由`Await::promise`實現的。
-<!-- TODO: Help wanted -->
 
 ***
 > function a\(Closure \$callback\)\: void \{&#10;&#9;\/\/ The other function that uses callbacks\.&#10;&#9;\/\/ Let\'s assume this function will call \$callback\(\"foo\"\) some time later\.&#10;\}&#10;&#10;function main\(\)\: Generator \{&#10;&#9;return yield from Await\:\:promise\(fn\(\$resolve\) \=\> a\(\$resolve\)\)\;&#10;\}&#10;
