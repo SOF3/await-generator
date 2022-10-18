@@ -22,8 +22,8 @@ function foo\(\) \{&#10;&#9;echo \"hi!\\n\"\;&#10;&#9;yield\;&#10;&#9;echo \"wor
 > which lets you control the execution of the function\.
    * zho
 
-當你調用這個函數是，它不會有任何動作，連 `hi` 也不會打印。
-然而，你會得到一個 [`Generator`](<https://php.net/class.generator>) 物件，它可以被用來控制函數的代碼流。
+當你調用這個函數是，它不會有任何動作，連 `hi` 也不會顯示。
+然則，你會得到一個生成器物件[（ `Generator`） ](<https://php.net/class.generator>) ，它可以被用來控制函數的代碼流。
 
 ***
 > Let\'s tell PHP to start running this function\:
@@ -41,6 +41,8 @@ function foo\(\) \{&#10;&#9;echo \"hi!\\n\"\;&#10;&#9;yield\;&#10;&#9;echo \"wor
 > You will get this output\:
    * zho
 
+「開始執行 `foo` 」；
+「 `foo` 結束了」。
 得到以下結果：
 
 ***
@@ -54,8 +56,8 @@ function foo\(\) \{&#10;&#9;echo \"hi!\\n\"\;&#10;&#9;yield\;&#10;&#9;echo \"wor
 > We can tell the function to continue running using the `Generator` object\:
    * zho
 
-可以看出，代碼流在出現 `yield` 時暫停了。
-我們可以用 `Generator` 物件來恢復代碼流：
+由此可見，代碼流在出現 `yield` 時暫停了。
+我們可以透過 `$generator` 中的生成器物件恢復代碼流：
 
 ***
 > \$generator\-\>send\(null\)\;&#10;
@@ -67,7 +69,7 @@ function foo\(\) \{&#10;&#9;echo \"hi!\\n\"\;&#10;&#9;yield\;&#10;&#9;echo \"wor
 > And this additional output\:
    * zho
 
-這樣就又多了一行結果
+這樣就又多了一行結果：
 
 ***
 > working hard\.&#10;
@@ -85,7 +87,7 @@ working hard\.&#10;
 > Sending data into\/out of the `Generator`
    * zho
 
-將數值傳入、傳出 `Generator`
+將數值傳入、傳出生成器
 
 ***
 > We can put a value behind the `yield` keyword to send data to the controller\:
@@ -111,8 +113,7 @@ int\(1\)&#10;
 > it is resolved into the value passed in `$generator->send()`\.
    * zho
 
-同樣地，我們可以把數值傳入生成器：
-如果 `yield [傳出數值]` 被用作接受數值的傳入， `$generator->send()` 的回傳結果將為它所傳出的數值。
+同樣地，我們可以把數值傳入生成器（如果 `yield [要傳出的數值]` 被用作賦值陳述句，它就能接收 `$generator->send()` 傳入的數值）：
 
 ***
 > function bar\(\) \{&#10;&#9;\$receive \= yield\;&#10;&#9;var_dump\(\$receive\)\;&#10;\}&#10;\$generator \= bar\(\)\;&#10;\$generator\-\>rewind\(\)\;&#10;\$generator\-\>send\(2\)\;&#10;
@@ -158,8 +159,8 @@ function qux\(\)\: Generator \{&#10;&#9;yield 1\;&#10;&#9;return 2\;&#10;\}&#10;
    * zho
 
 你可以在一個生成器中調用另外的生成器，這樣在執行你的生成器時就會經過它所有的 `yield` 。
-在此期間，傳入你生成器的數值會給了它，它傳出的數值也會是你生成器傳出的數值，等同於將它的代碼嵌入了你的生成器。
-`yield from` 的結果將是它的回傳結果。
+在此期間，傳入你生成器的數值會轉讓予它，它傳出的數值也會成為你生成器傳出的數值，等同於將它的代碼嵌入了你的生成器。
+賦值陳述句 `yield from` 的結果將是它的回傳結果。
 
 ***
 > function test\(\$value\)\: Generator \{&#10;&#9;\$send \= yield \$value\;&#10;&#9;return \$send\;&#10;\}&#10;&#10;function main\(\)\: Generator \{&#10;&#9;\$a \= yield from test\(1\)\;&#10;&#9;\$b \= yield from test\(2\)\;&#10;&#9;var\_dump\(\$a \+ \$b\)\;&#10;\}&#10;&#10;\$generator \= main\(\)\;&#10;\$generator\-\>rewind\(\)\;&#10;var\_dump\(\$generator\-\>current\(\)\)\;&#10;\$generator\-\>send\(3\)\;&#10;var\_dump\(\$generator\-\>current\(\)\)\;&#10;\$generator\-\>send\(4\)\;&#10;
