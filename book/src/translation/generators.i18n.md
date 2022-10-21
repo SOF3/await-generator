@@ -113,7 +113,7 @@ int\(1\)&#10;
 > it is resolved into the value passed in `$generator->send()`\.
    * zho
 
-同樣地，我們可以把數值傳入生成器（如果 `yield [要傳出的數值]` 被用作賦值陳述句，它就能接收 `$generator->send()` 傳入的數值）：
+同樣地，我們可以把數值傳入生成器（如果 `yield [要傳出的數值]` 被以賦值語句的形式使用，它就能接收 `$generator->send()` 傳入的數值）：
 
 ***
 > function bar\(\) \{&#10;&#9;\$receive \= yield\;&#10;&#9;var_dump\(\$receive\)\;&#10;\}&#10;\$generator \= bar\(\)\;&#10;\$generator\-\>rewind\(\)\;&#10;\$generator\-\>send\(2\)\;&#10;
@@ -160,7 +160,7 @@ function qux\(\)\: Generator \{&#10;&#9;yield 1\;&#10;&#9;return 2\;&#10;\}&#10;
 
 你可以在一個生成器中調用另外的生成器，這樣在執行你的生成器時就會經過它所有的 `yield` 。
 在此期間，傳入你生成器的數值會轉讓予它，它傳出的數值也會成為你生成器傳出的數值，等同於將它的代碼嵌入了你的生成器。
-賦值陳述句 `yield from` 的結果將是它的回傳結果。
+賦值語句 `yield from` 的結果將是它的回傳結果。
 
 ***
 > function test\(\$value\)\: Generator \{&#10;&#9;\$send \= yield \$value\;&#10;&#9;return \$send\;&#10;\}&#10;&#10;function main\(\)\: Generator \{&#10;&#9;\$a \= yield from test\(1\)\;&#10;&#9;\$b \= yield from test\(2\)\;&#10;&#9;var\_dump\(\$a \+ \$b\)\;&#10;\}&#10;&#10;\$generator \= main\(\)\;&#10;\$generator\-\>rewind\(\)\;&#10;var\_dump\(\$generator\-\>current\(\)\)\;&#10;\$generator\-\>send\(3\)\;&#10;var\_dump\(\$generator\-\>current\(\)\)\;&#10;\$generator\-\>send\(4\)\;&#10;
@@ -190,7 +190,7 @@ int\(1\)&#10;int\(2\)&#10;int\(7\)&#10;
    * zho
 
 我們有時候會想做一個不含 `yield` 的生成器。
-那時，我們可以在普通函數的最初加上 `0 && yield;` ，使它成為一個不暫停代碼流的生成器函數。
+那時，我們可以在普通函數的最初加上 `0 && yield;` ，使它成為一個同步的的生成器函數。
 從 PHP 7\.4\.0 起， `0 && yield;` 就是一個「no\-op」。
 這意味著它不會影響你的代碼的性能，哪怕你運行它多次。
 
