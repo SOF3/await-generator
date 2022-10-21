@@ -2,7 +2,7 @@
 Although it is easier to work with generator functions,
 ultimately, you will need to work with functions that do not use await-generator.
 In that case, callbacks are easier to use.
-This is achieved by `Await::promise`.
+A callback `$resolve` can be acquired using `Await::promise`.
 
 ```php
 function a(Closure $callback): void {
