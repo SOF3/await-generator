@@ -38,8 +38,8 @@ private \$data\;&#10;&#10;function loadData\(\$player\) \{&#10;&#9;\/\/ 假設 \
 > i\.e\. it assumes that `$this->data["SOFe"]` is initialized\.
    * zho
 
-「// `$this->data[$player]` 在一段時間後才被賦值。」
-「// （未賦值錯誤）」
+「// `$this->data[$player]` 在一段時間後才被賦值」；
+「// （未賦值錯誤）」。
 `loadData` 異步地載入資料。
 但 `main` 卻誤以為它是同步的，且在結束前會為 `$this->data["SOFe"]` 賦值。
 
@@ -74,8 +74,8 @@ function loadData\(\$player, Closure \$callback\) \{&#10;&#9;\/\/ \$callback 會
 > or other scenarios\.
    * zho
 
-「// `$callback` 會在資料完成載入後被調用。」
-「// 現在就能保證它已被賦值」
+「// `$callback` 會在資料完成載入後被調用」；
+「// 現在就能保證它已被賦值」。
 `$callback` 的調用視乎 `loadData` 之邏輯的實現。
 例如當接收到特定的封包、排程任務被執行。
 
