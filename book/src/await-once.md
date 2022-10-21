@@ -15,9 +15,7 @@ function main(): Generator {
 }
 ```
 
-Some callback-style async functions may also accept an `$onError` callback parameter.
-This callback can be created by calling `Await::REJECT`.
-Then `Await::ONCE` will call your function 
+Some callback-style async functions may also accept an `$onError` callback parameter. This callback can be acquired by accepting a second parameter `$reject`.
 
 ```php
 function a(Closure $callback, Closure $onError): void {
