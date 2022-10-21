@@ -19,13 +19,13 @@ Summary
 > [Asynchronous programming](<async.md>)
    * zho
 
-[異步代碼流](<async.md>)
+[異步編程](<async.md>)
 
 ***
 > [Using await\-generator](<main.md>)
    * zho
 
-[使用 await\-generator](<main.md>)
+[使用 await–generator](<main.md>)
 
 ***
 > [Awaiting generators](<await-gen.md>)
