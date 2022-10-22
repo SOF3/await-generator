@@ -56,8 +56,8 @@ function foo\(\) \{&#10;&#9;echo \"hi!\\n\"\;&#10;&#9;yield\;&#10;&#9;echo \"wor
 > We can tell the function to continue running using the `Generator` object\:
    * zho
 
-由此可見，代碼流在出現 `yield` 時暫停了。
-我們可以透過 `$generator` 中的生成器物件恢復代碼流：
+由此可見，函數在出現 `yield` 時暫停了。
+我們可以透過 `$generator` 中的生成器物件恢復運行：
 
 ***
 > \$generator\-\>send\(null\)\;&#10;
@@ -81,7 +81,7 @@ working hard\.&#10;
 > Now it stops again at the next `yield`.
    * zho
 
-現在，代碼流在第二個 `yield` 暫停下來。
+現在，它在第二個 `yield` 暫停下來。
 
 ***
 > Sending data into\/out of the `Generator`
