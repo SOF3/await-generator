@@ -9,7 +9,7 @@
 > We can use the `Await::g2c` function for this\:
    * zho
 
-如果你還記得——一個生成器函數在調用時不會有任何動作。
+如果你還記得——生成器函數在調用時不會有任何動作。
 因此我們最終在非 await-generator 的環境下調用它時，就可以使用 `Await::g2c` 。
 
 ***
@@ -37,6 +37,6 @@ Await\:\:f2c\(function\(\)\: Generator \{&#10;&#9;\/\/ some async logic&#10;\}\)
 > to schedule a separate async function in the background\.
    * zho
 
-你更可以使用以上兩個函數（ `Await::g2c`\/`Await::f2c` ）以在背景排程更多分離的異步函數。
+你更可以使用以上那兩個函數（ `Await::g2c`\/`Await::f2c` ）在背景排程更多分離的異步函數。
 
 ***

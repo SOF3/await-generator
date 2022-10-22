@@ -37,14 +37,13 @@ Summary
 > [Using callback\-style from generators](<await-once.md>)
    * zho
 
-[轉接「等待式」至「回調式」](<await-once.md>)
+[生成器中的「回調式」](<await-once.md>)
 
 ***
 > [Exposing a generator to normal API](<f2c-g2c.md>)
    * zho
 
-[轉接「回調式」至「等待式」](<f2c-g2c.md>)
-    <!-- TODO: Help wanted. -->
+[生成器作為程式接口](<f2c-g2c.md>)
 
 ***
 > [Running generators concurrently](<all-race.md>)
