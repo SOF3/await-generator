@@ -23,6 +23,7 @@ function a\(\)\: Generator \{&#10;&#9;\/\/ 某些异步行动&#10;&#9;return 1\;
    * chs
 
 
+「 `a()` 包含某些其它的异步逻辑」。
 留意 `yield from` ，它很容易被忘加在生成器前。
 
 ***
@@ -37,6 +38,7 @@ function a\(\)\: Generator \{&#10;&#9;\/\/ 某些异步行动&#10;&#9;return 1\;
    * chs
 
 当你调用的生成器函数有抛出异常，你的函数也会在 `yield from` 它时抛出那个异常。
+「 `err()` 包含某些其它的异步逻辑」。
 
 ***
 > function err\(\)\: Generator \{&#10;&#9;\/\/ some other async logic here&#10;&#9;throw new Exception\(\"Test\"\)\;&#10;\}&#10;&#10;function main\(\)\: Generator \{&#10;&#9;try \{&#10;&#9;&#9;yield from err\(\)\;&#10;&#9;\} catch\(Exception \$e\) \{&#10;&#9;&#9;var_dump\(\$e\-\>getMessage\(\)\)\; \/\/ string\(4\) \"Test\"&#10;&#9;\}&#10;\}&#10;
