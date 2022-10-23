@@ -114,3 +114,9 @@ await\-generator 活用了 PHP 的「生成器」特性。
 这个教学主要给 Minecraft 服务器软件《PocketMine\-MP》的插件开发者阅读，所以会涉及《PocketMine\-MP》里面的概念。
 
 ***
+> Translations
+   * zho
+
+翻譯
+
+***
