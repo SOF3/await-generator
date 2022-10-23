@@ -542,7 +542,7 @@ The error condition will not wait until all generators return.</p>
 <h2 id="awaitrace"><a class="header" href="#awaitrace"><code>Await::race()</code></a></h2>
 <p><code>Await::race()</code> is like <code>Await::all()</code>,
 but it resumes as long as <em>any</em> of the generators return or throw.
-The sent value is a 2-element array containing the key and the value.</p>
+The returned value of <code>yield from</code> is a 2-element array containing the key and the value.</p>
 <pre><code class="language-php">function sleep(int $time): Generator {
 	// Let's say this is an await version of `scheduleDelayedTask`
 	return $time;
