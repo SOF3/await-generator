@@ -23,19 +23,15 @@ jobs:
             ~/mdbook-translation/target/mdbook-translation
           key: mdbook-translation
       - run: test -f ~/.cargo/bin/mdbook || cargo install mdbook
-      - run: test -f ~/mdbook-translation/target/mdbook-translation
-      - name: Checkout Endermanbugzjfc/mdbook-translation:input_walk_dir
-        id: checkout-mdbook-translation
-        if: ${{ failure() }}
-        uses: actions/checkout@v2
-        with:
-          repository: Endermanbugzjfc/mdtranslation
-          ref: input_walk_dir
-          path: ~/mdbook-translation
-      - name: Compile Endermanbugzjfc/mdbook-translation:input_walk_dir
-        if: ${{ steps.checkout-mdbook-translation }}
-        run: cargo build --release
-        working-directory: ~/mdbook-translation
+      - run: |
+          if [[ test -f ~/mdbook-translation/target/mdbook-translation ]]
+          then
+            exit
+          fi
+          
+          git clone https://github.com/Endermanbugzjfc/mdtranslation ~/mdbook-translation -b input_walk_dir
+          cd ~/mdbook-translation
+          cargo build --release
       - run: |
           mdbook build
           MDTRANSLATION_INPUT="translation/zho" MDTRANSLATION_LANG="zho" MDTRANSLATION mdbook build -d book/zho
