@@ -20,11 +20,12 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ~/mdbook-translation/target/mdbook-translation
+            ~/mdbook-translation/mdbook-translation/target/release/mdbook-translation
           key: mdbook-translation
       - run: test -f ~/.cargo/bin/mdbook || cargo install mdbook
-      - run: |
-          if [ test -f ~/mdbook-translation/target/mdbook-translation ]
+      - name: Compile Endermanbugzjfc/mdtranslation:input_walk_dir
+        run: |
+          if [ test -f ~/mdbook-translation/mdbook-translation/target/release/mdbook-translation ]
           then
             exit
           fi
@@ -32,10 +33,15 @@ jobs:
           git clone https://github.com/Endermanbugzjfc/mdtranslation ~/mdbook-translation -b input_walk_dir
           cd ~/mdbook-translation/mdbook-translation
           cargo build --release
+          
+          if [ ! test -f ~/mdbook-translation/mdbook-translation/target/release/mdbook-translation ]
+          then
+            exit 1
+          fi
       - run: |
           mdbook build
-          PATH="$PATH:$HOME/mdbook-translation/mdbook-translation/target/release" MDTRANSLATION_INPUT="translation/zho" MDTRANSLATION_LANG="zho" mdbook build -d book/zho
-          PATH="$PATH:$HOME/mdbook-translation/mdbook-translation/target/release" MDTRANSLATION_INPUT="translation/chs" MDTRANSLATION_LANG="chs" mdbook build -d book/chs
+          PATH="$PATH:$HOME/mdbook-translation/mdbook-translation/target/release" MDTRANSLATION_INPUT="translation" MDTRANSLATION_LANG="zho" mdbook build -d book/zho
+          PATH="$PATH:$HOME/mdbook-translation/mdbook-translation/target/release" MDTRANSLATION_INPUT="translation" MDTRANSLATION_LANG="chs" mdbook build -d book/chs
         working-directory: book
       - run: cp -r book/book ../book
       - run: git checkout -- . && git clean -fd
