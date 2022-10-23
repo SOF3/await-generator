@@ -608,7 +608,7 @@ and want to reimplement this <code>lines</code> function as async?</p>
 			if($line === false) {
 				return;
 			}
-			yield $line =&gt; Await::VALUE;
+			yield $line =&gt; Traverser::VALUE;
 		}
 	} finally {
 		yield from async_fclose($fh);
@@ -637,7 +637,7 @@ which keeps throwing the first parameter
 (<code>SOFe\AwaitGenerator\InterruptException</code> by default)
 into the async iterator until it stops executing.
 Beware that <code>interrupt</code> may throw an <code>AwaitException</code>
-if the underlying generator catches exceptions during <code>yield Await::VALUE</code>s
+if the underlying generator catches exceptions during <code>yield Traverser::VALUE</code>s
 (hence consuming the interrupts).</p>
 <p>It is not necessary to interrupt the traverser
 if there are no <code>finally</code> blocks containing <code>yield</code> statements.</p>
