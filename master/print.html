@@ -432,7 +432,7 @@ function main(): Generator {
 <p>Although it is easier to work with generator functions,
 ultimately, you will need to work with functions that do not use await-generator.
 In that case, callbacks are easier to use.
-This is achieved by <code>Await::promise</code>.</p>
+A callback <code>$resolve</code> can be acquired using <code>Await::promise</code>.</p>
 <pre><code class="language-php">function a(Closure $callback): void {
 	// The other function that uses callbacks.
 	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
@@ -442,9 +442,7 @@ function main(): Generator {
 	return yield from Await::promise(fn($resolve) =&gt; a($resolve));
 }
 </code></pre>
-<p>Some callback-style async functions may also accept an <code>$onError</code> callback parameter.
-This callback can be created by calling <code>Await::REJECT</code>.
-Then <code>Await::ONCE</code> will call your function </p>
+<p>Some callback-style async functions may accept another callback for exception handling. This callback can be acquired by taking a second parameter <code>$reject</code>.</p>
 <pre><code class="language-php">function a(Closure $callback, Closure $onError): void {
 	// The other function that uses callbacks.
 	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
