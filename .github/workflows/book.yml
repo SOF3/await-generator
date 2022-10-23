@@ -33,7 +33,7 @@ jobs:
           ref: input_walk_dir
           path: ~/mdbook-translation
       - name: Compile Endermanbugzjfc/mdbook-translation:input_walk_dir
-        if: ${{ steps.checkout-mdbook-translation.success() }}
+        if: ${{ steps.checkout-mdbook-translation }}
         run: cargo build --release
         working-directory: ~/mdbook-translation
       - run: |
