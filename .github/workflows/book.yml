@@ -24,7 +24,7 @@ jobs:
           key: mdbook-translation
       - run: test -f ~/.cargo/bin/mdbook || cargo install mdbook
       - run: |
-          if [[ test -f ~/mdbook-translation/target/mdbook-translation ]]
+          if [ test -f ~/mdbook-translation/target/mdbook-translation ]
           then
             exit
           fi
