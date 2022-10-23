@@ -69,7 +69,7 @@ array\(2\) \{&#10;  \[\"SOFe\"\]\=\>&#10;  int\(4\)&#10;  \[\"PEMapModder\"\]\=\
 ***
 > `Await::race()` is like `Await::all()`,
 > but it resumes as long as _any_ of the generators return or throw\.
-> The sent value is a 2\-element array containing the key and the value\.
+> The returned value of `yield from` is a 2\-element array containing the key and the value\.
    * zho
 
 `Await::race()` 跟 `Await::all()` 差不多，
