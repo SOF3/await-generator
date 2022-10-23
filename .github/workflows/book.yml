@@ -34,8 +34,9 @@ jobs:
           cd ~/mdbook-translation/mdbook-translation
           cargo build --release
           
-          if [ ! test -f ~/mdbook-translation/mdbook-translation/target/release/mdbook-translation ]
+          if ! [ test -f ~/mdbook-translation/mdbook-translation/target/release/mdbook-translation ]
           then
+            ls
             exit 1
           fi
       - run: |
