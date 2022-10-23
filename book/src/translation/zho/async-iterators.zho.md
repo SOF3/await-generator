@@ -93,7 +93,7 @@ function async\_lines\(string \$file\) \: Generator \{&#10;&#9;\$fh \= yield fro
 > \(`SOFe\AwaitGenerator\InterruptException` by default\)
 > into the async iterator until it stops executing\.
 > Beware that `interrupt` may throw an `AwaitException`
-> if the underlying generator catches exceptions during `yield Await::VALUE`s
+> if the underlying generator catches exceptions during `yield Traverser::VALUE`s
 > \(hence consuming the interrupts\)\.
    * zho
 
