@@ -32,9 +32,10 @@ jobs:
           
           git clone https://github.com/Endermanbugzjfc/mdtranslation ~/mdbook-translation -b input_walk_dir
           cd ~/mdbook-translation/mdbook-translation
-          cargo build --release
+          cargo build --release --target-dir target
           
-          if ! [ test -f ~/mdbook-translation/mdbook-translation/target/release/mdbook-translation ]
+          test -f ~/mdbook-translation/mdbook-translation/target/release/mdbook-translation
+          if [[ $? -ne 0 ]]
           then
             ls
             exit 1
