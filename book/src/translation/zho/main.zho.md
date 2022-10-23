@@ -1,7 +1,7 @@
 > Using await\-generator
    * zho
 
-使用 await\-generator
+使用 await–generator
 
 ***
 > await\-generator provides an alternative approach to asynchronous programming\.
