@@ -11,6 +11,6 @@ a server software for Minecraft written in PHP.
 The target audience is plugin developers for PocketMine-MP.
 
 # Translations
-- [English](./..)
-- [繁體中文](zho)
-- [简体中文](chs)
+- [English](/await-generator/master/)
+- [繁體中文](/await-generator/master/)
+- [简体中文](/await-generator/master/)
