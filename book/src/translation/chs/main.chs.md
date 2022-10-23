@@ -12,9 +12,8 @@
 > sends you the return value from the async function via `$generator->send()`\.
    * chs
 
-await\-generator 提供了一种另类编写异步代码的方式。
-含有异步动作的函数会以生成器函数的形式存在。
-最重要的一点是你的函数可以在需要等待数值时被暂停（使用 `yield`）。
-而 await\-generator 通过 `$generator->send()` 将异步函数的回传值供你的函数使用，同时恢复它的运行。
+await\-generator 提供了另类的方式进行异步编程。
+含有异步动作的函数会以生成器函数的形式存在，其中的精髓是让你的函数在需要等待数值时，可以使用 `yield` 暂停代码流。
+而 await\-generator 将通过 `$generator->send()` 将异步动作的结果供你的函数使用，同时恢复它的运行。
 
 ***
