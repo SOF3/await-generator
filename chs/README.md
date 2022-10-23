@@ -6,7 +6,7 @@
 给予 PHP 「async/await 等待式异步」（代码流控制）设计模式的程序库。
 
 ## 文档
-建议先阅读 [await-generator 教学（中文版赶工中）](../book)，它涵盖了生成器、传统「回调式异步」，再到 await-generator 等概念的介绍。
+建议先阅读 [await-generator 教学（含中文版）](../book)，它涵盖了生成器、传统「回调式异步」，再到 await-generator 等概念的介绍。
 
 以下部分名词在 await-generator 教学中都更详细地讲解（「回调」等）。
 
