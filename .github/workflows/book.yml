@@ -29,7 +29,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/checkout@v2
         with:
-          repository: Endermanbugzjfc/mdbook-translation
+          repository: Endermanbugzjfc/mdtranslation
           ref: input_walk_dir
           path: ~/mdbook-translation
       - name: Compile Endermanbugzjfc/mdbook-translation:input_walk_dir
