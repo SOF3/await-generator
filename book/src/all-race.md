@@ -41,7 +41,7 @@ The error condition will not wait until all generators return.
 ## `Await::race()`
 `Await::race()` is like `Await::all()`,
 but it resumes as long as *any* of the generators return or throw.
-The sent value is a 2-element array containing the key and the value.
+The returned value of `yield from` is a 2-element array containing the key and the value.
 
 ```php
 function sleep(int $time): Generator {
