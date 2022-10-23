@@ -57,7 +57,7 @@ function async_lines(string $file) : Generator {
 			if($line === false) {
 				return;
 			}
-			yield $line => Await::VALUE;
+			yield $line => Traverser::VALUE;
 		}
 	} finally {
 		yield from async_fclose($fh);
@@ -87,7 +87,7 @@ which keeps throwing the first parameter
 (`SOFe\AwaitGenerator\InterruptException` by default)
 into the async iterator until it stops executing.
 Beware that `interrupt` may throw an `AwaitException`
-if the underlying generator catches exceptions during `yield Await::VALUE`s
+if the underlying generator catches exceptions during `yield Traverser::VALUE`s
 (hence consuming the interrupts).
 
 It is not necessary to interrupt the traverser
