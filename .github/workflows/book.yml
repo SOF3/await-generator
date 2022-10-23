@@ -26,14 +26,14 @@ jobs:
       - run: test -f ~/mdbook-translation/target/mdbook-translation
       - name: Checkout Endermanbugzjfc/mdbook-translation:input_walk_dir
         id: checkout-mdbook-translation
-        if: failure()
+        if: ${{ failure() }}
         uses: actions/checkout@v2
         with:
           repository: Endermanbugzjfc/mdbook-translation
           ref: input_walk_dir
           path: ~/mdbook-translation
       - name: Compile Endermanbugzjfc/mdbook-translation:input_walk_dir
-        if: steps.checkout-mdbook-translation.success()
+        if: ${{ steps.checkout-mdbook-translation.success() }}
         run: cargo build --release
         working-directory: ~/mdbook-translation
       - run: |
