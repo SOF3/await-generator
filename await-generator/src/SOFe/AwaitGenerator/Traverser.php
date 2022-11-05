@@ -71,7 +71,7 @@ final class Traverser{
 				return true;
 			}else{
 				// fallback to parent async context
-				$this->inner->next(yield $k => $v);
+				$this->inner->send(yield $k => $v);
 			}
 		}
 
