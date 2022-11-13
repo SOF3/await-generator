@@ -107,4 +107,34 @@ class TraverseTest extends TestCase{
 			self::assertEquals("Generator did not terminate after 16 interrupts", $ex->getMessage());
 		});
 	}
+
+	/**
+	 * Test whether the inner-generator of a traverser can communicate with
+	 * the await-generator's runtime properly through `yield`.
+	 * 
+	 * As a traverser should not handle any `yield` that
+	 * does not have {@link Traverser::VALUE} as its value.
+	 * 
+	 * Otherwise, await-generator's core functionalities might not
+	 * work correctly, such as {@link Await::promise()}.
+	 */
+	public function testYieldBridging(){
+		Await::f2c(function() : Generator{
+			$trav = Traverser::fromClosure(function() : Generator{
+				for ($i = 0; $i < 2; $i++) {
+					$got = yield from Await::promise(function ($resolve) use (&$i) : void {
+						$resolve($i);
+					});
+					yield $got => Traverser::VALUE;
+				}
+			});
+
+			for ($expect = 0; $expect < 2; $expect++) {
+				self::assertTrue(yield from $trav->next($value));
+				self::assertSame($expect, $value);
+			}
+			self::assertFalse(yield from $trav->next($value));
+		});
+		
+	}
 }
