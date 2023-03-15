@@ -2,7 +2,7 @@
 Although it is easier to work with generator functions,
 ultimately, you will need to work with functions that do not use await-generator.
 In that case, callbacks are easier to use.
-This is achieved by `Await::promise`.
+A callback `$resolve` can be acquired using `Await::promise`.
 
 ```php
 function a(Closure $callback): void {
@@ -15,9 +15,7 @@ function main(): Generator {
 }
 ```
 
-Some callback-style async functions may also accept an `$onError` callback parameter.
-This callback can be created by calling `Await::REJECT`.
-Then `Await::ONCE` will call your function 
+Some callback-style async functions may accept another callback for exception handling. This callback can be acquired by taking a second parameter `$reject`.
 
 ```php
 function a(Closure $callback, Closure $onError): void {

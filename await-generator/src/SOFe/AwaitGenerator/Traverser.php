@@ -64,14 +64,14 @@ final class Traverser{
 		while($this->inner->valid()){
 			$k = $this->inner->key();
 			$v = $this->inner->current();
-			$this->inner->next();
 
 			if($v === self::VALUE){
+				$this->inner->next();
 				$valueRef = $k;
 				return true;
 			}else{
 				// fallback to parent async context
-				yield $k => $v;
+				$this->inner->send(yield $k => $v);
 			}
 		}
 

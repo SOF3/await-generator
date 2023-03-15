@@ -6,7 +6,7 @@ where the user can iterate on the returned generator.
 However, if the user intends to perform async operations
 in every step of progressive data fetching,
 the `next()` method needs to be async too.
-In other languages, this is called "saync generator" or "async iterator".
+In other languages, this is called "async generator" or "async iterator".
 However, since await-generator has hijacked the generator syntax,
 it is not possible to create such structures directly.
 
@@ -50,17 +50,17 @@ We would use the `Traverser` class instead:
 
 ```php
 function async_lines(string $file) : Generator {
-	$fh = yield async_fopen($file, "rt");
+	$fh = yield from async_fopen($file, "rt");
 	try {
 		while(true) {
-			$line = yield async_fgets($fh);
+			$line = yield from async_fgets($fh);
 			if($line === false) {
 				return;
 			}
-			yield $line => Await::VALUE;
+			yield $line => Traverser::VALUE;
 		}
 	} finally {
-		yield async_fclose($fh);
+		yield from async_fclose($fh);
 	}
 }
 
@@ -68,7 +68,7 @@ function async_count_empty_lines(string $file) : Generator {
 	$count = 0;
 
 	$traverser = new Traverser(async_lines($file));
-	while(yield $traverser->next($line)) {
+	while(yield from $traverser->next($line)) {
 		if(trim($line) === "") $count++;
 	}
 
@@ -87,7 +87,7 @@ which keeps throwing the first parameter
 (`SOFe\AwaitGenerator\InterruptException` by default)
 into the async iterator until it stops executing.
 Beware that `interrupt` may throw an `AwaitException`
-if the underlying generator catches exceptions during `yield Await::VALUE`s
+if the underlying generator catches exceptions during `yield Traverser::VALUE`s
 (hence consuming the interrupts).
 
 It is not necessary to interrupt the traverser

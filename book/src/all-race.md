@@ -3,7 +3,7 @@ In addition to calling multiple generators sequentially,
 you can also use `Await::all()` or `Await::race()` to run multiple generators.
 
 If you have a JavaScript background, you can think of `Generator` objects as promises
-and `Await::all()` and `Await::race()` are just `Promise.all()` aand `Promise.race()`.
+and `Await::all()` and `Await::race()` are just `Promise.all()` and `Promise.race()`.
 
 ## `Await::all()`
 `Await::all()` allows you to run an array of generators at the same time.
@@ -20,7 +20,7 @@ $array = [
 	"SOFe" => $this->loadData("SOFe"), // don't yield it yet!
 	"PEMapModder" => $this->loadData("PEMapModder"),
 ];
-$results = yield Await::all($array);
+$results = yield from Await::all($array);
 var_dump($result);
 ```
 
@@ -41,7 +41,7 @@ The error condition will not wait until all generators return.
 ## `Await::race()`
 `Await::race()` is like `Await::all()`,
 but it resumes as long as *any* of the generators return or throw.
-The sent value is a 2-element array containing the key and the value.
+The returned value of `yield from` is a 2-element array containing the key and the value.
 
 ```php
 function sleep(int $time): Generator {
@@ -50,7 +50,7 @@ function sleep(int $time): Generator {
 }
 
 function main(): Generator {
-	[$k, $v] = yield Await::race([
+	[$k, $v] = yield from Await::race([
 		"two" => $this->sleep(2),
 		"one" => $this->sleep(1),
 	]);

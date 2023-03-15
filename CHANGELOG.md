@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## 3.4.3
+- Fixed Traverser not passing resolved value to the inner generator (#184)
+
 ## 3.4.2
 - Updated phpstan hint to allow promise resolver to have no arguments
 - Deprecated `yield $generator`, use `yield from $generator` instead
