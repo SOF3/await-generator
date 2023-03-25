@@ -197,6 +197,47 @@ class Await extends PromiseState{
 	}
 
 	/**
+	 * This function is similar to `Await::race`,
+	 * but additionally throws RaceLostException on the losing generators to allow cancellation.
+	 *
+	 * @template K
+	 * @template U
+	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $generators
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, array{K, U}>
+	 */
+	public static function safeRace(array $generators) : Generator{
+		$firstException = null;
+
+		$which = null;
+
+		try {
+			[$which, $result] = yield from self::race($generators);
+
+			return [$which, $result];
+		} catch(Throwable $e) {
+			$firstException = $e;
+		} finally {
+			foreach($generators as $key => $generator) {
+				if($which !== null && $key !== $which) {
+					try {
+						$generator->throw(new RaceLostException);
+					} catch(RaceLostException $e) {
+						// expected
+					} catch (Throwable $e) {
+						if($firstException === null) {
+							$firstException = $e;
+						}
+					}
+				}
+			}
+
+			if($firstException !== null) {
+				throw $firstException;
+			}
+		}
+	}
+
+	/**
 	 * Executes a callback-style async function using JavaScript Promise-like API.
 	 *
 	 * This *differs* from JavaScript Promise in that $closure is NOT executed

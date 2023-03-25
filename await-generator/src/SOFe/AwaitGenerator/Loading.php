@@ -63,9 +63,14 @@ final class Loading{
 	 */
 	public function get() : Generator{
 		if($this->onLoaded !== null){
-			yield from Await::promise(function($resolve){
-				$this->onLoaded[] = $resolve;
-			});
+			$key = rand();
+			try {
+				yield from Await::promise(function($resolve) use($key) {
+					$this->onLoaded[$key] = $resolve;
+				});
+			} finally {
+				unset($this->onLoaded[$key]);
+			}
 		}
 
 		return $this->value;

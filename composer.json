@@ -33,5 +33,10 @@
 		"test": "vendor/bin/phpunit",
 		"analyze": "vendor/bin/phpstan analyze",
 		"infection": "vendor/bin/infection -s"
+	},
+	"config": {
+		"allow-plugins": {
+			"infection/extension-installer": true
+		}
 	}
 }

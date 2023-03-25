@@ -90,7 +90,7 @@ final class Traverser{
 	 */
 	public function collect() : Generator{
 		$array = [];
-		while(yield $this->next($value)){
+		while(yield from $this->next($value)){
 			$array[] = $value;
 		}
 		return $array;
@@ -114,7 +114,7 @@ final class Traverser{
 		for($i = 0; $i < $attempts; $i++){
 			try{
 				$this->inner->throw($ex);
-				$hasMore = yield $this->next($_);
+				$hasMore = yield from $this->next($_);
 				if(!$hasMore){
 					return null;
 				}

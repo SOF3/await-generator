@@ -675,59 +675,59 @@ class AwaitTest extends TestCase{
 	public function testGeneratorWithoutCollect() : void{
 		Await::f2c(function(){
 			yield;
-			yield self::generatorVoidImmediate();
+			yield from self::generatorVoidImmediate();
 		}, function() : void{
 			self::assertTrue(false, "unexpected resolve call");
 		}, function($ex) : void{
 			self::assertInstanceOf(UnawaitedCallbackException::class, $ex);
 			/** @var AwaitException $ex */
-			self::assertEquals("Yielding a generator is disallowed when Await::RESOLVE or Await::REJECT was yielded but is not awaited through Await::ONCE, Await::ALL or Await::RACE", $ex->getMessage());
+			self::assertEquals("Resolution of await generator is disallowed when Await::RESOLVE or Await::REJECT was yielded but is not awaited through Await::ONCE, Await::ALL or Await::RACE", $ex->getMessage());
 		});
 	}
 
 	public function testGeneratorImmediateResolve() : void{
 		$rand = 0xD3AD8EEF;
 		self::assertImmediateResolve(function() use ($rand) : Generator{
-			return yield GeneratorUtil::empty($rand);
+			return yield from GeneratorUtil::empty($rand);
 		}, $rand);
 	}
 
 	public function testGeneratorLaterResolve() : void{
 		$rand = 0xD3AD8EEF;
 		self::assertLaterResolve(function() use ($rand) : Generator{
-			return yield self::generatorReturnLater($rand);
+			return yield from self::generatorReturnLater($rand);
 		}, $rand);
 	}
 
 	public function testGeneratorImmediateReject() : void{
 		$ex = new DummyException();
 		self::assertImmediateReject(function() use ($ex) : Generator{
-			yield GeneratorUtil::throw($ex);
+			yield from GeneratorUtil::throw($ex);
 		}, $ex);
 	}
 
 	public function testGeneratorLaterReject() : void{
 		$ex = new DummyException();
 		self::assertLaterReject(function() use ($ex) : Generator{
-			yield self::generatorThrowLater($ex);
+			yield from self::generatorThrowLater($ex);
 		}, $ex);
 	}
 
 	public function testGeneratorImmediateResolveVoid() : void{
 		self::assertImmediateResolve(function() : Generator{
-			yield self::generatorVoidImmediate();
+			yield from self::generatorVoidImmediate();
 		}, null);
 	}
 
 	public function testGeneratorLaterResolveVoid() : void{
 		self::assertLaterResolve(function() : Generator{
-			yield self::generatorVoidLater();
+			yield from self::generatorVoidLater();
 		}, null);
 	}
 
 	public function testGeneratorAllResolve() : void{
 		self::assertLaterResolve(function() : Generator{
-			return yield Await::all([
+			return yield from Await::all([
 				"a" => self::generatorReturnLater("b"),
 				"c" => GeneratorUtil::empty("d"),
 				"e" => self::generatorVoidLater(),
@@ -741,13 +741,13 @@ class AwaitTest extends TestCase{
 
 	public function testGeneratorAllEmpty() : void{
 		self::assertImmediateResolve(function() : Generator{
-			return yield Await::all([]);
+			return yield from Await::all([]);
 		}, []);;
 	}
 
 	public function testGeneratorRaceResolve() : void{
 		self::assertImmediateResolve(function() : Generator{
-			return yield Await::race([
+			return yield from Await::race([
 				"a" => self::generatorReturnLater("b"),
 				"c" => GeneratorUtil::empty("d"),
 				"e" => self::generatorVoidLater(),
@@ -758,7 +758,7 @@ class AwaitTest extends TestCase{
 	public function testGeneratorRaceEmpty() : void{
 		try{
 			Await::f2c(function() : Generator{
-				yield Await::race([]);
+				yield from Await::race([]);
 			}, function() : void{
 				self::assertTrue(false, "unexpected resolve call");
 			});
@@ -766,6 +766,59 @@ class AwaitTest extends TestCase{
 			self::assertEquals("Unhandled async exception: Cannot race an empty array of generators", $e->getMessage());
 			self::assertEquals("Cannot race an empty array of generators", $e->getPrevious()->getMessage());
 		}
+	}
+
+	public function testSafeRaceCancel() : void{
+		$hasResolve = null;
+		$hasFinally = false;
+
+		$loser = function() use(&$hasFinally){
+			try {
+				yield from Await::promise(function(){}); // never resolves
+			} finally {
+				$hasFinally = true;
+			}
+		};
+
+		$rand = 0x12345678;
+		$winner = fn() => self::generatorReturnLater($rand);
+
+		self::assertLaterResolve(function() use($loser, $winner, &$hasResolve) : Generator{
+			[$which, $_] = yield from Await::safeRace(["winner" => $winner(), "loser" => $loser()]);
+			self::assertEquals("winner", $which);
+
+			[$which2, $result2] = yield from Await::safeRace(["winner" => $winner(), "loser" => $loser()]);
+			$hasResolve = $result2;
+			return $which2;
+		}, "winner");
+
+		self::assertEquals($rand, $hasResolve);
+		self::assertTrue($hasFinally, "has finally");
+	}
+
+	public function testSafeRaceCancelAfterThrow() : void{
+		$hasResolve = null;
+		$hasFinally = false;
+
+		$loser = function() use(&$hasFinally){
+			try {
+				yield from Await::promise(function(){}); // never resolves
+			} finally {
+				$hasFinally = true;
+			}
+		};
+
+		$ex = new DummyException;
+		$winner = fn() => self::generatorThrowLater($ex);
+
+		self::assertLaterReject(function() use($loser, $winner, &$hasResolve) : Generator{
+			[$which, $_] = yield from Await::safeRace(["winner" => GeneratorUtil::empty(), "loser" => $loser()]);
+			self::assertEquals("winner", $which);
+
+			yield from Await::safeRace(["winner" => $winner(), "loser" => $loser()]);
+		}, $ex);
+
+		self::assertTrue($hasFinally, "has finally");
 	}
 
 	public function testSameImmediateResolveImmediateResolve() : void{
