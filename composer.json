@@ -33,5 +33,13 @@
 		"test": "vendor/bin/phpunit",
 		"analyze": "vendor/bin/phpstan analyze",
 		"infection": "vendor/bin/infection -s"
+	},
+	"x-virion": {
+		"antigen": "SOFe\\AwaitGenerator"
+	},
+	"config": {
+		"allow-plugins": {
+			"infection/extension-installer": true
+		}
 	}
 }
