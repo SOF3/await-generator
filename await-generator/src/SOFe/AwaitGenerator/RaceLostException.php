@@ -25,8 +25,17 @@ namespace SOFe\AwaitGenerator;
 use Exception;
 
 /**
- * The default exception to throw into an async iterator
- * when `Traverser::interrupt()` is called.
+ * The exception to throw into loser generators of
+ * a {@link Await::safeRace()}.
+ * 
+ * If your generator has side effects, please consider
+ * handling this exception by taking cancellation in a
+ * `finally` block. Otherwise, if you prefer the `catch`
+ * block, please re-throw this exception at the end.
+ * (Please refer to {@link AwaitTest::testSafeRaceCancel()}.)
+ * 
+ * NOTICE: it would not cause a crash even though your
+ * generator did not catch it.
  */
 final class RaceLostException extends Exception{
 	public function __construct() {
