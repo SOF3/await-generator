@@ -35,7 +35,7 @@
 		"infection": "vendor/bin/infection -s"
 	},
 	"x-virion": {
-		"specVersion": "3.0",
+		"spec": "3.0",
 		"antigen": "SOFe\\AwaitGenerator"
 	},
 	"config": {
