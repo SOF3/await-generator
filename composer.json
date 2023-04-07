@@ -36,7 +36,7 @@
 	},
 	"x-virion": {
 		"spec": "3.0",
-		"antigen": "SOFe\\AwaitGenerator"
+		"namespace-root": "SOFe\\AwaitGenerator"
 	},
 	"config": {
 		"allow-plugins": {

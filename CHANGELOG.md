@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## 3.4.4
+- Support virion 3.0 spec
+
 ## 3.4.3
 - Fixed Traverser not passing resolved value to the inner generator (#184)
 
