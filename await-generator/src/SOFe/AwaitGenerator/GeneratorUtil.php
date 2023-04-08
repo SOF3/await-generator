@@ -58,4 +58,16 @@ class GeneratorUtil{
 		false && yield;
 		throw $throwable;
 	}
+
+	/**
+	 * Returns a generator that never returns.
+	 *
+	 * Since await-generator does not maintain a runtime,
+	 * calling `Await::g2c(GeneratorUtil::pending())` does not leak memory.
+	 *
+	 * @phpstan-return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, never>
+	 */
+	public static function pending() : Generator{
+		return yield from Await::promise(fn($_) => null);
+	}
 }

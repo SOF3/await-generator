@@ -102,4 +102,65 @@ class LoadingTest extends TestCase{
 		self::assertTrue($beforeDone);
 		self::assertTrue($afterDone);
 	}
+
+	public function testSyncWinSyncCancel() : void{
+		$fast = new Loading(fn() => GeneratorUtil::empty("instant"));
+		$slow = new Loading(fn() => GeneratorUtil::empty("later"));
+
+		$done = false;
+		$hasSlowReturn = false;
+
+		Await::f2c(function() use($fast, $slow, &$done, &$hasSlowReturn) {
+			[$which, $_] = yield from Await::safeRace([
+				"fast" => $fast->get(),
+				"slow" => (function() use($slow, &$hasSlowReturn) {
+					yield from $slow->get();
+					$hasSlowReturn = true;
+				})(),
+			]);
+			self::assertEquals("fast", $which);
+
+			$done = true;
+		});
+
+		self::assertTrue($done, "execution complete");
+		self::assertFalse($hasSlowReturn, "loser should not return after cancel");
+	}
+
+	public function testAsyncWinAsyncCancel() : void{
+		$clock = new MockClock;
+
+		$fast = new Loading(function() use($clock) {
+			yield from $clock->sleepUntil(2);
+			return "earlier";
+		});
+		$slow = new Loading(function() use($clock) {
+			yield from $clock->sleepUntil(2);
+			return "later";
+		});
+
+		$done = false;
+		$hasSlowReturn = false;
+
+		Await::f2c(function() use($fast, $slow, $clock, &$done, &$hasSlowReturn) {
+			[$which, $_] = yield from Await::safeRace([
+				"fast" => $fast->get(),
+				"slow" => (function() use($slow, &$hasSlowReturn) {
+					yield from $slow->get();
+					$hasSlowReturn = true;
+				})(),
+			]);
+			self::assertEquals(2, $clock->currentTick());
+			self::assertEquals("fast", $which);
+
+			$done = true;
+		});
+
+		$clock->nextTick(1);
+		self::assertFalse($done, "pending execution");
+
+		$clock->nextTick(2);
+		self::assertTrue($done, "execution complete");
+		self::assertFalse($hasSlowReturn, "loser should not return after cancel");
+	}
 }
