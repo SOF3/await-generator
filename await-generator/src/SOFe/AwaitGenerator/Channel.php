@@ -57,9 +57,17 @@ final class Channel{
 			$this->state = new SendingChannelState;
 		}
 
-		yield from Await::promise(function($resolve) use($value){
-			$this->state->queue[] = [$value, $resolve];
-		});
+		try {
+			$key = null;
+			yield from Await::promise(function($resolve) use($value, &$key){
+				$key = spl_object_id($resolve);
+				$this->state->queue[$key] = [$value, $resolve];
+			});
+		} finally {
+			if($key !== null) {
+				unset($this->state->queue[$key]);
+			}
+		}
 	}
 
 	/**
@@ -114,9 +122,17 @@ final class Channel{
 			$this->state = new ReceivingChannelState;
 		}
 
-		return yield from Await::promise(function($resolve){
-			$this->state->queue[] = $resolve;
-		});
+		$key = null;
+		try {
+			return yield from Await::promise(function($resolve) use(&$key){
+				$key = spl_object_id($resolve);
+				$this->state->queue[$key] = $resolve;
+			});
+		} finally {
+			if($key !== null) {
+				unset($this->state->queue[$key]);
+			}
+		}
 	}
 
 	/**
