@@ -63,16 +63,17 @@ final class Loading{
 	 */
 	public function get() : Generator{
 		if($this->onLoaded !== null){
-			$key = null;
-
 			try {
+				// $key holds the object reference directly instead of the key to avoid GC causing spl_object_id duplicate
+				$key = null;
+
 				yield from Await::promise(function($resolve) use(&$key) {
-					$key = spl_object_id($resolve);
-					$this->onLoaded[$key] = $resolve;
+					$key = $resolve;
+					$this->onLoaded[spl_object_id($key)] = $resolve;
 				});
 			} finally {
 				if($key !== null) {
-					unset($this->onLoaded[$key]);
+					unset($this->onLoaded[spl_object_id($key)]);
 				}
 			}
 		}
