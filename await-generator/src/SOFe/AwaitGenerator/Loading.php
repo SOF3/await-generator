@@ -35,8 +35,6 @@ use Generator;
  * @template T
  */
 final class Loading{
-	private static string $nextOnloadKey = "0";
-
 	/** @var list<Closure(): void>|null */
 	private ?array $onLoaded = [];
 	private $value;
@@ -65,24 +63,21 @@ final class Loading{
 	 */
 	public function get() : Generator{
 		if($this->onLoaded !== null){
-			$key = self::nextOnloadKey();
+			$key = null;
 
 			try {
-				yield from Await::promise(function($resolve) use($key) {
+				yield from Await::promise(function($resolve) use(&$key) {
+					$key = spl_object_id($resolve);
 					$this->onLoaded[$key] = $resolve;
 				});
 			} finally {
-				unset($this->onLoaded[$key]);
+				if($key !== null) {
+					unset($this->onLoaded[$key]);
+				}
 			}
 		}
 
 		return $this->value;
-	}
-
-	private static function nextOnloadKey() : string {
-		$key = self::$nextOnloadKey;
-		self::$nextOnloadKey = bcadd($key, "1");
-		return $key;
 	}
 
 	/**
