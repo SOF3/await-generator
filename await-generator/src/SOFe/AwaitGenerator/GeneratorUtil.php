@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace SOFe\AwaitGenerator;
 
+use AssertionError;
 use Generator;
 use Throwable;
 
@@ -68,6 +69,7 @@ class GeneratorUtil{
 	 * @phpstan-return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, never>
 	 */
 	public static function pending() : Generator{
-		return yield from Await::promise(fn($_) => null);
+		yield from Await::promise(function() : void{});
+		throw new AssertionError("this line is unreachable");
 	}
 }

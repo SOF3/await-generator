@@ -203,7 +203,7 @@ class Await extends PromiseState{
 	 *
 	 * @template K
 	 * @template U
-	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $generators
+	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $inputs
 	 * @return array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>>
 	 */
 	private static function raceSemaphore(array $inputs) : array{
@@ -215,7 +215,7 @@ class Await extends PromiseState{
 
 		foreach($inputs as $k => $input){
 			/** @var Generator $input */
-			$wrapped[$k] = (function() use($input, $ch, $k){
+			$wrapped[$k] = (function() use($input, $ch){
 				yield from $ch->receive();
 
 				$input->rewind();
@@ -265,6 +265,7 @@ class Await extends PromiseState{
 			return [$which, $result];
 		} catch(Throwable $e) {
 			$firstException = $e;
+			throw $e;
 		} finally {
 			foreach($generators as $key => $generator) {
 				if($which !== null && $key !== $which) {
@@ -278,10 +279,6 @@ class Await extends PromiseState{
 						}
 					}
 				}
-			}
-
-			if($firstException !== null) {
-				throw $firstException;
 			}
 		}
 	}
