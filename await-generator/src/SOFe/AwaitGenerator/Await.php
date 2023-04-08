@@ -216,18 +216,23 @@ class Await extends PromiseState{
 		foreach($inputs as $k => $input){
 			/** @var Generator $input */
 			$wrapped[$k] = (function() use($input, $ch, $k){
-				try {
-					yield from $ch->receive();
-				} catch(RaceLostException $e) {
-					throw $e;
-				}
+				yield from $ch->receive();
 
 				$input->rewind();
 				if(!$input->valid()) {
 					return $input->getReturn();
 				}
 
-				return yield from $input;
+				$ch->sendWithoutWait(null);
+				while($input->valid()) {
+					try {
+						$send = yield $input->key() => $input->current();
+						$input->send($send);
+					} catch(Throwable $e) {
+						$input->throw($e);
+					}
+				}
+				return $input->getReturn();
 			})();
 		}
 

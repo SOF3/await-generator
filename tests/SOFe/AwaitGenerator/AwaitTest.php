@@ -755,7 +755,30 @@ class AwaitTest extends TestCase{
 		}, ["c", "d"]);
 	}
 
+	public function testGeneratorSafeRaceResolve() : void{
+		self::assertImmediateResolve(function() : Generator{
+			return yield from Await::safeRace([
+				"a" => self::generatorReturnLater("b"),
+				"c" => GeneratorUtil::empty("d"),
+				"e" => self::generatorVoidLater(),
+			]);
+		}, ["c", "d"]);
+	}
+
 	public function testGeneratorRaceEmpty() : void{
+		try{
+			Await::f2c(function() : Generator{
+				yield from Await::race([]);
+			}, function() : void{
+				self::fail("unexpected resolve call");
+			});
+		}catch(AwaitException $e){
+			self::assertEquals("Unhandled async exception: Cannot race an empty array of generators", $e->getMessage());
+			self::assertEquals("Cannot race an empty array of generators", $e->getPrevious()->getMessage());
+		}
+	}
+
+	public function testGeneratorSafeRaceEmpty() : void{
 		try{
 			Await::f2c(function() : Generator{
 				yield from Await::race([]);
@@ -807,7 +830,7 @@ class AwaitTest extends TestCase{
 
 		self::assertImmediateResolve(function() use($gf, &$run) : Generator{
 			[$which, $value] = yield from Await::safeRace([$gf(0), $gf(1)]);
-			self::assertEquals(1, count($run), "only one generator should complete");
+			self::assertEquals(1, count($run), "only one generator should start");
 			self::assertArrayHasKey($which, $run, "returned \$which should be run");
 			self::assertEquals($which, $value, "returned value should be run");
 
@@ -815,28 +838,64 @@ class AwaitTest extends TestCase{
 		}, null);
 	}
 
-	public function testSafeRaceCancelAfterThrow() : void{
-		$hasFinally = false;
+	public function testSafeRaceCancelAfterImmediateThrow() : void{
+		$cleanup = 0;
 
-		$loser = function() use(&$hasFinally){
+		$loser = function() use(&$cleanup){
+			$cleanup++;
 			try {
 				yield from Await::promise(function(){}); // never resolves
 			} finally {
-				$hasFinally = true;
+				$cleanup--;
+			}
+		};
+
+		$ex = new DummyException;
+		$winner = function() use($ex){
+			false && yield;
+			throw $ex;
+		};
+
+		self::assertImmediateReject(function() use($loser, $winner, &$cleanup) : Generator{
+			[$which, $_] = yield from Await::safeRace(["winner" => GeneratorUtil::empty(), "loser" => $loser()]);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after immediate loss");
+			self::assertEquals("winner", $which);
+
+			yield from Await::safeRace(["winner" => $winner(), "loser" => $loser()]);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after losing to throw");
+		}, $ex);
+	}
+
+	public function testSafeRaceCancelAfterAsyncThrow() : void{
+		$cleanup = 0;
+
+		$loser = function() use(&$cleanup){
+			$cleanup++;
+			try {
+				yield from Await::promise(function(){}); // never resolves
+			} finally {
+				$cleanup--;
 			}
 		};
 
 		$ex = new DummyException;
 		$winner = fn() => self::generatorThrowLater($ex);
 
-		self::assertLaterReject(function() use($loser, $winner) : Generator{
+		self::assertLaterReject(function() use($loser, $winner, &$cleanup) : Generator{
 			[$which, $_] = yield from Await::safeRace(["winner" => GeneratorUtil::empty(), "loser" => $loser()]);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after immediate loss");
+			self::assertEquals("winner", $which);
+
+			[$which, $_] = yield from Await::safeRace(["loser" => $loser(), "winner" => GeneratorUtil::empty()]);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after immediate loss");
 			self::assertEquals("winner", $which);
 
 			yield from Await::safeRace(["winner" => $winner(), "loser" => $loser()]);
-		}, $ex);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after losing to throw");
 
-		self::assertTrue($hasFinally, "has finally");
+			yield from Await::safeRace(["loser" => $loser(), "winner" => $winner()]);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after losing to throw");
+		}, $ex);
 	}
 
 	public function testSameImmediateResolveImmediateResolve() : void{
