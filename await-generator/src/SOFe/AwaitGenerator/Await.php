@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace SOFe\AwaitGenerator;
 
+use AssertionError;
 use Closure;
 use Error;
 use Exception;
@@ -179,6 +180,9 @@ class Await extends PromiseState{
 	 * @template U
 	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $generators
 	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, array{K, U}>
+	 *
+	 * @deprecated `Await::race` does not clean up losing generators. Use `safeRace` instead.
+	 * @see Await::safeRace
 	 */
 	public static function race(array $generators) : Generator{
 		if(count($generators) === 0){
@@ -194,6 +198,92 @@ class Await extends PromiseState{
 		}
 		[$k, $result] = yield self::RACE;
 		return [$k, $result];
+	}
+
+	/**
+	 * Ensures that only exactly one generator is complete after return.
+	 * All other generators are either unstarted or suspending.
+	 *
+	 * @template K
+	 * @template U
+	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $inputs
+	 * @return array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>>
+	 */
+	private static function raceSemaphore(array $inputs) : array{
+		$wrapped = [];
+
+		// This channel acts as a semaphore that only starts one input at a time.
+		$ch = new Channel;
+		$ch->sendWithoutWait(null);
+
+		foreach($inputs as $k => $input){
+			/** @var Generator $input */
+			$wrapped[$k] = (function() use($input, $ch){
+				yield from $ch->receive();
+
+				$input->rewind();
+				if(!$input->valid()) {
+					return $input->getReturn();
+				}
+
+				$ch->sendWithoutWait(null);
+				while($input->valid()) {
+					try {
+						$send = yield $input->key() => $input->current();
+						$input->send($send);
+					} catch(Throwable $e) {
+						$input->throw($e);
+					}
+				}
+				return $input->getReturn();
+			})();
+		}
+
+		return $wrapped;
+	}
+
+	/**
+	 * This function is similar to `Await::race`,
+	 * but additionally throws RaceLostException on the losing generators to allow cancellation.
+	 * The generator should clean up resources in a `finally` block.
+	 *
+	 * A losing generator may never be started the first time, thus never cathc a RaceLostException.
+	 * Thus, the `finally` block should only be relied on for cleaning up resources created inside the generator.
+	 * This behavior differs from `race` where multiple generators started even though one of them succeeded.
+	 *
+	 * @template K
+	 * @template U
+	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $generators
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, array{K, U}>
+	 */
+	public static function safeRace(array $generators) : Generator{
+		$generators = self::raceSemaphore($generators);;
+
+		$firstException = null;
+		$which = null;
+
+		try {
+			[$which, $result] = yield from self::race($generators);
+
+			return [$which, $result];
+		} catch(Throwable $e) {
+			$firstException = $e;
+			throw $e;
+		} finally {
+			foreach($generators as $key => $generator) {
+				if($which !== null && $key !== $which) {
+					try {
+						$generator->throw(new RaceLostException);
+					} catch(RaceLostException $e) {
+						// expected
+					} catch (Throwable $e) {
+						if($firstException === null) {
+							$firstException = $e;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**

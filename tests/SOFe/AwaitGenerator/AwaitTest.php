@@ -105,7 +105,7 @@ class AwaitTest extends TestCase{
 		Await::f2c(function() : Generator{
 			yield "(some invalid value)";
 		}, function(){
-			self::assertTrue(false, "unexpected resolve call");
+			self::fail("unexpected resolve call");
 		}, function($ex) : void{
 			self::assertInstanceOf(AwaitException::class, $ex);
 			/** @var AwaitException $ex */
@@ -117,7 +117,7 @@ class AwaitTest extends TestCase{
 		Await::f2c(function() : Generator{
 			yield;
 		}, function(){
-			self::assertTrue(false, "unexpected resolve call");
+			self::fail("unexpected resolve call");
 		}, function($ex) : void{
 			self::assertInstanceOf(UnawaitedCallbackException::class, $ex);
 			/** @var AwaitException $ex */
@@ -129,7 +129,7 @@ class AwaitTest extends TestCase{
 		Await::f2c(function() : Generator{
 			yield Await::REJECT;
 		}, function(){
-			self::assertTrue(false, "unexpected resolve call");
+			self::fail("unexpected resolve call");
 		}, function($ex) : void{
 			self::assertInstanceOf(AwaitException::class, $ex);
 			/** @var AwaitException $ex */
@@ -145,7 +145,7 @@ class AwaitTest extends TestCase{
 			$firstRejectOk = true;
 			yield Await::REJECT;
 		}, function(){
-			self::assertTrue(false, "unexpected resolve call");
+			self::fail("unexpected resolve call");
 		}, function($ex) : void{
 			self::assertInstanceOf(AwaitException::class, $ex);
 			/** @var AwaitException $ex */
@@ -160,7 +160,7 @@ class AwaitTest extends TestCase{
 		$generator = GeneratorUtil::throw($ex);
 		try{
 			Await::g2c($generator, function() : void{
-				self::assertTrue(false, "unexpected resolve call");
+				self::fail("unexpected resolve call");
 			});
 		}catch(AwaitException $e){
 			self::assertEquals("Unhandled async exception: {$ex->getMessage()}", $e->getMessage());
@@ -172,7 +172,7 @@ class AwaitTest extends TestCase{
 		Await::f2c(function() : Generator{
 			yield Await::ONCE;
 		}, function(){
-			self::assertTrue(false, "unexpected resolve call");
+			self::fail("unexpected resolve call");
 		}, function($ex) : void{
 			self::assertInstanceOf(AwaitException::class, $ex);
 			/** @var AwaitException $ex */
@@ -186,7 +186,7 @@ class AwaitTest extends TestCase{
 			yield;
 			yield Await::ONCE;
 		}, function(){
-			self::assertTrue(false, "unexpected resolve call");
+			self::fail("unexpected resolve call");
 		}, function($ex) : void{
 			self::assertInstanceOf(AwaitException::class, $ex);
 			/** @var UnawaitedCallbackException $ex */
@@ -198,7 +198,7 @@ class AwaitTest extends TestCase{
 		Await::f2c(function() : Generator{
 			yield Await::RACE;
 		}, function(){
-			self::assertTrue(false, "unexpected resolve call");
+			self::fail("unexpected resolve call");
 		}, function($ex) : void{
 			self::assertInstanceOf(AwaitException::class, $ex);
 			/** @var UnawaitedCallbackException $ex */
@@ -256,7 +256,7 @@ class AwaitTest extends TestCase{
 			$resolveCalled = true;
 			self::assertEquals($rand, $actual);
 		}, function(Throwable $ex) : void{
-			self::assertTrue(false, "unexpected reject call: " . $ex->getMessage());
+			self::fail("unexpected reject call: " . $ex->getMessage());
 		});
 		self::assertTrue($resolveCalled, "resolve was not called");
 	}
@@ -675,59 +675,59 @@ class AwaitTest extends TestCase{
 	public function testGeneratorWithoutCollect() : void{
 		Await::f2c(function(){
 			yield;
-			yield self::generatorVoidImmediate();
+			yield from self::generatorVoidImmediate();
 		}, function() : void{
-			self::assertTrue(false, "unexpected resolve call");
+			self::fail("unexpected resolve call");
 		}, function($ex) : void{
 			self::assertInstanceOf(UnawaitedCallbackException::class, $ex);
 			/** @var AwaitException $ex */
-			self::assertEquals("Yielding a generator is disallowed when Await::RESOLVE or Await::REJECT was yielded but is not awaited through Await::ONCE, Await::ALL or Await::RACE", $ex->getMessage());
+			self::assertEquals("Resolution of await generator is disallowed when Await::RESOLVE or Await::REJECT was yielded but is not awaited through Await::ONCE, Await::ALL or Await::RACE", $ex->getMessage());
 		});
 	}
 
 	public function testGeneratorImmediateResolve() : void{
 		$rand = 0xD3AD8EEF;
 		self::assertImmediateResolve(function() use ($rand) : Generator{
-			return yield GeneratorUtil::empty($rand);
+			return yield from GeneratorUtil::empty($rand);
 		}, $rand);
 	}
 
 	public function testGeneratorLaterResolve() : void{
 		$rand = 0xD3AD8EEF;
 		self::assertLaterResolve(function() use ($rand) : Generator{
-			return yield self::generatorReturnLater($rand);
+			return yield from self::generatorReturnLater($rand);
 		}, $rand);
 	}
 
 	public function testGeneratorImmediateReject() : void{
 		$ex = new DummyException();
 		self::assertImmediateReject(function() use ($ex) : Generator{
-			yield GeneratorUtil::throw($ex);
+			yield from GeneratorUtil::throw($ex);
 		}, $ex);
 	}
 
 	public function testGeneratorLaterReject() : void{
 		$ex = new DummyException();
 		self::assertLaterReject(function() use ($ex) : Generator{
-			yield self::generatorThrowLater($ex);
+			yield from self::generatorThrowLater($ex);
 		}, $ex);
 	}
 
 	public function testGeneratorImmediateResolveVoid() : void{
 		self::assertImmediateResolve(function() : Generator{
-			yield self::generatorVoidImmediate();
+			yield from self::generatorVoidImmediate();
 		}, null);
 	}
 
 	public function testGeneratorLaterResolveVoid() : void{
 		self::assertLaterResolve(function() : Generator{
-			yield self::generatorVoidLater();
+			yield from self::generatorVoidLater();
 		}, null);
 	}
 
 	public function testGeneratorAllResolve() : void{
 		self::assertLaterResolve(function() : Generator{
-			return yield Await::all([
+			return yield from Await::all([
 				"a" => self::generatorReturnLater("b"),
 				"c" => GeneratorUtil::empty("d"),
 				"e" => self::generatorVoidLater(),
@@ -741,13 +741,23 @@ class AwaitTest extends TestCase{
 
 	public function testGeneratorAllEmpty() : void{
 		self::assertImmediateResolve(function() : Generator{
-			return yield Await::all([]);
+			return yield from Await::all([]);
 		}, []);;
 	}
 
 	public function testGeneratorRaceResolve() : void{
 		self::assertImmediateResolve(function() : Generator{
-			return yield Await::race([
+			return yield from Await::race([
+				"a" => self::generatorReturnLater("b"),
+				"c" => GeneratorUtil::empty("d"),
+				"e" => self::generatorVoidLater(),
+			]);
+		}, ["c", "d"]);
+	}
+
+	public function testGeneratorSafeRaceResolve() : void{
+		self::assertImmediateResolve(function() : Generator{
+			return yield from Await::safeRace([
 				"a" => self::generatorReturnLater("b"),
 				"c" => GeneratorUtil::empty("d"),
 				"e" => self::generatorVoidLater(),
@@ -758,14 +768,134 @@ class AwaitTest extends TestCase{
 	public function testGeneratorRaceEmpty() : void{
 		try{
 			Await::f2c(function() : Generator{
-				yield Await::race([]);
+				yield from Await::race([]);
 			}, function() : void{
-				self::assertTrue(false, "unexpected resolve call");
+				self::fail("unexpected resolve call");
 			});
 		}catch(AwaitException $e){
 			self::assertEquals("Unhandled async exception: Cannot race an empty array of generators", $e->getMessage());
 			self::assertEquals("Cannot race an empty array of generators", $e->getPrevious()->getMessage());
 		}
+	}
+
+	public function testGeneratorSafeRaceEmpty() : void{
+		try{
+			Await::f2c(function() : Generator{
+				yield from Await::race([]);
+			}, function() : void{
+				self::fail("unexpected resolve call");
+			});
+		}catch(AwaitException $e){
+			self::assertEquals("Unhandled async exception: Cannot race an empty array of generators", $e->getMessage());
+			self::assertEquals("Cannot race an empty array of generators", $e->getPrevious()->getMessage());
+		}
+	}
+
+	public function testSafeRaceCancel() : void{
+		$hasResolve = null;
+		$hasFinally = false;
+
+		$loser = function() use(&$hasFinally){
+			try {
+				yield from Await::promise(function(){}); // never resolves
+			} finally {
+				$hasFinally = true;
+			}
+		};
+
+		$rand = 0x12345678;
+		$winner = fn() => self::generatorReturnLater($rand);
+
+		self::assertLaterResolve(function() use($loser, $winner, &$hasResolve) : Generator{
+			[$which, $_] = yield from Await::safeRace(["winner" => $winner(), "loser" => $loser()]);
+			self::assertEquals("winner", $which);
+
+			[$which2, $result2] = yield from Await::safeRace(["winner" => $winner(), "loser" => $loser()]);
+			$hasResolve = $result2;
+			return $which2;
+		}, "winner");
+
+		self::assertEquals($rand, $hasResolve);
+		self::assertTrue($hasFinally, "has finally");
+	}
+
+	public function testSafeRaceCancelImmediateLaziness() : void{
+		$run = [];
+
+		$gf = function(int $ret) use(&$run){
+			false && yield;
+			$run[$ret] = true;
+			return $ret;
+		};
+
+		self::assertImmediateResolve(function() use($gf, &$run) : Generator{
+			[$which, $value] = yield from Await::safeRace([$gf(0), $gf(1)]);
+			self::assertEquals(1, count($run), "only one generator should start");
+			self::assertArrayHasKey($which, $run, "returned \$which should be run");
+			self::assertEquals($which, $value, "returned value should be run");
+
+			return null;
+		}, null);
+	}
+
+	public function testSafeRaceCancelAfterImmediateThrow() : void{
+		$cleanup = 0;
+
+		$loser = function() use(&$cleanup){
+			$cleanup++;
+			try {
+				yield from Await::promise(function(){}); // never resolves
+			} finally {
+				$cleanup--;
+			}
+		};
+
+		$ex = new DummyException;
+		$winner = function() use($ex){
+			false && yield;
+			throw $ex;
+		};
+
+		self::assertImmediateReject(function() use($loser, $winner, &$cleanup) : Generator{
+			[$which, $_] = yield from Await::safeRace(["winner" => GeneratorUtil::empty(), "loser" => $loser()]);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after immediate loss");
+			self::assertEquals("winner", $which);
+
+			yield from Await::safeRace(["winner" => $winner(), "loser" => $loser()]);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after losing to throw");
+		}, $ex);
+	}
+
+	public function testSafeRaceCancelAfterAsyncThrow() : void{
+		$cleanup = 0;
+
+		$loser = function() use(&$cleanup){
+			$cleanup++;
+			try {
+				yield from Await::promise(function(){}); // never resolves
+			} finally {
+				$cleanup--;
+			}
+		};
+
+		$ex = new DummyException;
+		$winner = fn() => self::generatorThrowLater($ex);
+
+		self::assertLaterReject(function() use($loser, $winner, &$cleanup) : Generator{
+			[$which, $_] = yield from Await::safeRace(["winner" => GeneratorUtil::empty(), "loser" => $loser()]);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after immediate loss");
+			self::assertEquals("winner", $which);
+
+			[$which, $_] = yield from Await::safeRace(["loser" => $loser(), "winner" => GeneratorUtil::empty()]);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after immediate loss");
+			self::assertEquals("winner", $which);
+
+			yield from Await::safeRace(["winner" => $winner(), "loser" => $loser()]);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after losing to throw");
+
+			yield from Await::safeRace(["loser" => $loser(), "winner" => $winner()]);
+			self::assertEquals(0, $cleanup, "not cleaned up completely after losing to throw");
+		}, $ex);
 	}
 
 	public function testSameImmediateResolveImmediateResolve() : void{
@@ -830,7 +960,7 @@ class AwaitTest extends TestCase{
 			$resolveCalled = true;
 			self::assertEquals($expect, $actual);
 		}, function(Throwable $ex) : void{
-			self::assertTrue(false, "unexpected reject call: " . $ex->getMessage());
+			self::fail("unexpected reject call: " . $ex->getMessage());
 		});
 		self::assertTrue($resolveCalled, "resolve was not called");
 	}
@@ -843,7 +973,7 @@ class AwaitTest extends TestCase{
 			$resolveCalled = true;
 			self::assertEquals($expect, $actual);
 		}, function(Throwable $ex) : void{
-			self::assertTrue(false, "unexpected reject call: " . $ex->getMessage());
+			self::fail("unexpected reject call: " . $ex->getMessage());
 		});
 
 		$laterCalled = true;
@@ -854,7 +984,7 @@ class AwaitTest extends TestCase{
 	private static function assertImmediateReject(Closure $closure, Throwable $object) : void{
 		$rejectCalled = false;
 		Await::f2c($closure, function() : void{
-			self::assertTrue(false, "unexpected resolve call");
+			self::fail("unexpected resolve call");
 		}, function(Throwable $ex) use ($object, &$rejectCalled) : void{
 			$rejectCalled = true;
 			self::assertEquals($object, $ex);
@@ -866,7 +996,7 @@ class AwaitTest extends TestCase{
 		$laterCalled = false;
 		$rejectCalled = false;
 		Await::f2c($closure, function() : void{
-			self::assertTrue(false, "unexpected reject call");
+			self::fail("unexpected reject call");
 		}, function(Throwable $ex) use ($object, &$laterCalled, &$rejectCalled) : void{
 			self::assertTrue($laterCalled, "reject called before callLater(): " . $ex->getMessage());
 			$rejectCalled = true;

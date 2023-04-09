@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace SOFe\AwaitGenerator;
 
+use AssertionError;
 use Generator;
 use Throwable;
 
@@ -57,5 +58,18 @@ class GeneratorUtil{
 	public static function throw(Throwable $throwable) : Generator{
 		false && yield;
 		throw $throwable;
+	}
+
+	/**
+	 * Returns a generator that never returns.
+	 *
+	 * Since await-generator does not maintain a runtime,
+	 * calling `Await::g2c(GeneratorUtil::pending())` does not leak memory.
+	 *
+	 * @phpstan-return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, never>
+	 */
+	public static function pending() : Generator{
+		yield from Await::promise(function() : void{});
+		throw new AssertionError("this line is unreachable");
 	}
 }

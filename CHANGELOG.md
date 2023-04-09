@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## 3.5.0
+- Added `Await::safeRace`
+
 ## 3.4.4
 - Support virion 3.0 spec
 

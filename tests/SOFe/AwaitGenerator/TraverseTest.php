@@ -34,14 +34,14 @@ use function get_class;
 class TraverseTest extends TestCase{
 	private static function oneThree() : Generator{
 		yield 1 => Traverser::VALUE;
-		yield GeneratorUtil::empty();
+		yield from GeneratorUtil::empty();
 		yield 3 => Traverser::VALUE;
 	}
 
 	public function testArrayCollect(){
 		Await::f2c(function() : Generator{
 			$trav = new Traverser(self::oneThree());
-			return yield $trav->collect();
+			return yield from $trav->collect();
 		}, function(array $array){
 			self::assertSame([1, 3], $array);
 		});
@@ -50,10 +50,10 @@ class TraverseTest extends TestCase{
 	public function testNormalInterrupt(){
 		Await::f2c(function() : Generator{
 			$trav = new Traverser(self::oneThree());
-			self::assertTrue(yield $trav->next($value));
+			self::assertTrue(yield from $trav->next($value));
 			self::assertSame(1, $value);
 
-			return yield $trav->interrupt();
+			return yield from $trav->interrupt();
 		}, function($result) {
 			self::assertSame(null, $result);
 		});
@@ -63,20 +63,20 @@ class TraverseTest extends TestCase{
 		Await::f2c(function() : Generator{
 			$trav = Traverser::fromClosure(function() : Generator{
 				try{
-					yield GeneratorUtil::empty();
+					yield from GeneratorUtil::empty();
 					yield 1 => Traverser::VALUE;
-					yield GeneratorUtil::empty();
+					yield from GeneratorUtil::empty();
 					yield 2 => Traverser::VALUE;
 				}finally{
 					yield 3 => Traverser::VALUE;
-					yield GeneratorUtil::empty();
+					yield from GeneratorUtil::empty();
 					yield 4 => Traverser::VALUE;
 				}
 			});
-			self::assertTrue(yield $trav->next($value));
+			self::assertTrue(yield from $trav->next($value));
 			self::assertSame(1, $value);
 
-			return yield $trav->interrupt();
+			return yield from $trav->interrupt();
 		}, function($result) {
 			self::assertSame(null, $result);
 		});
@@ -87,20 +87,20 @@ class TraverseTest extends TestCase{
 			$trav = Traverser::fromClosure(function() : Generator{
 				while(true){
 					try{
-						yield GeneratorUtil::empty();
+						yield from GeneratorUtil::empty();
 						yield 1 => Traverser::VALUE;
-						yield GeneratorUtil::empty();
+						yield from GeneratorUtil::empty();
 						yield 2 => Traverser::VALUE;
 					}catch(\Exception $ex){
-						yield GeneratorUtil::empty();
+						yield from GeneratorUtil::empty();
 						yield 3 => Traverser::VALUE;
 					}
 				}
 			});
-			self::assertTrue(yield $trav->next($value));
+			self::assertTrue(yield from $trav->next($value));
 			self::assertSame(1, $value);
 
-			return yield $trav->interrupt();
+			return yield from $trav->interrupt();
 		}, function() {
 			self::assertFalse("unreachable");
 		}, function(\Exception $ex) {
