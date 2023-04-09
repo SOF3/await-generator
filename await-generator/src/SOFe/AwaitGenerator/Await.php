@@ -180,6 +180,9 @@ class Await extends PromiseState{
 	 * @template U
 	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $generators
 	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, array{K, U}>
+	 *
+	 * @deprecated `Await::race` does not clean up losing generators. Use `safeRace` instead.
+	 * @see Await::safeRace
 	 */
 	public static function race(array $generators) : Generator{
 		if(count($generators) === 0){
