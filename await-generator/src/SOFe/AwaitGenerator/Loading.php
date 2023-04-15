@@ -59,6 +59,19 @@ final class Loading{
 	}
 
 	/**
+	 * @return array{Loading<T>, Closure(T): void}
+	 */
+	public static function byCallback() : array{
+		$callback = null;
+		$loading = new self(function() use(&$callback){
+			return yield from Await::promise(function($resolve) use(&$callback){
+				$callback = $resolve;
+			});
+		});
+		return [$loading, $callback];
+	}
+
+	/**
 	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T>
 	 */
 	public function get() : Generator{
