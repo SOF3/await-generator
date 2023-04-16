@@ -43,6 +43,8 @@ class PubSubTest extends TestCase{
 				self::assertTrue(yield from $sub->next($item), "subscriber gets second item");
 				self::assertEquals(2, $item);
 
+				yield from $sub->interrupt();
+
 				$run += 1;
 			});
 		}
@@ -51,6 +53,9 @@ class PubSubTest extends TestCase{
 		$pubsub->publish(2);
 
 		self::assertEquals(3, $run);
+
+		self::assertEquals(0, $pubsub->getSubscriberCount());
+		self::assertTrue($pubsub->isEmpty());
 	}
 
 	public function testPubFirst() : void{

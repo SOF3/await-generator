@@ -95,4 +95,12 @@ final class PubSub{
 			}
 		});
 	}
+
+	public function isEmpty() : bool {
+		return count($this->subscribers) === 0;
+	}
+
+	public function getSubscriberCount() : int {
+		return count($this->subscribers);
+	}
 }
