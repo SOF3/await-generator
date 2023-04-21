@@ -44,7 +44,7 @@ final class PubSub{
 	/**
 	 * Publishes a message and return.
 	 *
-	 * This method does not block until the event is actually received by subscribers.
+	 * This method does not wait for the event to be actually received by subscribers.
 	 *
 	 * @phpstan-param T $item
 	 */
