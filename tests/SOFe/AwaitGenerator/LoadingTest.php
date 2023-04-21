@@ -163,4 +163,11 @@ class LoadingTest extends TestCase{
 		self::assertTrue($done, "execution complete");
 		self::assertFalse($hasSlowReturn, "loser should not return after cancel");
 	}
+
+	public function testCallback() : void{
+		[$loading, $resolve] = Loading::byCallback();
+		self::assertEquals(12345, $loading->getSync(12345));
+		$resolve(98765);
+		self::assertEquals(98765, $loading->getSync(12345));
+	}
 }
