@@ -35,9 +35,11 @@
 		"analyze": "vendor/bin/phpstan analyze",
 		"infection": "vendor/bin/infection -s"
 	},
-	"x-virion": {
-		"spec": "3.0",
-		"namespace-root": "SOFe\\AwaitGenerator"
+	"extra": {
+		"virion":{
+			"spec": "3.0",
+			"namespace-root": "SOFe\\AwaitGenerator"
+		}
 	},
 	"config": {
 		"allow-plugins": {
