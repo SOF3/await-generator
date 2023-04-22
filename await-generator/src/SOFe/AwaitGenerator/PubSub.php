@@ -65,6 +65,8 @@ final class PubSub{
 	 * Subscribers are tracked in the `PubSub`.
 	 * To avoid memory leak,
 	 * callers to this method must interrupt the traverser in a `finally` block:
+	 * WARNING: Otherwise, a RuntimeException will be thrown once `maxLag` is
+	 * reached!
 	 *
 	 * ```
 	 * $sub = $pubsub->subscribe();
