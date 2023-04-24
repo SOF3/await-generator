@@ -9,3 +9,8 @@ It allows you to write code more easily in a style called "asynchronous".
 This tutorial involves concepts from PocketMine-MP,
 a server software for Minecraft written in PHP.
 The target audience is plugin developers for PocketMine-MP.
+
+# Translations
+- [English](https://sof3.github.io/await-generator/master/)
+- [繁體中文](https://sof3.github.io/await-generator/master/zho)
+- [简体中文](https://sof3.github.io/await-generator/master/chs)

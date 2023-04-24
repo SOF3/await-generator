@@ -2,6 +2,8 @@ name: Book
 on:
   push:
     branches: [master]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,7 +18,28 @@ jobs:
             ~/.cargo/bin
           key: mdbook
       - run: test -f ~/.cargo/bin/mdbook || cargo install mdbook
-      - run: mdbook build
+      - name: Compile Endermanbugzjfc/mdtranslation:input_walk_dir
+        run: |
+          if [ which mdbook-translation ]
+          then
+            exit
+          fi
+          
+          git clone https://github.com/Endermanbugzjfc/mdtranslation ~/mdbook-translation -b input_walk_dir
+          cd ~/mdbook-translation/mdbook-translation
+          cargo build --release --target-dir target
+          cp ~/mdbook-translation/mdbook-translation/target/release/mdbook-translation ~/.cargo/bin/
+          
+          which mdbook-translation
+          if [[ $? -ne 0 ]]
+          then
+            tree
+            exit 1
+          fi
+      - run: |
+          mdbook build
+          MDTRANSLATION_INPUT="translation" MDTRANSLATION_LANG="zho" mdbook build -d book/zho
+          MDTRANSLATION_INPUT="translation" MDTRANSLATION_LANG="chs" mdbook build -d book/chs
         working-directory: book
       - run: cp -r book/book ../book
       - run: git checkout -- . && git clean -fd
