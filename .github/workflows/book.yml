@@ -20,13 +20,11 @@ jobs:
         working-directory: book
       - run: cp -r book/book ../book
       - run: mkdir -p ../book/README
-      - run: cp README.md ../book/README
+      - run: cp -r README.md zho chs ../book/README
       - run: git checkout -- . && git clean -fd
       - run: git fetch && git checkout gh-pages
       - run: test ! -d $(echo ${{github.ref}} | cut -d/ -f3) || rm -r $(echo ${{github.ref}} | cut -d/ -f3)
       - run: cp -r ../book $(echo ${{github.ref}} | cut -d/ -f3)
-      - run: cp ../book/README/README.md .
       - run: git config --local user.name "github-actions[bot]" && git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      - run: git add README.md
       - run: git add $(echo ${{github.ref}} | cut -d/ -f3) && git commit --allow-empty -m "Docs build for SOF3/await-generator@${{github.sha}}"
       - run: git push
