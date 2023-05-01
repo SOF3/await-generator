@@ -67,7 +67,15 @@ final class Channel{
 			});
 		} finally {
 			if($key !== null) {
-				unset($this->state->queue[spl_object_id($key)]);
+				if($this->state instanceof SendingChannelState) {
+					// our key may still exist in the channel state
+
+					unset($this->state->queue[spl_object_id($key)]);
+					if(count($this->state->queue) === 0) {
+						$this->state = new EmptyChannelState;
+					}
+				}
+				// else, state already changed means our key has been shifted already.
 			}
 		}
 	}
@@ -134,7 +142,15 @@ final class Channel{
 			});
 		} finally {
 			if($key !== null) {
-				unset($this->state->queue[spl_object_id($key)]);
+				if($this->state instanceof ReceivingChannelState) {
+					// our key may still exist in the channel state
+
+					unset($this->state->queue[spl_object_id($key)]);
+					if(count($this->state->queue) === 0) {
+						$this->state = new EmptyChannelState;
+					}
+				}
+				// else, state already changed means our key has been shifted already.
 			}
 		}
 	}

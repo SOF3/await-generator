@@ -331,4 +331,43 @@ class ChannelTest extends TestCase{
 
 		self::assertSame("a", $receive);
 	}
+
+	public function testTryCancelSender() : void{
+		$ok = false;
+		Await::f2c(function() use(&$ok){
+			/** @var Channel<null> $channel */
+			$channel = new Channel;
+
+			[$which, $_] = yield from Await::safeRace([
+				$channel->sendAndWait(null),
+				GeneratorUtil::empty(null),
+			]);
+			self::assertSame(1, $which);
+
+			$ret = $channel->tryReceiveOr("no sender");
+			self::assertSame("no sender", $ret);
+			$ok = true;
+		});
+
+		self::assertTrue($ok, "test run complete");
+	}
+
+	public function testTryCancelReceiver() : void{
+		$ok = false;
+		Await::f2c(function() use(&$ok){
+			/** @var Channel<null> $channel */
+			$channel = new Channel;
+
+			[$which, $_] = yield from Await::safeRace([
+				$channel->receive(),
+				GeneratorUtil::empty(null),
+			]);
+			self::assertSame(1, $which);
+
+			$channel->sendWithoutWait(null);
+			$ok = true;
+		});
+
+		self::assertTrue($ok, "test run complete");
+	}
 }
