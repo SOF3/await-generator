@@ -1,6 +1,15 @@
 Changelog
 ===
 
+## 3.5.2
+- Fixed `Channel` crashing if there is only one pending sender/receiver and it gets canceled.
+
+## 3.5.1
+- Added `PubSub` class
+
+## 3.5.0
+- Added `Await::safeRace`
+
 ## 3.5.0
 - Added `Await::safeRace`
 
