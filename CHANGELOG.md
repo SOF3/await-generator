@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## 3.6.0
+- Added `Traverser::asGenerator()`
+
 ## 3.5.2
 - Fixed `Channel` crashing if there is only one pending sender/receiver and it gets canceled.
 

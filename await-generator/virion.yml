@@ -1,7 +1,7 @@
 name: await-generator
-version: 3.5.0
+version: 3.6.0
 php:
-  - 8.0
+  - "8.1"
 author: SOFe
 antigen: SOFe\AwaitGenerator
 description: Use async/await in PHP using generators
