@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## 3.6.1
+- Fixed syntax error
+
 ## 3.6.0
 - Added `Traverser::asGenerator()`
 

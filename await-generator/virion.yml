@@ -1,5 +1,5 @@
 name: await-generator
-version: 3.6.0
+version: 3.6.1
 php:
   - "8.1"
 author: SOFe

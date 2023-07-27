@@ -24,9 +24,7 @@ namespace SOFe\AwaitGenerator;
 
 use Closure;
 use Generator;
-use Iterator;
 use Throwable;
-use function func_num_args;
 
 /**
  * An adapter to convert an async function into an async iterator.
@@ -137,6 +135,7 @@ final class Traverser{
 	 * $namespace2Traverser = new Namespace2\AwaitGenerator\Traverser($namespace1Traverser->asGenerator());
 	 * ```
 	 * Then `$namespace1Traverser` and `$namespace2Traverser` are fully interchangeable wherever type check passes.
+	 */
 	public function asGenerator() : Generator {
 		return $this->inner;
 	}
