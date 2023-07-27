@@ -127,4 +127,17 @@ final class Traverser{
 		}
 		throw new AwaitException("Generator did not terminate after $attempts interrupts");
 	}
+
+	/**
+	 * Returns the inner generator.
+	 *
+	 * Used to provide a shading-agnostic object so that it can be reconstructed in another shading namespace, e.g. for
+	 * ```
+	 * $namespace1Traverser = new Namespace1\AwaitGenerator\Traverser($this->iter());
+	 * $namespace2Traverser = new Namespace2\AwaitGenerator\Traverser($namespace1Traverser->asGenerator());
+	 * ```
+	 * Then `$namespace1Traverser` and `$namespace2Traverser` are fully interchangeable wherever type check passes.
+	public function asGenerator() : Generator {
+		return $this->inner;
+	}
 }
