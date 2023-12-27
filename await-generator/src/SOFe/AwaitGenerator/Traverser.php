@@ -60,9 +60,9 @@ final class Traverser{
 	 *
 	 * Returns false if there are no more values.
 	 *
-	 * @param I $valueRef
+	 * @param-out I $valueRef
 	 */
-	public function next(&$valueRef) : Generator{
+	public function next(mixed &$valueRef) : Generator{
 		while($this->inner->valid()){
 			$k = $this->inner->key();
 			$v = $this->inner->current();
