@@ -742,7 +742,7 @@ class AwaitTest extends TestCase{
 	public function testGeneratorAllEmpty() : void{
 		self::assertImmediateResolve(function() : Generator{
 			return yield from Await::all([]);
-		}, []);;
+		}, []);
 	}
 
 	public function testGeneratorRaceResolve() : void{

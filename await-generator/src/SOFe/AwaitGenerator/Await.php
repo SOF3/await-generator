@@ -257,7 +257,7 @@ class Await extends PromiseState{
 	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, array{K, U}>
 	 */
 	public static function safeRace(array $generators) : Generator{
-		$generators = self::raceSemaphore($generators);;
+		$generators = self::raceSemaphore($generators);
 
 		$firstException = null;
 		$which = null;
