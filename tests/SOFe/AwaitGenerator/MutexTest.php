@@ -117,7 +117,7 @@ class MutexTest extends TestCase{
 			yield from $mutex->runClosure(function() use(&$eventCounter, $mutex, $clock) : Generator{
 				self::assertSame(5, $eventCounter++, "mutex should start next task immediately");
 				self::assertSame(2, $clock->currentTick(), "mutex should start next task immediately");
-				self::assertFalse($mutex->isIdle(), "mutex should not be idle when lock is acquired concurrently");;
+				self::assertFalse($mutex->isIdle(), "mutex should not be idle when lock is acquired concurrently");
 
 				yield from $clock->sleepUntil(4);
 
@@ -135,7 +135,7 @@ class MutexTest extends TestCase{
 		$clock->nextTick(2);
 
 		self::assertSame(6, $eventCounter++, "nextTick should resume coroutine");
-		self::assertFalse($mutex->isIdle(), "mutex should not be idle when lock is acquired concurrently");;
+		self::assertFalse($mutex->isIdle(), "mutex should not be idle when lock is acquired concurrently");
 
 		$clock->nextTick(3);
 
@@ -145,7 +145,7 @@ class MutexTest extends TestCase{
 		$clock->nextTick(4);
 
 		self::assertSame(9, $eventCounter++, "nextTick should resume coroutine");
-		self::assertTrue($mutex->isIdle(), "mutex should be idle when both locks are released");;
+		self::assertTrue($mutex->isIdle(), "mutex should be idle when both locks are released");
 	}
 
 	public function testSupportException() : void{
