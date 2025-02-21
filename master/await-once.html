@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="light" dir="ltr">
+<html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
@@ -30,15 +30,17 @@
 
         <!-- Custom theme stylesheets -->
 
-    </head>
-    <body class="sidebar-visible no-js">
-    <div id="body-container">
+
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
-
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -60,19 +62,16 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            var body = document.querySelector('body');
-            body.classList.remove('no-js')
-            body.classList.add('js');
+            html.classList.add("js");
         </script>
 
         <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var body = document.querySelector('body');
             var sidebar = null;
             var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
@@ -82,45 +81,25 @@
                 sidebar = 'hidden';
             }
             sidebar_toggle.checked = sidebar === 'visible';
-            body.classList.remove('sidebar-visible');
-            body.classList.add("sidebar-" + sidebar);
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="generators.html"><strong aria-hidden="true">2.</strong> Generators</a></li><li class="chapter-item expanded "><a href="async.html"><strong aria-hidden="true">3.</strong> Asynchronous programming</a></li><li class="chapter-item expanded "><a href="main.html"><strong aria-hidden="true">4.</strong> Using await-generator</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="await-gen.html"><strong aria-hidden="true">4.1.</strong> Awaiting generators</a></li><li class="chapter-item expanded "><a href="await-once.html" class="active"><strong aria-hidden="true">4.2.</strong> Using callback-style from generators</a></li><li class="chapter-item expanded "><a href="f2c-g2c.html"><strong aria-hidden="true">4.3.</strong> Exposing a generator to normal API</a></li><li class="chapter-item expanded "><a href="all-race.html"><strong aria-hidden="true">4.4.</strong> Running generators concurrently</a></li><li class="chapter-item expanded "><a href="async-iterators.html"><strong aria-hidden="true">4.5.</strong> Async iterators</a></li></ol></li><li class="chapter-item expanded "><a href="semver.html"><strong aria-hidden="true">5.</strong> Versioning concerns</a></li></ol>
-            </div>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <!-- Track and set sidebar scroll position -->
-        <script>
-            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
-            sidebarScrollbox.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') {
-                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
-                }
-            }, { passive: true });
-            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
-            sessionStorage.removeItem('sidebar-scroll');
-            if (sidebarScrollTop) {
-                // preserve sidebar scroll position when navigating via links within sidebar
-                sidebarScrollbox.scrollTop = sidebarScrollTop;
-            } else {
-                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
-                var activeSection = document.querySelector('#sidebar .active');
-                if (activeSection) {
-                    activeSection.scrollIntoView({ block: 'center' });
-                }
-            }
-        </script>
-
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
@@ -180,7 +159,7 @@ In that case, callbacks are easier to use.
 A callback <code>$resolve</code> can be acquired using <code>Await::promise</code>.</p>
 <pre><code class="language-php">function a(Closure $callback): void {
 	// The other function that uses callbacks.
-	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
+	// Let's assume this function will call $callback("foo") some time later.
 }
 
 function main(): Generator {
@@ -190,7 +169,7 @@ function main(): Generator {
 <p>Some callback-style async functions may accept another callback for exception handling. This callback can be acquired by taking a second parameter <code>$reject</code>.</p>
 <pre><code class="language-php">function a(Closure $callback, Closure $onError): void {
 	// The other function that uses callbacks.
-	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
+	// Let's assume this function will call $callback("foo") some time later.
 }
 
 function main(): Generator {
@@ -215,7 +194,7 @@ public function sleep(): Generator {
 				($this-&gt;resolve)();
 			}
 			public function onCancel() {
-				($this-&gt;reject)(new \Exception(&quot;Task cancelled&quot;));
+				($this-&gt;reject)(new \Exception("Task cancelled"));
 			}
 		};
 		$this-&gt;getServer()-&gt;getScheduler()-&gt;scheduleDelayedTask($task, 20);
@@ -226,11 +205,11 @@ public function sleep(): Generator {
 Let's see what we can do with a countdown:</p>
 <pre><code class="language-php">function countdown($player) {
 	for($i = 10; $i &gt; 0; $i--) {
-		$player-&gt;sendMessage(&quot;$i seconds left&quot;);
+		$player-&gt;sendMessage("$i seconds left");
 		yield from $this-&gt;sleep();
 	}
 
-	$player-&gt;sendMessage(&quot;Time's up!&quot;);
+	$player-&gt;sendMessage("Time's up!");
 }
 </code></pre>
 <p>This is much simpler than using <code>ClosureTask</code> in a loop!</p>

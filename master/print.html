@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="light" dir="ltr">
+<html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -8,7 +8,7 @@
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
@@ -31,15 +31,17 @@
 
         <!-- Custom theme stylesheets -->
 
-    </head>
-    <body class="sidebar-visible no-js">
-    <div id="body-container">
+
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
-
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -61,19 +63,16 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            var body = document.querySelector('body');
-            body.classList.remove('no-js')
-            body.classList.add('js');
+            html.classList.add("js");
         </script>
 
         <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var body = document.querySelector('body');
             var sidebar = null;
             var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
@@ -83,45 +82,25 @@
                 sidebar = 'hidden';
             }
             sidebar_toggle.checked = sidebar === 'visible';
-            body.classList.remove('sidebar-visible');
-            body.classList.add("sidebar-" + sidebar);
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="generators.html"><strong aria-hidden="true">2.</strong> Generators</a></li><li class="chapter-item expanded "><a href="async.html"><strong aria-hidden="true">3.</strong> Asynchronous programming</a></li><li class="chapter-item expanded "><a href="main.html"><strong aria-hidden="true">4.</strong> Using await-generator</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="await-gen.html"><strong aria-hidden="true">4.1.</strong> Awaiting generators</a></li><li class="chapter-item expanded "><a href="await-once.html"><strong aria-hidden="true">4.2.</strong> Using callback-style from generators</a></li><li class="chapter-item expanded "><a href="f2c-g2c.html"><strong aria-hidden="true">4.3.</strong> Exposing a generator to normal API</a></li><li class="chapter-item expanded "><a href="all-race.html"><strong aria-hidden="true">4.4.</strong> Running generators concurrently</a></li><li class="chapter-item expanded "><a href="async-iterators.html"><strong aria-hidden="true">4.5.</strong> Async iterators</a></li></ol></li><li class="chapter-item expanded "><a href="semver.html"><strong aria-hidden="true">5.</strong> Versioning concerns</a></li></ol>
-            </div>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <!-- Track and set sidebar scroll position -->
-        <script>
-            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
-            sidebarScrollbox.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') {
-                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
-                }
-            }, { passive: true });
-            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
-            sessionStorage.removeItem('sidebar-scroll');
-            if (sidebarScrollTop) {
-                // preserve sidebar scroll position when navigating via links within sidebar
-                sidebarScrollbox.scrollTop = sidebarScrollTop;
-            } else {
-                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
-                var activeSection = document.querySelector('#sidebar .active');
-                if (activeSection) {
-                    activeSection.scrollIntoView({ block: 'center' });
-                }
-            }
-        </script>
-
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
@@ -177,30 +156,30 @@
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
 <p>This is a step-by-step tutorial of await-generator
 for newcomers with only basic PHP knowledge.</p>
-<p>await-generator plays tricks on a PHP feature called &quot;generator&quot;.
-It allows you to write code more easily in a style called &quot;asynchronous&quot;.</p>
+<p>await-generator plays tricks on a PHP feature called "generator".
+It allows you to write code more easily in a style called "asynchronous".</p>
 <p>This tutorial involves concepts from PocketMine-MP,
 a server software for Minecraft written in PHP.
 The target audience is plugin developers for PocketMine-MP.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="generators"><a class="header" href="#generators">Generators</a></h1>
-<p>A PHP function that contains a <code>yield</code> keyword is called a &quot;generator function&quot;.</p>
+<p>A PHP function that contains a <code>yield</code> keyword is called a "generator function".</p>
 <pre><code class="language-php">function foo() {
-	echo &quot;hi!\n&quot;;
+	echo "hi!\n";
 	yield;
-	echo &quot;working hard.\n&quot;;
+	echo "working hard.\n";
 	yield;
-	echo &quot;bye!\n&quot;;
+	echo "bye!\n";
 }
 </code></pre>
 <p>When you call this function, it does not do anything
-(it doesn't even echo &quot;hi&quot;).
+(it doesn't even echo "hi").
 Instead, you get a <a href="https://php.net/class.generator"><code>Generator</code></a> object,
 which lets you control the execution of the function.</p>
 <p>Let's tell PHP to start running this function:</p>
 <pre><code class="language-php">$generator = foo();
-echo &quot;Let's start foo\n&quot;;
+echo "Let's start foo\n";
 $generator-&gt;rewind();
-echo &quot;foo stopped\n&quot;;
+echo "foo stopped\n";
 </code></pre>
 <p>You will get this output:</p>
 <pre><code>Let's start foo
@@ -239,7 +218,7 @@ $generator-&gt;send(2);
 </code></pre>
 <pre><code>int(2)
 </code></pre>
-<p>Furthermore, the function can eventually &quot;return&quot; a value.
+<p>Furthermore, the function can eventually "return" a value.
 This return value is not handled the same way as a <code>yield</code>;
 it is obtained using <code>$generator-&gt;getReturn()</code>.
 However, the return type hint must always be <code>Generator</code>
@@ -314,13 +293,13 @@ function loadData($player) {
 }
 
 function main() {
-	$this-&gt;loadData(&quot;SOFe&quot;);
-	echo $this-&gt;data[&quot;SOFe&quot;]; // Undefined offset &quot;SOFe&quot;
+	$this-&gt;loadData("SOFe");
+	echo $this-&gt;data["SOFe"]; // Undefined offset "SOFe"
 }
 </code></pre>
 <p>Here, <code>loadData</code> is the function that loads data asynchronously.
 <code>main</code> is implemented incorrectly, assuming that <code>loadData</code> is synchronous,
-i.e. it assumes that <code>$this-&gt;data[&quot;SOFe&quot;]</code> is initialized.</p>
+i.e. it assumes that <code>$this-&gt;data["SOFe"]</code> is initialized.</p>
 <h2 id="using-callbacks"><a class="header" href="#using-callbacks">Using callbacks</a></h2>
 <p>One of the simplest ways to solve this problem is to use callbacks.
 The caller can pass a closure to the async function,
@@ -331,8 +310,8 @@ An example function signature would be like this:</p>
 }
 
 function main() {
-	$this-&gt;loadData(&quot;SOFe&quot;, function() {
-		echo $this-&gt;data[&quot;SOFe&quot;]; // this is guaranteed to work now
+	$this-&gt;loadData("SOFe", function() {
+		echo $this-&gt;data["SOFe"]; // this is guaranteed to work now
 	});
 }
 </code></pre>
@@ -448,14 +427,14 @@ function main(): Generator {
 if the generator function you called threw an exception.</p>
 <pre><code class="language-php">function err(): Generator {
 	// some other async logic here
-	throw new Exception(&quot;Test&quot;);
+	throw new Exception("Test");
 }
 
 function main(): Generator {
 	try {
 		yield from err();
 	} catch(Exception $e) {
-		var_dump($e-&gt;getMessage()); // string(4) &quot;Test&quot;
+		var_dump($e-&gt;getMessage()); // string(4) "Test"
 	}
 }
 </code></pre>
@@ -466,7 +445,7 @@ In that case, callbacks are easier to use.
 A callback <code>$resolve</code> can be acquired using <code>Await::promise</code>.</p>
 <pre><code class="language-php">function a(Closure $callback): void {
 	// The other function that uses callbacks.
-	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
+	// Let's assume this function will call $callback("foo") some time later.
 }
 
 function main(): Generator {
@@ -476,7 +455,7 @@ function main(): Generator {
 <p>Some callback-style async functions may accept another callback for exception handling. This callback can be acquired by taking a second parameter <code>$reject</code>.</p>
 <pre><code class="language-php">function a(Closure $callback, Closure $onError): void {
 	// The other function that uses callbacks.
-	// Let's assume this function will call $callback(&quot;foo&quot;) some time later.
+	// Let's assume this function will call $callback("foo") some time later.
 }
 
 function main(): Generator {
@@ -501,7 +480,7 @@ public function sleep(): Generator {
 				($this-&gt;resolve)();
 			}
 			public function onCancel() {
-				($this-&gt;reject)(new \Exception(&quot;Task cancelled&quot;));
+				($this-&gt;reject)(new \Exception("Task cancelled"));
 			}
 		};
 		$this-&gt;getServer()-&gt;getScheduler()-&gt;scheduleDelayedTask($task, 20);
@@ -512,11 +491,11 @@ public function sleep(): Generator {
 Let's see what we can do with a countdown:</p>
 <pre><code class="language-php">function countdown($player) {
 	for($i = 10; $i &gt; 0; $i--) {
-		$player-&gt;sendMessage(&quot;$i seconds left&quot;);
+		$player-&gt;sendMessage("$i seconds left");
 		yield from $this-&gt;sleep();
 	}
 
-	$player-&gt;sendMessage(&quot;Time's up!&quot;);
+	$player-&gt;sendMessage("Time's up!");
 }
 </code></pre>
 <p>This is much simpler than using <code>ClosureTask</code> in a loop!</p>
@@ -553,17 +532,17 @@ all generators in <code>$array</code> have finished executing.</p>
 }
 
 $array = [
-	&quot;SOFe&quot; =&gt; $this-&gt;loadData(&quot;SOFe&quot;), // don't yield it yet!
-	&quot;PEMapModder&quot; =&gt; $this-&gt;loadData(&quot;PEMapModder&quot;),
+	"SOFe" =&gt; $this-&gt;loadData("SOFe"), // don't yield it yet!
+	"PEMapModder" =&gt; $this-&gt;loadData("PEMapModder"),
 ];
 $results = yield from Await::all($array);
 var_dump($result);
 </code></pre>
 <p>Output:</p>
 <pre><code>array(2) {
-  [&quot;SOFe&quot;]=&gt;
+  ["SOFe"]=&gt;
   int(4)
-  [&quot;PEMapModder&quot;]=&gt;
+  ["PEMapModder"]=&gt;
   int(11)
 }
 </code></pre>
@@ -581,10 +560,10 @@ The returned value of <code>yield from</code> is a 2-element array containing th
 
 function main(): Generator {
 	[$k, $v] = yield from Await::race([
-		&quot;two&quot; =&gt; $this-&gt;sleep(2),
-		&quot;one&quot; =&gt; $this-&gt;sleep(1),
+		"two" =&gt; $this-&gt;sleep(2),
+		"one" =&gt; $this-&gt;sleep(1),
 	]);
-	var_dump($k); // string(3) &quot;one&quot;
+	var_dump($k); // string(3) "one"
 	var_dump($v); // int(1)
 }
 </code></pre>
@@ -596,7 +575,7 @@ where the user can iterate on the returned generator.
 However, if the user intends to perform async operations
 in every step of progressive data fetching,
 the <code>next()</code> method needs to be async too.
-In other languages, this is called &quot;async generator&quot; or &quot;async iterator&quot;.
+In other languages, this is called "async generator" or "async iterator".
 However, since await-generator has hijacked the generator syntax,
 it is not possible to create such structures directly.</p>
 <p>Instead, await-generator exposes the <code>Traverser</code> class,
@@ -610,7 +589,7 @@ executes the generator asynchronously and returns the next traversed value,</p>
 <h2 id="example-1"><a class="header" href="#example-1">Example</a></h2>
 <p>In normal PHP, we may have an line iterator on a file stream like this:</p>
 <pre><code class="language-php">function lines(string $file) : Generator {
-	$fh = fopen($file, &quot;rt&quot;);
+	$fh = fopen($file, "rt");
 	try {
 		while(($line = fgets($fh)) !== false) {
 			yield $line;
@@ -623,7 +602,7 @@ executes the generator asynchronously and returns the next traversed value,</p>
 function count_empty_lines(string $file) {
 	$count = 0;
 	foreach(lines($file) as $line) {
-		if(trim($line) === &quot;&quot;) $count++;
+		if(trim($line) === "") $count++;
 	}
 	return $count;
 }
@@ -632,7 +611,7 @@ function count_empty_lines(string $file) {
 and want to reimplement this <code>lines</code> function as async?</p>
 <p>We would use the <code>Traverser</code> class instead:</p>
 <pre><code class="language-php">function async_lines(string $file) : Generator {
-	$fh = yield from async_fopen($file, &quot;rt&quot;);
+	$fh = yield from async_fopen($file, "rt");
 	try {
 		while(true) {
 			$line = yield from async_fgets($fh);
@@ -651,7 +630,7 @@ function async_count_empty_lines(string $file) : Generator {
 
 	$traverser = new Traverser(async_lines($file));
 	while(yield from $traverser-&gt;next($line)) {
-		if(trim($line) === &quot;&quot;) $count++;
+		if(trim($line) === "") $count++;
 	}
 
 	return $count;
