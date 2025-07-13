@@ -42,6 +42,7 @@ final class Channel{
 	 * and wait until the value is received by the other side.
 	 *
 	 * @param T $value
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, void>
 	 */
 	public function sendAndWait($value) : Generator{
 		if($this->state instanceof ReceivingChannelState){

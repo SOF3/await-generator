@@ -57,6 +57,9 @@ final class Mutex{
 		return !$this->acquired;
 	}
 
+	/**
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, void>
+	 */
 	public function acquire() : Generator{
 		if(!$this->acquired){
 			// Mutex is idle, no extra work to do
