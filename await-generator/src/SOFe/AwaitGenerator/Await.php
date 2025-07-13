@@ -87,7 +87,28 @@ class Await extends PromiseState{
 	}
 
 	/**
+	 * Executes a generator in the background.
+	 *
+	 * @param Closure|Generator $generator
+	 * @phpstan-param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T>|Closure(): Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $generator
+	 */
+	public static function run(Closure|Generator $generator) : void{
+		if($generator instanceof Closure) {
+			$generator = $generator();
+		}
+
+		/** @var Await<T> $await */
+		$await = new Await();
+		$await->generator = $generator;
+		$await->onComplete = null;
+
+		$await->wakeupFlat(fn() => $generator->rewind());
+	}
+
+	/**
 	 * Converts a `Function<AwaitGenerator>` to a VoidCallback
+	 *
+	 * @deprecated Use `Await::run` instead.
 	 *
 	 * @param callable            $closure
 	 * @phpstan-param callable(): Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $closure
@@ -104,6 +125,8 @@ class Await extends PromiseState{
 
 	/**
 	 * Converts an AwaitGenerator to a VoidCallback
+	 *
+	 * @deprecated Use `Await::run` instead.
 	 *
 	 * @param Generator           $generator
 	 * @phpstan-param Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, T> $generator
