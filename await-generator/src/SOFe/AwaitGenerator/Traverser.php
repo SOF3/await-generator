@@ -61,6 +61,7 @@ final class Traverser{
 	 * Returns false if there are no more values.
 	 *
 	 * @param-out I $valueRef
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, bool>
 	 */
 	public function next(mixed &$valueRef) : Generator{
 		while($this->inner->valid()){
@@ -84,7 +85,7 @@ final class Traverser{
 	 * Asynchronously waits for all remaining values in the underlying iterator
 	 * and collects them into a linear array.
 	 *
-	 * @return Generator<mixed, mixed, mixed, list<I>>
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, list<I>>
 	 */
 	public function collect() : Generator{
 		$array = [];
@@ -106,6 +107,8 @@ final class Traverser{
 	 * and the iterator is still executing.
 	 *
 	 * All values iterated during interruption are discarded.
+	 *
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, ?Throwable>
 	 */
 	public function interrupt(Throwable $ex = null, int $attempts = self::MAX_INTERRUPTS) : Generator{
 		$ex = $ex ?? InterruptException::get();
@@ -135,6 +138,8 @@ final class Traverser{
 	 * $namespace2Traverser = new Namespace2\AwaitGenerator\Traverser($namespace1Traverser->asGenerator());
 	 * ```
 	 * Then `$namespace1Traverser` and `$namespace2Traverser` are fully interchangeable wherever type check passes.
+	 *
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator|Traverser::VALUE, mixed, mixed>
 	 */
 	public function asGenerator() : Generator {
 		return $this->inner;
