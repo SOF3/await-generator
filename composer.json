@@ -28,7 +28,7 @@
 		"phpunit/phpunit": "^9",
 		"phpstan/phpstan": "^0.12.84",
 		"infection/infection": "^0.18.2 || ^0.20.2 || ^0.26.0",
-		"composer/package-versions-deprecated": "1.11.99.1"
+		"composer/package-versions-deprecated": "1.11.99.5"
 	},
 	"scripts": {
 		"test": "vendor/bin/phpunit",
