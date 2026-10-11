@@ -60,11 +60,12 @@ final class Channel{
 		}
 
 		try {
-			// $key holds the object reference directly instead of the key to avoid GC causing spl_object_id duplicate
+			// $key holds the object reference directly instead of the key to avoid GC causing spl_object_hash duplicate
 			$key = null;
 
 			yield from Await::promise(function($resolve) use($value, &$key){
 				$key = $resolve;
+				// string key, so that array_shift does not renumber it
 				$this->state->queue[spl_object_hash($key)] = [$value, $resolve];
 			});
 		} finally {
@@ -135,11 +136,12 @@ final class Channel{
 		}
 
 		try {
-			// $key holds the object reference directly instead of the key to avoid GC causing spl_object_id duplicate
+			// $key holds the object reference directly instead of the key to avoid GC causing spl_object_hash duplicate
 			$key = null;
 
 			return yield from Await::promise(function($resolve) use(&$key){
 				$key = $resolve;
+				// string key, so that array_shift does not renumber it
 				$this->state->queue[spl_object_hash($key)] = $resolve;
 			});
 		} finally {
