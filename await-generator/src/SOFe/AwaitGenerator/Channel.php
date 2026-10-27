@@ -24,6 +24,7 @@ namespace SOFe\AwaitGenerator;
 
 use function array_shift;
 use function count;
+use function spl_object_hash;
 use Generator;
 
 /**
@@ -59,19 +60,20 @@ final class Channel{
 		}
 
 		try {
-			// $key holds the object reference directly instead of the key to avoid GC causing spl_object_id duplicate
+			// $key holds the object reference directly instead of the key to avoid GC causing spl_object_hash duplicate
 			$key = null;
 
 			yield from Await::promise(function($resolve) use($value, &$key){
 				$key = $resolve;
-				$this->state->queue[spl_object_id($key)] = [$value, $resolve];
+				// string key, so that array_shift does not renumber it
+				$this->state->queue[spl_object_hash($key)] = [$value, $resolve];
 			});
 		} finally {
 			if($key !== null) {
 				if($this->state instanceof SendingChannelState) {
 					// our key may still exist in the channel state
 
-					unset($this->state->queue[spl_object_id($key)]);
+					unset($this->state->queue[spl_object_hash($key)]);
 					if(count($this->state->queue) === 0) {
 						$this->state = new EmptyChannelState;
 					}
@@ -134,19 +136,20 @@ final class Channel{
 		}
 
 		try {
-			// $key holds the object reference directly instead of the key to avoid GC causing spl_object_id duplicate
+			// $key holds the object reference directly instead of the key to avoid GC causing spl_object_hash duplicate
 			$key = null;
 
 			return yield from Await::promise(function($resolve) use(&$key){
 				$key = $resolve;
-				$this->state->queue[spl_object_id($key)] = $resolve;
+				// string key, so that array_shift does not renumber it
+				$this->state->queue[spl_object_hash($key)] = $resolve;
 			});
 		} finally {
 			if($key !== null) {
 				if($this->state instanceof ReceivingChannelState) {
 					// our key may still exist in the channel state
 
-					unset($this->state->queue[spl_object_id($key)]);
+					unset($this->state->queue[spl_object_hash($key)]);
 					if(count($this->state->queue) === 0) {
 						$this->state = new EmptyChannelState;
 					}

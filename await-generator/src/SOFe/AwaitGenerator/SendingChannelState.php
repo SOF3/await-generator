@@ -27,6 +27,6 @@ namespace SOFe\AwaitGenerator;
  * @internal
  */
 final class SendingChannelState{
-	/** @var list<array{T, Closure(): void}> */
+	/** @var array<string, array{T, Closure(): void}> */
 	public array $queue = [];
 }

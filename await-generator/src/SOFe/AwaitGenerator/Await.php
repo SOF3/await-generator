@@ -185,6 +185,20 @@ class Await extends PromiseState{
 	 * @see Await::safeRace
 	 */
 	public static function race(array $generators) : Generator{
+		$awaits = [];
+		return yield from self::raceWithAwaits($generators, $awaits);
+	}
+
+	/**
+	 * Same as `race`, but also stores the Await of each generator in `$awaits`.
+	 *
+	 * @template K
+	 * @template U
+	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $generators
+	 * @param array<K, Await<U>> $awaits
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, array{K, U}>
+	 */
+	private static function raceWithAwaits(array $generators, array &$awaits) : Generator{
 		if(count($generators) === 0){
 			throw new AwaitException("Cannot race an empty array of generators");
 		}
@@ -192,7 +206,7 @@ class Await extends PromiseState{
 		foreach($generators as $k => $generator){
 			$resolve = yield;
 			$reject = yield self::REJECT;
-			self::g2c($generator, static function($result) use($k, $resolve) : void{
+			$awaits[$k] = self::g2c($generator, static function($result) use($k, $resolve) : void{
 				$resolve([$k, $result]);
 			}, $reject);
 		}
@@ -207,7 +221,7 @@ class Await extends PromiseState{
 	 * @template K
 	 * @template U
 	 * @param array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>> $inputs
-	 * @return array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>>
+	 * @return array{array<K, Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, U>>, Channel<null>}
 	 */
 	private static function raceSemaphore(array $inputs) : array{
 		$wrapped = [];
@@ -239,7 +253,7 @@ class Await extends PromiseState{
 			})();
 		}
 
-		return $wrapped;
+		return [$wrapped, $ch];
 	}
 
 	/**
@@ -257,21 +271,25 @@ class Await extends PromiseState{
 	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator, mixed, array{K, U}>
 	 */
 	public static function safeRace(array $generators) : Generator{
-		$generators = self::raceSemaphore($generators);
+		[$generators, $ch] = self::raceSemaphore($generators);
 
 		$firstException = null;
 		$which = null;
+		$awaits = [];
 
 		try {
-			[$which, $result] = yield from self::race($generators);
+			[$which, $result] = yield from self::raceWithAwaits($generators, $awaits);
 
 			return [$which, $result];
 		} catch(Throwable $e) {
 			$firstException = $e;
 			throw $e;
 		} finally {
+			if($which !== null || $firstException !== null) {
+				$ch->tryReceiveOr(null);
+			}
 			foreach($generators as $key => $generator) {
-				if($which !== null && $key !== $which) {
+				if(($which !== null || $firstException !== null) && $key !== $which) {
 					try {
 						$generator->throw(new RaceLostException);
 					} catch(RaceLostException $e) {
@@ -281,6 +299,7 @@ class Await extends PromiseState{
 							$firstException = $e;
 						}
 					}
+					$awaits[$key]->detach();
 				}
 			}
 		}
@@ -586,6 +605,13 @@ class Await extends PromiseState{
 			}
 		}
 		throw new AwaitException("Unhandled async exception: {$throwable->getMessage()}", 0, $throwable);
+	}
+
+	private function detach() : void{
+		foreach($this->promiseQueue as $p){
+			$p->cancelled = true;
+		}
+		$this->promiseQueue = [];
 	}
 
 	/**
