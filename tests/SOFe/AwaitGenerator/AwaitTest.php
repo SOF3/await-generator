@@ -23,6 +23,7 @@ declare(strict_types=1);
 namespace SOFe\AwaitGenerator;
 
 use Closure;
+use Exception;
 use Generator;
 use PHPUnit\Framework\TestCase;
 use Throwable;
@@ -99,6 +100,30 @@ class AwaitTest extends TestCase{
 		self::assertFalse($resolveCalled);
 		self::assertTrue($rejectCalled);
 		self::assertEquals($exception, $rejectValue);
+	}
+
+	public function testTypedCatchMatchesParentException() : void{
+		$exception = new DummyException();
+		$caught = null;
+		Await::g2c(GeneratorUtil::throw($exception), null, [
+			Exception::class => function(Throwable $throwable) use (&$caught) : void{
+				$caught = $throwable;
+			}
+		]);
+
+		self::assertSame($exception, $caught);
+	}
+
+	public function testTypedCatchMatchesThrowableInterface() : void{
+		$exception = new DummyException();
+		$caught = null;
+		Await::g2c(GeneratorUtil::throw($exception), null, [
+			Throwable::class => function(Throwable $throwable) use (&$caught) : void{
+				$caught = $throwable;
+			}
+		]);
+
+		self::assertSame($exception, $caught);
 	}
 
 	public function testBadYield() : void{

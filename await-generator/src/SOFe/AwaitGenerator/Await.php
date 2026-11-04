@@ -33,8 +33,9 @@ use Throwable;
 use function array_merge;
 use function assert;
 use function count;
-use function is_a;
 use function is_callable;
+use function ltrim;
+use function strcasecmp;
 
 /**
  * @template T
@@ -599,12 +600,38 @@ class Await extends PromiseState{
 
 		parent::reject($throwable);
 		foreach($this->catches as $class => $onError){
-			if($class === "" || is_a($throwable, $class)){
+			if($class === "" || self::matchesCatchClass($throwable, $class)){
 				$onError($throwable);
 				return;
 			}
 		}
 		throw new AwaitException("Unhandled async exception: {$throwable->getMessage()}", 0, $throwable);
+	}
+
+	/**
+	 * Checks a deprecated typed catch handler without a dynamic `is_a()` call.
+	 *
+	 * Dynamic class-name arguments cannot be safely rewritten when this virion
+	 * is shaded into a plugin-private namespace. The throwable's own class,
+	 * parents and interfaces already contain the complete information needed for
+	 * this object-based check.
+	 *
+	 * @internal This is implementation detail. Existence, signature and behaviour are semver-exempt.
+	 */
+	private static function matchesCatchClass(Throwable $throwable, string $class) : bool{
+		$class = ltrim($class, "\\");
+		$throwableClasses = array_merge(
+			[get_class($throwable)],
+			class_parents($throwable) ?: [],
+			class_implements($throwable) ?: []
+		);
+
+		foreach($throwableClasses as $throwableClass){
+			if(strcasecmp($throwableClass, $class) === 0){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private function detach() : void{
