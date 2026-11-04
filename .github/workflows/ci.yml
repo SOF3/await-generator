@@ -25,7 +25,8 @@ jobs:
         env:
           XDEBUG_MODE: coverage
         run: composer test -- --coverage-clover=coverage.xml
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v4
+        if: ${{ secrets.CODECOV_SECRET != '' }}
         with:
           token: ${{secrets.CODECOV_SECRET}}
           fail_ci_if_error: true
@@ -66,15 +67,15 @@ jobs:
         env:
           XDEBUG_MODE: coverage
         run: composer infection
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v4
         with:
           name: infection.log
           path: infection.log
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v4
         with:
           name: infection-summary.log
           path: infection-summary.log
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v4
         with:
           name: infection-per-mutator.md
           path: infection-per-mutator.md
