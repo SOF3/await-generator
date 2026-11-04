@@ -26,7 +26,7 @@ jobs:
           XDEBUG_MODE: coverage
         run: composer test -- --coverage-clover=coverage.xml
       - uses: codecov/codecov-action@v4
-        if: ${{ secrets.CODECOV_SECRET != '' }}
+        if: github.repository == 'SOF3/await-generator' && github.event_name == 'push'
         with:
           token: ${{secrets.CODECOV_SECRET}}
           fail_ci_if_error: true
